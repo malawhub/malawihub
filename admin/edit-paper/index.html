@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Past Paper | MalawiHub</title>
+
+    <link rel="stylesheet" href="../../css/style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/supabase.js"></script>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">🇲🇼 MalawiHub</div>
+
+    <nav>
+        <a href="../index.html">Dashboard</a>
+        <a href="../manage-papers/index.html">Manage Papers</a>
+        <a href="../../papers/index.html">Public Papers</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1>✏️ Edit Past Paper</h1>
+    <p>Update paper information or replace the PDF.</p>
+</section>
+
+<main class="tools-section">
+
+    <section class="card">
+
+        <label for="title">Paper Title</label>
+        <input id="title" type="text">
+
+        <label for="category">Category</label>
+        <input id="category" type="text">
+
+        <label for="subject">Subject</label>
+        <input id="subject" type="text">
+
+        <label for="year">Year</label>
+        <input id="year" type="number">
+
+        <label for="description">Description</label>
+        <textarea id="description"></textarea>
+
+        <label for="link">Current Paper Link</label>
+        <input id="link" type="url" readonly>
+
+        <label for="paperFile">
+            Replace PDF
+        </label>
+
+        <input
+            id="paperFile"
+            type="file"
+            accept="application/pdf,.pdf"
+        >
+
+        <p>
+            <small>
+                Leave the PDF field empty if you only want to edit the information.
+            </small>
+        </p>
+
+        <button onclick="updatePaper()">
+            Save Changes
+        </button>
+
+        <p id="message"></p>
+
+    </section>
+
+</main>
+
+<footer>
+    <p>© 2026 MalawiHub</p>
+    <p>Free study resources for students.</p>
+</footer>
+
+<script>
+
+let paperId = null;
+let currentLink = null;
+
+
+async function checkAdminAuth() {
+
+    const { data: { session } } =
+        await supabaseClient.auth.getSession();
+
+    if (!session) {
+        window.location.href = "../login.html";
+    }
+}
+
+checkAdminAuth();
+
+
+async function loadPaper() {
+
+    const params =
+        new URLSearchParams(window.location.search);
+
+    paperId =
+        params.get("id");
+
+
+    if (!paperId) {
+
+        document.getElementById("message").textContent =
+            "❌ No past paper was selected.";
+
+        return;
+    }
+
+
+    const { data: paper, error } =
+        await supabaseClient
+            .from("past_papers")
+            .select("*")
+            .eq("id", paperId)
+            .single();
+
+
+    if (error) {
+
+        console.error(error);
+
+        document.getElementById("message").textContent =
+            "❌ Failed to load the past paper.";
+
+        return;
+    }
+
+
+    currentLink =
+        paper.link || "";
+
+
+    document.getElementById("title").value =
+        paper.title || "";
+
+    document.getElementById("category").value =
+        paper.category || "";
+
+    document.getElementById("subject").value =
+        paper.subject || "";
+
+    document.getElementById("year").value =
+        paper.year || "";
+
+    document.getElementById("description").value =
+        paper.description || "";
+
+    document.getElementById("link").value =
+        currentLink;
+}
+
+
+async function updatePaper() {
+
+    const title =
+        document.getElementById("title").value.trim();
+
+    const category =
+        document.getElementById("category").value.trim();
+
+    const subject =
+        document.getElementById("subject").value.trim();
+
+    const year =
+        Number(document.getElementById("year").value);
+
+    const description =
+        document.getElementById("description").value.trim();
+
+    const file =
+        document.getElementById("paperFile").files[0];
+
+    const message =
+        document.getElementById("message");
+
+
+    if (
+        !paperId ||
+        !title ||
+        !category ||
+        !subject ||
+        !year
+    ) {
+
+        message.textContent =
+            "Please complete the required fields.";
+
+        return;
+    }
+
+
+    let newLink =
+        currentLink;
+
+    let newFilePath =
+        null;
+
+
+    if (file) {
+
+        if (file.type !== "application/pdf") {
+
+            message.textContent =
+                "❌ Please select a PDF file.";
+
+            return;
+        }
+
+
+        if (file.size > 20 * 1024 * 1024) {
+
+            message.textContent =
+                "❌ The PDF is too large. Please use a file smaller than 20 MB.";
+
+            return;
+        }
+
+
+        message.textContent =
+            "⏳ Uploading replacement PDF...";
+
+
+        const safeTitle =
+            title
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, "-")
+                .replace(/^-+|-+$/g, "")
+                .slice(0, 80);
+
+
+        const fileName =
+            `${Date.now()}-${safeTitle || "paper"}.pdf`;
+
+        newFilePath =
+            `${year}/${fileName}`;
+
+
+        const { error: uploadError } =
+            await supabaseClient.storage
+                .from("past-papers")
+                .upload(newFilePath, file, {
+                    contentType: "application/pdf",
+                    upsert: false
+                });
+
+
+        if (uploadError) {
+
+            console.error(uploadError);
+
+            message.textContent =
+                "❌ Replacement PDF upload failed.";
+
+            return;
+        }
+
+
+        const { data: publicUrlData } =
+            supabaseClient.storage
+                .from("past-papers")
+                .getPublicUrl(newFilePath);
+
+
+        newLink =
+            publicUrlData.publicUrl;
+    }
+
+
+    const { error: databaseError } =
+        await supabaseClient
+            .from("past_papers")
+            .update({
+                title: title,
+                category: category,
+                subject: subject,
+                year: year,
+                description: description,
+                link: newLink
+            })
+            .eq("id", paperId);
+
+
+    if (databaseError) {
+
+        console.error(databaseError);
+
+
+        if (newFilePath) {
+
+            await supabaseClient.storage
+                .from("past-papers")
+                .remove([newFilePath]);
+
+        }
+
+
+        message.textContent =
+            "❌ Failed to update the past paper.";
+
+        return;
+    }
+
+
+    message.textContent =
+        "✅ Past paper updated successfully.";
+
+
+    currentLink =
+        newLink;
+
+    document.getElementById("link").value =
+        newLink;
+
+    document.getElementById("paperFile").value = "";
+}
+
+
+loadPaper();
+
+</script>
+
+</body>
+</html>

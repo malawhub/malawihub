@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biology Resources | MalawiHub</title>
+    <link rel="stylesheet" href="../../css/style.css">
+</head>
+
+<body>
+
+<header>
+    <div class="logo">🇲🇼 MalawiHub</div>
+    <nav>
+        <a href="../../index.html">Home</a>
+        <a href="../index.html">Resources</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1>🧬 Biology Resources</h1>
+    <p>Notes, concepts and revision materials for Biology students.</p>
+</section>
+
+<section class="tools-section">
+    <h2>Biology Topics</h2>
+
+    <div class="card-grid">
+
+        <div class="card">
+            <h3>🔬 Cell Biology</h3>
+            <p>Cell structure, organelles, cell division and cellular processes.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🧬 Genetics</h3>
+            <p>Genes, chromosomes, inheritance, DNA and genetic variation.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🌱 Plant Biology</h3>
+            <p>Plant structure, nutrition, photosynthesis and transport.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🫀 Human Biology</h3>
+            <p>Human body systems, nutrition, health and homeostasis.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🌍 Ecology</h3>
+            <p>Ecosystems, populations, food chains and environmental relationships.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🦠 Microbiology</h3>
+            <p>Microorganisms, bacteria, viruses and their importance.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🧪 Evolution</h3>
+            <p>Natural selection, adaptation, variation and evolutionary evidence.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🐾 Classification</h3>
+            <p>Biological classification, kingdoms and characteristics of organisms.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>📝 Revision Notes</h3>
+            <p>Key definitions, diagrams, concepts and quick revision materials.</p>
+            <button>Open</button>
+        </div>
+
+    </div>
+</section>
+
+<footer>
+    <p>© 2026 MalawiHub</p>
+    <p>Free study resources for students.</p>
+</footer>
+
+</body>
+</html>

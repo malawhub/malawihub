@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Assignment Cover Generator - MalawiHub</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Arial,sans-serif;background:#f4f7fb;margin:0;padding:20px;color:#222}
+.container{max-width:650px;margin:auto;background:white;padding:25px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.1)}
+h1{text-align:center;margin-bottom:8px}
+.subtitle{text-align:center;color:#666;margin-bottom:25px}
+label{display:block;font-weight:bold;margin:14px 0 6px}
+input,textarea{width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:16px}
+textarea{min-height:80px;resize:vertical}
+button{width:100%;padding:14px;margin-top:18px;border:0;border-radius:8px;background:#1769aa;color:white;font-size:16px;font-weight:bold}
+.cover{display:none;margin-top:30px;padding:40px 25px;border:2px solid #222;min-height:650px;text-align:center;background:white}
+.cover h2{font-size:24px;margin:10px 0 35px}
+.cover h3{font-size:20px;margin:25px 0}
+.cover p{font-size:16px;margin:12px 0}
+.cover .title{font-size:22px;font-weight:bold;margin:35px 0}
+.download-note{margin-top:20px;text-align:center;font-size:13px;color:#666}
+@media print{
+body{background:white;padding:0}
+.container{display:none}
+.cover{display:block;border:0;margin:0;min-height:100vh}
+.download-note{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>📝 Assignment Cover Generator</h1>
+<p class="subtitle">Create a professional assignment cover page.</p>
+
+<label>Student Name</label>
+<input id="student" placeholder="e.g. John Banda">
+
+<label>Student ID / Registration Number</label>
+<input id="studentId" placeholder="e.g. BSC/2024/001">
+
+<label>University / College</label>
+<input id="institution" placeholder="e.g. University of Malawi">
+
+<label>Department</label>
+<input id="department" placeholder="e.g. Education">
+
+<label>Course Name</label>
+<input id="course" placeholder="e.g. Physical Chemistry">
+
+<label>Course Code</label>
+<input id="code" placeholder="e.g. CHE321">
+
+<label>Assignment Title</label>
+<textarea id="title" placeholder="Enter assignment title"></textarea>
+
+<label>Lecturer / Instructor</label>
+<input id="lecturer" placeholder="e.g. Dr. Banda">
+
+<label>Submission Date</label>
+<input id="date" type="date">
+
+<button onclick="generateCover()">Generate Cover Page</button>
+
+</div>
+
+<div class="cover" id="cover">
+<h2 id="outInstitution"></h2>
+<p id="outDepartment"></p>
+
+<h3>ASSIGNMENT</h3>
+
+<p><strong>Student Name:</strong> <span id="outStudent"></span></p>
+<p><strong>Student ID:</strong> <span id="outStudentId"></span></p>
+
+<p><strong>Course:</strong> <span id="outCourse"></span></p>
+<p><strong>Course Code:</strong> <span id="outCode"></span></p>
+
+<div class="title" id="outTitle"></div>
+
+<p><strong>Lecturer:</strong> <span id="outLecturer"></span></p>
+<p><strong>Submission Date:</strong> <span id="outDate"></span></p>
+
+<div class="download-note">
+Use your browser's Print option to save the cover page as a PDF.
+</div>
+</div>
+
+<script>
+function get(id){
+    return document.getElementById(id).value.trim();
+}
+
+function generateCover(){
+    document.getElementById("outInstitution").textContent=get("institution");
+    document.getElementById("outDepartment").textContent=get("department");
+    document.getElementById("outStudent").textContent=get("student");
+    document.getElementById("outStudentId").textContent=get("studentId");
+    document.getElementById("outCourse").textContent=get("course");
+    document.getElementById("outCode").textContent=get("code");
+    document.getElementById("outTitle").textContent=get("title");
+    document.getElementById("outLecturer").textContent=get("lecturer");
+
+    const date=get("date");
+
+    if(date){
+        const d=new Date(date+"T00:00:00");
+        document.getElementById("outDate").textContent=
+            d.toLocaleDateString(undefined,{
+                day:"numeric",
+                month:"long",
+                year:"numeric"
+            });
+    }else{
+        document.getElementById("outDate").textContent="";
+    }
+
+    document.getElementById("cover").style.display="block";
+    document.getElementById("cover").scrollIntoView({
+        behavior:"smooth"
+    });
+}
+</script>
+
+</body>
+</html>

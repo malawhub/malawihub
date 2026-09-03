@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MalawiHub Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+
+<script>
+if (sessionStorage.getItem("malawihubAdmin") !== "true") {
+    window.location.href = "login.html";
+}
+</script>
+</head>
+
+<body>
+
+<header>
+    <h1>🇲🇼 MalawiHub Admin</h1>
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="../resources/index.html">Resources</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h2>⚙️ Admin Dashboard</h2>
+    <p>Manage MalawiHub learning resources from one place.</p>
+</section>
+
+<main class="container">
+
+    <section class="tools-section">
+        <h2>📊 Resource Statistics</h2>
+
+        <div class="card-grid">
+
+            <div class="card">
+                <h3 id="totalResources">0</h3>
+                <p>Total Resources</p>
+            </div>
+
+            <div class="card">
+                <h3 id="chemistryResources">0</h3>
+                <p>🧪 Chemistry</p>
+            </div>
+
+            <div class="card">
+                <h3 id="mathematicsResources">0</h3>
+                <p>🧮 Mathematics</p>
+            </div>
+
+            <div class="card">
+                <h3 id="biologyResources">0</h3>
+                <p>🧬 Biology</p>
+            </div>
+
+            <div class="card">
+                <h3 id="educationResources">0</h3>
+                <p>🎓 Education</p>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="card">
+        <h3>➕ Add Resource</h3>
+        <p>Create and add a new learning resource.</p>
+        <button onclick="location.href='add-resource/index.html'">Open</button>
+    </section>
+
+    <section class="card">
+        <h3>📚 Manage Resources</h3>
+        <p>View, edit and organize existing resources.</p>
+        <button onclick="location.href='manage-resources/index.html'">Open</button>
+    </section>
+
+    <section class="card">
+        <h3>🔎 Search Resources</h3>
+        <p>Find resources quickly by subject or title.</p>
+        <button onclick="location.href='manage-resources/index.html'">Open</button>
+    </section>
+
+</main>
+
+<footer>
+    <p>© 2026 MalawiHub</p>
+</footer>
+
+
+<script>
+function logout() {
+    sessionStorage.removeItem("malawihubAdmin");
+    window.location.href = "login.html";
+}
+</script>
+
+<script>
+function loadStatistics() {
+
+    const resources =
+        JSON.parse(localStorage.getItem("malawihubResources")) || [];
+
+    document.getElementById("totalResources").textContent =
+        resources.length;
+
+    document.getElementById("chemistryResources").textContent =
+        resources.filter(r =>
+            r.subject.toLowerCase() === "chemistry"
+        ).length;
+
+    document.getElementById("mathematicsResources").textContent =
+        resources.filter(r =>
+            r.subject.toLowerCase() === "mathematics"
+        ).length;
+
+    document.getElementById("biologyResources").textContent =
+        resources.filter(r =>
+            r.subject.toLowerCase() === "biology"
+        ).length;
+
+    document.getElementById("educationResources").textContent =
+        resources.filter(r =>
+            r.subject.toLowerCase() === "education"
+        ).length;
+}
+
+loadStatistics();
+</script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - MalawiHub</title>
+    <link rel="stylesheet" href="../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">🇲🇼 MalawiHub</div>
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="../resources/index.html">Resources</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1>🔐 Admin Login</h1>
+    <p>Sign in to manage MalawiHub resources.</p>
+</section>
+
+<main class="container">
+
+    <section class="card">
+
+        <label for="email">Email</label>
+        <input id="email" type="email" placeholder="Enter email">
+
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="Enter password">
+
+        <button onclick="login()">Login</button>
+
+        <p id="message"></p>
+
+    </section>
+
+</main>
+
+<script>
+async function login() {
+
+    const email =
+        document.getElementById("email").value.trim();
+
+    const password =
+        document.getElementById("password").value;
+
+    const message =
+        document.getElementById("message");
+
+    if (!email || !password) {
+        message.textContent =
+            "Please enter your email and password.";
+        return;
+    }
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: email,
+        password: password
+    });
+
+    if (error) {
+        console.error("Login failed:", error);
+        message.textContent =
+            "❌ Incorrect email or password.";
+        return;
+    }
+
+
+    window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>

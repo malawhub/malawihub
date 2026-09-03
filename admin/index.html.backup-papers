@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MalawiHub Admin</title>
+    <link rel="stylesheet" href="../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+
+<script>
+async function checkAdminAuth() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+        window.location.href = "login.html";
+    }
+}
+
+checkAdminAuth();
+</script>
+</head>
+
+<body>
+
+<header>
+    <h1>🇲🇼 MalawiHub Admin</h1>
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="../resources/index.html">Resources</a>
+        <a href="#" onclick="logout()">Logout</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h2>⚙️ Admin Dashboard</h2>
+    <p>Manage MalawiHub learning resources from one place.</p>
+</section>
+
+<main class="container">
+
+    <section class="tools-section">
+        <h2>📊 Resource Statistics</h2>
+
+        <div class="card-grid">
+
+            <div class="card">
+                <h3 id="totalResources">0</h3>
+                <p>Total Resources</p>
+            </div>
+
+            <div class="card">
+                <h3 id="chemistryResources">0</h3>
+                <p>🧪 Chemistry</p>
+            </div>
+
+            <div class="card">
+                <h3 id="mathematicsResources">0</h3>
+                <p>🧮 Mathematics</p>
+            </div>
+
+            <div class="card">
+                <h3 id="biologyResources">0</h3>
+                <p>🧬 Biology</p>
+            </div>
+
+            <div class="card">
+                <h3 id="educationResources">0</h3>
+                <p>🎓 Education</p>
+            </div>
+
+        </div>
+    </section>
+
+    <section class="card">
+        <h3>➕ Add Resource</h3>
+        <p>Create and add a new learning resource.</p>
+        <button onclick="location.href='add-resource/index.html'">Open</button>
+    </section>
+
+    <section class="card">
+        <h3>📚 Manage Resources</h3>
+        <p>View, edit and organize existing resources.</p>
+        <button onclick="location.href='manage-resources/index.html'">Open</button>
+    </section>
+
+    <section class="card">
+        <h3>🔎 Search Resources</h3>
+        <p>Find resources quickly by subject or title.</p>
+        <button onclick="location.href='manage-resources/index.html'">Open</button>
+    </section>
+
+</main>
+
+<footer>
+    <p>© 2026 MalawiHub</p>
+</footer>
+
+
+<script>
+async function logout() {
+    await supabaseClient.auth.signOut();
+    window.location.href = "login.html";
+}
+</script>
+
+<script>
+async function loadStatistics() {
+
+    const { data: resources, error } = await supabaseClient
+        .from("resources")
+        .select("subject");
+
+    if (error) {
+        console.error("Failed to load statistics:", error);
+        return;
+    }
+
+    const list = resources || [];
+
+    document.getElementById("totalResources").textContent =
+        list.length;
+
+    document.getElementById("chemistryResources").textContent =
+        list.filter(r =>
+            (r.subject || "").toLowerCase() === "chemistry"
+        ).length;
+
+    document.getElementById("mathematicsResources").textContent =
+        list.filter(r =>
+            (r.subject || "").toLowerCase() === "mathematics"
+        ).length;
+
+    document.getElementById("biologyResources").textContent =
+        list.filter(r =>
+            (r.subject || "").toLowerCase() === "biology"
+        ).length;
+
+    document.getElementById("educationResources").textContent =
+        list.filter(r =>
+            (r.subject || "").toLowerCase() === "education"
+        ).length;
+}
+
+loadStatistics();
+</script>
+</body>
+</html>

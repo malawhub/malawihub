@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Percentage Calculator - MalawiHub</title>
+<style>
+body{font-family:Arial;margin:0;background:#f4f7fb;color:#222}
+header{background:#1769aa;color:#fff;text-align:center;padding:20px}
+main{max-width:600px;margin:25px auto;padding:20px}
+.card{background:#fff;padding:20px;border-radius:14px;box-shadow:0 3px 12px #0002}
+.section{padding-bottom:18px;margin-bottom:18px;border-bottom:1px solid #ddd}
+input,button{width:100%;padding:13px;margin:7px 0;box-sizing:border-box;font-size:16px;border-radius:8px}
+input{border:1px solid #aaa}
+button{border:0;background:#1769aa;color:#fff}
+.result{margin-top:10px;padding:13px;background:#eef7ee;border-radius:8px;display:none}
+a{display:block;text-align:center;margin-top:20px;color:#1769aa}
+</style>
+</head>
+<body>
+
+<header>
+<h1>MalawiHub</h1>
+<p>Percentage Calculator</p>
+</header>
+
+<main>
+<div class="card">
+
+<div class="section">
+<h2>Find a Percentage</h2>
+<p>What is A% of B?</p>
+<input id="p" type="number" placeholder="Percentage e.g. 20">
+<input id="n" type="number" placeholder="Number e.g. 50000">
+<button onclick="one()">Calculate</button>
+<div id="r1" class="result"></div>
+</div>
+
+<div class="section">
+<h2>Find What Percentage</h2>
+<p>A is what percentage of B?</p>
+<input id="a" type="number" placeholder="First number">
+<input id="b" type="number" placeholder="Second number">
+<button onclick="two()">Calculate</button>
+<div id="r2" class="result"></div>
+</div>
+
+<div class="section">
+<h2>Percentage Change</h2>
+<input id="old" type="number" placeholder="Original value">
+<input id="new" type="number" placeholder="New value">
+<button onclick="three()">Calculate</button>
+<div id="r3" class="result"></div>
+</div>
+
+<a href="../../index.html">← Back to MalawiHub</a>
+</div>
+</main>
+
+<script>
+function show(id,text){
+let r=document.getElementById(id);
+r.style.display="block";
+r.innerHTML=text;
+}
+
+function one(){
+let p=+document.getElementById("p").value;
+let n=+document.getElementById("n").value;
+if(isNaN(p)||isNaN(n)){
+show("r1","Please enter both values.");
+return;
+}
+show("r1","<b>"+p+"% of "+n+" = "+((p/100)*n).toLocaleString()+"</b>");
+}
+
+function two(){
+let a=+document.getElementById("a").value;
+let b=+document.getElementById("b").value;
+if(isNaN(a)||isNaN(b)||b===0){
+show("r2","Please enter valid values.");
+return;
+}
+show("r2","<b>"+a+" is "+((a/b)*100).toFixed(2)+"% of "+b+"</b>");
+}
+
+function three(){
+let old=+document.getElementById("old").value;
+let n=+document.getElementById("new").value;
+if(isNaN(old)||isNaN(n)||old===0){
+show("r3","Please enter valid values.");
+return;
+}
+let c=((n-old)/old)*100;
+show("r3",c>0?"<b>Increase: "+c.toFixed(2)+"%</b>":c<0?"<b>Decrease: "+Math.abs(c).toFixed(2)+"%</b>":"<b>No change: 0%</b>");
+}
+</script>
+
+</body>
+</html>

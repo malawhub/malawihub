@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Manage Subject Resources | MalawiHub</title>
+
+    <link rel="stylesheet" href="../../css/style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/supabase.js"></script>
+
+    <style>
+        .resource-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .edit-btn {
+            background: #2563eb;
+        }
+
+        .delete-btn {
+            background: #dc2626;
+        }
+
+        .resource-meta {
+            color: #666;
+            margin: 7px 0;
+        }
+
+        .filters input,
+        .filters select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">🇲🇼 MalawiHub</div>
+
+    <nav>
+        <a href="../index.html">Dashboard</a>
+        <a href="../add-paper/index.html">Past Papers</a>
+        <a href="../../resources/index.html">Resources</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1>📚 Manage Subject Resources</h1>
+    <p>Upload, edit and delete resources for MalawiHub subject libraries.</p>
+</section>
+
+<main class="tools-section">
+
+    <section class="card filters">
+
+        <input
+            id="search"
+            type="search"
+            placeholder="Search resources..."
+            oninput="filterResources()"
+        >
+
+        <select id="subjectFilter" onchange="filterResources()">
+            <option value="">All Subjects</option>
+            <option value="Chemistry">Chemistry</option>
+            <option value="Mathematics">Mathematics</option>
+            <option value="Biology">Biology</option>
+            <option value="Education">Education</option>
+        </select>
+
+        <select id="categoryFilter" onchange="filterResources()">
+            <option value="">All Categories</option>
+        </select>
+
+    </section>
+
+    <section class="card" style="margin:20px 0;padding:25px;text-align:center;border:2px solid #0b7a4b;">
+        <h2>➕ Add Subject Resource</h2>
+
+        <p>
+            Upload a PDF resource directly to the MalawiHub library.
+        </p>
+
+        <a href="add.html" style="text-decoration:none;">
+            <button type="button" style="background:#0b7a4b;color:white;border:0;padding:12px 22px;border-radius:8px;font-weight:600;cursor:pointer;">
+                ➕ Add Resource
+            </button>
+        </a>
+    </section>
+
+    <div id="resourceList"></div>
+
+</main>
+
+<footer>
+    <p>© 2026 MalawiHub</p>
+    <p>Free study resources for students.</p>
+</footer>
+
+<script>
+
+let allResources = [];
+
+
+async function checkAdminAuth() {
+
+    const { data: { session } } =
+        await supabaseClient.auth.getSession();
+
+    if (!session) {
+        window.location.href = "../login.html";
+    }
+}
+
+checkAdminAuth();
+
+
+async function loadResources() {
+
+    const { data, error } =
+        await supabaseClient
+            .from("subject_resources")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+
+    if (error) {
+
+        console.error(error);
+
+        document.getElementById("resourceList").innerHTML = `
+            <section class="card">
+                <h3>Unable to load resources</h3>
+            </section>
+        `;
+
+        return;
+    }
+
+
+    allResources =
+        data || [];
+
+
+    populateCategories();
+
+    displayResources(allResources);
+}
+
+
+function populateCategories() {
+
+    const categories =
+        [...new Set(
+            allResources
+                .map(resource => resource.category)
+                .filter(Boolean)
+        )];
+
+
+    const filter =
+        document.getElementById("categoryFilter");
+
+
+    filter.innerHTML =
+        '<option value="">All Categories</option>';
+
+
+    categories.forEach(category => {
+
+        filter.innerHTML +=
+            `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`;
+
+    });
+}
+
+
+function filterResources() {
+
+    const search =
+        document.getElementById("search")
+            .value
+            .toLowerCase()
+            .trim();
+
+    const subject =
+        document.getElementById("subjectFilter").value;
+
+    const category =
+        document.getElementById("categoryFilter").value;
+
+
+    const filtered =
+        allResources.filter(resource => {
+
+            const text =
+                `${resource.title}
+                 ${resource.subject}
+                 ${resource.category}
+                 ${resource.description || ""}
+                 ${resource.year || ""}`
+                .toLowerCase();
+
+
+            return (
+                (!search || text.includes(search)) &&
+                (!subject || resource.subject === subject) &&
+                (!category || resource.category === category)
+            );
+
+        });
+
+
+    displayResources(filtered);
+}
+
+
+function displayResources(resources) {
+
+    const list =
+        document.getElementById("resourceList");
+
+
+    if (!resources.length) {
+
+        list.innerHTML = `
+            <section class="card">
+                <h3>No resources found</h3>
+            </section>
+        `;
+
+        return;
+    }
+
+
+    list.innerHTML =
+        resources.map(resource => `
+
+            <section class="card">
+
+                <h3>${escapeHtml(resource.title)}</h3>
+
+                <p class="resource-meta">
+                    <strong>Subject:</strong>
+                    ${escapeHtml(resource.subject)}
+                </p>
+
+                <p class="resource-meta">
+                    <strong>Category:</strong>
+                    ${escapeHtml(resource.category)}
+                </p>
+
+                ${
+                    resource.year
+                    ? `<p class="resource-meta"><strong>Year:</strong> ${resource.year}</p>`
+                    : ""
+                }
+
+                ${
+                    resource.description
+                    ? `<p>${escapeHtml(resource.description)}</p>`
+                    : ""
+                }
+
+                <div class="resource-actions">
+
+                    <a
+                        href="${escapeHtml(resource.link)}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <button type="button">
+                            Open
+                        </button>
+                    </a>
+
+                    <button
+                        type="button"
+                        class="edit-btn"
+                        onclick="editResource(${resource.id})"
+                    >
+                        Edit
+                    </button>
+
+                    <button
+                        type="button"
+                        class="delete-btn"
+                        onclick="deleteResource(${resource.id})"
+                    >
+                        Delete
+                    </button>
+
+                </div>
+
+            </section>
+
+        `).join("");
+}
+
+
+function editResource(id) {
+
+    window.location.href =
+        `../edit-subject-resource/index.html?id=${encodeURIComponent(id)}`;
+}
+
+
+function getStoragePathFromUrl(link) {
+
+    if (!link) {
+        return null;
+    }
+
+
+    const marker =
+        "/storage/v1/object/public/subject-resources/";
+
+
+    const index =
+        link.indexOf(marker);
+
+
+    if (index === -1) {
+        return null;
+    }
+
+
+    return decodeURIComponent(
+        link.substring(index + marker.length)
+    );
+}
+
+
+async function deleteResource(id) {
+
+    const resource =
+        allResources.find(r => r.id === id);
+
+
+    if (!resource) {
+        return;
+    }
+
+
+    if (
+        !confirm(
+            `Delete "${resource.title}"? This cannot be undone.`
+        )
+    ) {
+        return;
+    }
+
+
+    const { error } =
+        await supabaseClient
+            .from("subject_resources")
+            .delete()
+            .eq("id", id);
+
+
+    if (error) {
+
+        console.error(error);
+
+        alert(
+            "Failed to delete the resource."
+        );
+
+        return;
+    }
+
+
+    const storagePath =
+        getStoragePathFromUrl(resource.link);
+
+
+    if (storagePath) {
+
+        const { error: storageError } =
+            await supabaseClient.storage
+                .from("subject-resources")
+                .remove([storagePath]);
+
+
+        if (storageError) {
+
+            console.error(storageError);
+
+            alert(
+                "Resource deleted, but its PDF could not be removed."
+            );
+
+        }
+
+    }
+
+
+    await loadResources();
+}
+
+
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+loadResources();
+
+</script>
+
+</body>
+</html>

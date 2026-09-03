@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - MalawiHub</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+<header>
+    <div class="logo">🇲🇼 MalawiHub</div>
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="../resources/index.html">Resources</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1>🔐 Admin Login</h1>
+    <p>Sign in to manage MalawiHub resources.</p>
+</section>
+
+<main class="container">
+
+    <section class="card">
+
+        <label for="username">Username</label>
+        <input id="username" type="text" placeholder="Enter username">
+
+        <label for="password">Password</label>
+        <input id="password" type="password" placeholder="Enter password">
+
+        <button onclick="login()">Login</button>
+
+        <p id="message"></p>
+
+    </section>
+
+</main>
+
+<script>
+function login() {
+
+    const username =
+        document.getElementById("username").value.trim();
+
+    const password =
+        document.getElementById("password").value;
+
+    if (username === "admin" && password === "malawihub123") {
+
+        sessionStorage.setItem("malawihubAdmin", "true");
+
+        window.location.href = "index.html";
+
+    } else {
+
+        document.getElementById("message").textContent =
+            "❌ Incorrect username or password.";
+
+    }
+}
+</script>
+
+</body>
+</html>

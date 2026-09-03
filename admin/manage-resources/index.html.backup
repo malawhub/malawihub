@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Resources - MalawiHub</title>
+    <link rel="stylesheet" href="../../css/style.css">
+
+<script>
+if (sessionStorage.getItem("malawihubAdmin") !== "true") {
+    window.location.href = "../login.html";
+}
+</script>
+</head>
+
+<body>
+
+<header>
+    <h1>🇲🇼 MalawiHub Admin</h1>
+    <nav>
+        <a href="../index.html">Admin</a>
+        <a href="../../resources/index.html">Resources</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h2>📚 Manage Resources</h2>
+    <p>View and manage resources saved in MalawiHub.</p>
+</section>
+
+<main class="container">
+
+    <section class="card">
+        <input
+            id="search"
+            type="search"
+            placeholder="Search resources..."
+            oninput="displayResources()"
+        >
+    </section>
+
+    <div id="resourceList"></div>
+
+</main>
+
+<script>
+
+function getResources() {
+    return JSON.parse(localStorage.getItem("malawihubResources")) || [];
+}
+
+function displayResources() {
+
+    const resources = getResources();
+
+    const query = document
+        .getElementById("search")
+        .value
+        .toLowerCase()
+        .trim();
+
+    const list = document.getElementById("resourceList");
+
+    const filtered = resources.filter(function(resource) {
+
+        return (
+            resource.title.toLowerCase().includes(query) ||
+            resource.subject.toLowerCase().includes(query) ||
+            resource.category.toLowerCase().includes(query)
+        );
+
+    });
+
+    if (filtered.length === 0) {
+
+        list.innerHTML = `
+            <section class="card">
+                <h3>No resources found</h3>
+                <p>Add a resource from the Add Resource page.</p>
+            </section>
+        `;
+
+        return;
+    }
+
+    list.innerHTML = filtered.map(function(resource) {
+
+        return `
+            <section class="card">
+                <h3>${resource.title}</h3>
+                <p><strong>Subject:</strong> ${resource.subject}</p>
+                <p><strong>Category:</strong> ${resource.category}</p>
+                <p>${resource.description}</p>
+
+                <button onclick="window.open('${resource.link}', '_blank')">
+                    Open Resource
+                </button>
+
+                <button onclick="location.href='../edit-resource/index.html?id=${resource.id}'">
+                    ✏️ Edit
+                </button>
+
+                <button onclick="deleteResource(${resource.id})">
+                    🗑️ Delete
+                </button>
+            </section>
+        `;
+
+    }).join("");
+}
+
+function deleteResource(id) {
+
+    if (!confirm("Delete this resource?")) {
+        return;
+    }
+
+    const resources = getResources().filter(function(resource) {
+        return resource.id !== id;
+    });
+
+    localStorage.setItem(
+        "malawihubResources",
+        JSON.stringify(resources)
+    );
+
+    displayResources();
+}
+
+displayResources();
+
+</script>
+
+</body>
+</html>

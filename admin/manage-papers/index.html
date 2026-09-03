@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Manage Past Papers | MalawiHub</title>
+
+    <link rel="stylesheet" href="../../css/style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/supabase.js"></script>
+
+    <style>
+        .paper-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .paper-actions button {
+            margin: 0;
+        }
+
+        .edit-btn {
+            background: #2563eb;
+        }
+
+        .delete-btn {
+            background: #dc2626;
+        }
+
+        .paper-meta {
+            color: #666;
+            margin: 8px 0;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input,
+        .filter-row select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        .filter-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        @media (max-width: 700px) {
+            .filter-row {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">🇲🇼 MalawiHub</div>
+
+    <nav>
+        <a href="../index.html">Dashboard</a>
+        <a href="../add-paper/index.html">Add Paper</a>
+        <a href="../../papers/index.html">Public Papers</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1>📚 Manage Past Papers</h1>
+    <p>View, edit and delete papers in the MalawiHub library.</p>
+</section>
+
+<main class="tools-section">
+
+    <section class="card">
+
+        <div class="search-box">
+            <input
+                id="paperSearch"
+                type="search"
+                placeholder="Search by title, subject, category or year..."
+                oninput="filterPapers()"
+            >
+        </div>
+
+        <div class="filter-row">
+            <select id="categoryFilter" onchange="filterPapers()">
+                <option value="">All Categories</option>
+            </select>
+
+            <select id="subjectFilter" onchange="filterPapers()">
+                <option value="">All Subjects</option>
+            </select>
+
+            <select id="yearFilter" onchange="filterPapers()">
+                <option value="">All Years</option>
+            </select>
+        </div>
+
+    </section>
+
+    <div id="message"></div>
+
+    <div id="paperList"></div>
+
+</main>
+
+<footer>
+    <p>© 2026 MalawiHub</p>
+    <p>Free study resources for students.</p>
+</footer>
+
+<script>
+
+let allPapers = [];
+
+
+async function checkAdminAuth() {
+
+    const { data: { session } } =
+        await supabaseClient.auth.getSession();
+
+    if (!session) {
+        window.location.href = "../login.html";
+    }
+}
+
+checkAdminAuth();
+
+
+async function loadPapers() {
+
+    const message =
+        document.getElementById("message");
+
+    const { data, error } =
+        await supabaseClient
+            .from("past_papers")
+            .select("*")
+            .order("year", { ascending: false })
+            .order("created_at", { ascending: false });
+
+    if (error) {
+
+        console.error(error);
+
+        message.textContent =
+            "❌ Failed to load past papers.";
+
+        return;
+    }
+
+    allPapers = data || [];
+
+    populateFilters();
+    displayPapers(allPapers);
+}
+
+
+function populateFilters() {
+
+    const categories =
+        [...new Set(allPapers.map(p => p.category).filter(Boolean))];
+
+    const subjects =
+        [...new Set(allPapers.map(p => p.subject).filter(Boolean))];
+
+    const years =
+        [...new Set(allPapers.map(p => p.year).filter(Boolean))];
+
+    const categoryFilter =
+        document.getElementById("categoryFilter");
+
+    const subjectFilter =
+        document.getElementById("subjectFilter");
+
+    const yearFilter =
+        document.getElementById("yearFilter");
+
+
+    categoryFilter.innerHTML =
+        '<option value="">All Categories</option>';
+
+    subjectFilter.innerHTML =
+        '<option value="">All Subjects</option>';
+
+    yearFilter.innerHTML =
+        '<option value="">All Years</option>';
+
+
+    categories.forEach(category => {
+
+        categoryFilter.innerHTML +=
+            `<option value="${escapeHtml(category)}">${escapeHtml(category)}</option>`;
+
+    });
+
+
+    subjects.forEach(subject => {
+
+        subjectFilter.innerHTML +=
+            `<option value="${escapeHtml(subject)}">${escapeHtml(subject)}</option>`;
+
+    });
+
+
+    years.forEach(year => {
+
+        yearFilter.innerHTML +=
+            `<option value="${year}">${year}</option>`;
+
+    });
+}
+
+
+function filterPapers() {
+
+    const search =
+        document.getElementById("paperSearch")
+            .value
+            .toLowerCase()
+            .trim();
+
+    const category =
+        document.getElementById("categoryFilter").value;
+
+    const subject =
+        document.getElementById("subjectFilter").value;
+
+    const year =
+        document.getElementById("yearFilter").value;
+
+
+    const filtered =
+        allPapers.filter(paper => {
+
+            const text =
+                `${paper.title} ${paper.category} ${paper.subject} ${paper.year} ${paper.description || ""}`
+                .toLowerCase();
+
+            return (
+                (!search || text.includes(search)) &&
+                (!category || paper.category === category) &&
+                (!subject || paper.subject === subject) &&
+                (!year || String(paper.year) === year)
+            );
+
+        });
+
+
+    displayPapers(filtered);
+}
+
+
+function displayPapers(papers) {
+
+    const list =
+        document.getElementById("paperList");
+
+    if (!papers.length) {
+
+        list.innerHTML = `
+            <section class="card">
+                <h3>No past papers found</h3>
+                <p>There are no papers matching your search.</p>
+            </section>
+        `;
+
+        return;
+    }
+
+
+    list.innerHTML =
+        papers.map(paper => `
+
+            <section class="card">
+
+                <h3>${escapeHtml(paper.title)}</h3>
+
+                <p class="paper-meta">
+                    <strong>Category:</strong>
+                    ${escapeHtml(paper.category)}
+                </p>
+
+                <p class="paper-meta">
+                    <strong>Subject:</strong>
+                    ${escapeHtml(paper.subject)}
+                </p>
+
+                <p class="paper-meta">
+                    <strong>Year:</strong>
+                    ${paper.year}
+                </p>
+
+                ${
+                    paper.description
+                    ? `<p>${escapeHtml(paper.description)}</p>`
+                    : ""
+                }
+
+                <div class="paper-actions">
+
+                    <a
+                        href="${escapeAttribute(paper.link)}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <button type="button">
+                            Open Paper
+                        </button>
+                    </a>
+
+                    <button
+                        type="button"
+                        class="edit-btn"
+                        onclick="editPaper(${paper.id})"
+                    >
+                        Edit
+                    </button>
+
+                    <button
+                        type="button"
+                        class="delete-btn"
+                        onclick="deletePaper(${paper.id})"
+                    >
+                        Delete
+                    </button>
+
+                </div>
+
+            </section>
+
+        `).join("");
+}
+
+
+function editPaper(id) {
+
+    window.location.href =
+        `../edit-paper/index.html?id=${encodeURIComponent(id)}`;
+}
+
+
+function getStoragePathFromUrl(link) {
+
+    if (!link) {
+        return null;
+    }
+
+    const marker =
+        "/storage/v1/object/public/past-papers/";
+
+    const index =
+        link.indexOf(marker);
+
+    if (index === -1) {
+        return null;
+    }
+
+    return decodeURIComponent(
+        link.substring(index + marker.length)
+    );
+}
+
+
+async function deletePaper(id) {
+
+    const paper =
+        allPapers.find(p => p.id === id);
+
+    if (!paper) {
+        return;
+    }
+
+
+    const confirmed =
+        confirm(
+            `Delete "${paper.title}"? This action cannot be undone.`
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    const storagePath =
+        getStoragePathFromUrl(paper.link);
+
+
+    const { error } =
+        await supabaseClient
+            .from("past_papers")
+            .delete()
+            .eq("id", id);
+
+
+    if (error) {
+
+        console.error(error);
+
+        document.getElementById("message").textContent =
+            "❌ Failed to delete the past paper.";
+
+        return;
+    }
+
+
+    if (storagePath) {
+
+        const { error: storageError } =
+            await supabaseClient.storage
+                .from("past-papers")
+                .remove([storagePath]);
+
+        if (storageError) {
+
+            console.error(
+                "Storage file deletion failed:",
+                storageError
+            );
+
+            document.getElementById("message").textContent =
+                "⚠️ Paper record deleted, but the PDF file could not be removed.";
+
+            await loadPapers();
+
+            return;
+        }
+    }
+
+
+    document.getElementById("message").textContent =
+        "✅ Past paper and PDF deleted successfully.";
+
+    await loadPapers();
+}
+
+
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+function escapeAttribute(value) {
+
+    return escapeHtml(value);
+}
+
+
+loadPapers();
+
+</script>
+
+</body>
+</html>

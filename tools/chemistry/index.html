@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Chemistry Calculator - MalawiHub</title>
+<style>
+body{font-family:Arial;margin:0;background:#f4f7fb;color:#222}
+header{background:#1769aa;color:white;text-align:center;padding:20px}
+main{max-width:600px;margin:25px auto;padding:20px}
+.card{background:white;padding:20px;border-radius:14px;box-shadow:0 3px 12px #0002}
+input,button{width:100%;padding:14px;margin:8px 0;box-sizing:border-box;font-size:17px;border-radius:8px}
+input{border:1px solid #aaa}
+button{border:0;background:#1769aa;color:white}
+.examples{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.examples button{background:#e7f1f8;color:#1769aa}
+#result{margin-top:20px;padding:15px;border-radius:10px;background:#eef7ee;display:none}
+.error{background:#ffeaea!important;color:#b00020}
+a{display:block;text-align:center;margin-top:20px;color:#1769aa}
+</style>
+</head>
+
+<body>
+<header>
+<h1>MalawiHub</h1>
+<p>Chemistry Molar Mass Calculator</p>
+</header>
+
+<main>
+<div class="card">
+<h2>Molar Mass Calculator</h2>
+<p>Enter a chemical formula:</p>
+
+<input id="formula" placeholder="Example: H2SO4">
+
+<button onclick="calculate()">Calculate Molar Mass</button>
+
+<h3>Examples</h3>
+<div class="examples">
+<button onclick="setF('H2O')">H₂O</button>
+<button onclick="setF('NaCl')">NaCl</button>
+<button onclick="setF('H2SO4')">H₂SO₄</button>
+<button onclick="setF('Ca(OH)2')">Ca(OH)₂</button>
+</div>
+
+<div id="result"></div>
+
+<a href="../../index.html">← Back to MalawiHub</a>
+</div>
+</main>
+
+<script>
+const M={
+H:1.008,He:4.003,Li:6.94,Be:9.012,B:10.81,C:12.011,
+N:14.007,O:15.999,F:18.998,Ne:20.18,Na:22.99,Mg:24.305,
+Al:26.982,Si:28.085,P:30.974,S:32.06,Cl:35.45,Ar:39.948,
+K:39.098,Ca:40.078,Sc:44.956,Ti:47.867,V:50.942,Cr:52,
+Mn:54.938,Fe:55.845,Co:58.933,Ni:58.693,Cu:63.546,Zn:65.38,
+Ga:69.723,Ge:72.63,As:74.922,Se:78.971,Br:79.904,Kr:83.798,
+Rb:85.468,Sr:87.62,Y:88.906,Zr:91.224,Nb:92.906,Mo:95.95,
+Ag:107.868,Cd:112.414,Sn:118.71,I:126.904,Ba:137.327,
+Pt:195.084,Au:196.967,Hg:200.592,Pb:207.2,U:238.029
+};
+
+function parse(f){
+let i=0;
+
+function num(){
+let s=i;
+while(/\d/.test(f[i]))i++;
+return s==i?1:+f.slice(s,i);
+}
+
+function group(close){
+let a={};
+
+while(i<f.length){
+if(close&&f[i]==close){i++;return a}
+
+if(f[i]=="("){
+i++;
+let x=group(")");
+let n=num();
+for(let e in x)a[e]=(a[e]||0)+x[e]*n;
+continue;
+}
+
+if(!/[A-Z]/.test(f[i]))throw Error("Invalid formula");
+
+let e=f[i++];
+if(/[a-z]/.test(f[i]))e+=f[i++];
+
+if(!M[e])throw Error("Unknown element: "+e);
+
+let n=num();
+a[e]=(a[e]||0)+n;
+}
+
+if(close)throw Error("Missing closing bracket");
+return a;
+}
+
+let a=group(),mass=0;
+for(let e in a)mass+=a[e]*M[e];
+return{a,mass};
+}
+
+function calculate(){
+let f=document.getElementById("formula").value.replace(/\s/g,"");
+let r=document.getElementById("result");
+
+r.style.display="block";
+r.className="";
+
+if(!f){
+r.className="error";
+r.innerHTML="<b>Please enter a formula.</b>";
+return;
+}
+
+try{
+let x=parse(f);
+let text="<h2>"+f+"</h2><h3>Molar Mass: "+x.mass.toFixed(2)+" g/mol</h3><hr>";
+
+for(let e in x.a)
+text+="<p><b>"+e+"</b>: "+x.a[e]+" × "+M[e]+" = "+(x.a[e]*M[e]).toFixed(3)+"</p>";
+
+r.innerHTML=text;
+}catch(e){
+r.className="error";
+r.innerHTML="<b>Error:</b> "+e.message;
+}
+}
+
+function setF(f){
+document.getElementById("formula").value=f;
+calculate();
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "MalawiHub",
+  "short_name": "MalawiHub",
+  "description": "MalawiHub — Student resources, tools and learning materials.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#0d6efd",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

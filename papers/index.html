@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Past Papers | MalawiHub</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">🇲🇼 MalawiHub</div>
+
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="../resources/index.html">Resources</a>
+        <a href="index.html">Past Papers</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1>📄 Past Papers</h1>
+    <p>Practice with examination papers and improve your preparation.</p>
+</section>
+
+<section class="tools-section">
+
+    <h2>Find Past Papers</h2>
+
+    <div class="card">
+
+        <input
+            id="paperSearch"
+            type="text"
+            placeholder="Search past papers..."
+            oninput="filterPapers()"
+        >
+
+        <select id="categoryFilter" onchange="filterPapers()">
+            <option value="">All Categories</option>
+        </select>
+
+        <select id="subjectFilter" onchange="filterPapers()">
+            <option value="">All Subjects</option>
+        </select>
+
+        <select id="yearFilter" onchange="filterPapers()">
+            <option value="">All Years</option>
+        </select>
+
+    </div>
+
+    <div id="paperList"></div>
+
+</section>
+
+<footer>
+    <p>© 2026 MalawiHub</p>
+    <p>Free study resources for students.</p>
+</footer>
+
+<script>
+
+let papers = [];
+
+async function loadPapers() {
+
+    const { data, error } = await supabaseClient
+        .from("past_papers")
+        .select("*")
+        .order("year", { ascending: false })
+        .order("created_at", { ascending: false });
+
+    const list = document.getElementById("paperList");
+
+    if (error) {
+
+        console.error("Failed to load past papers:", error);
+
+        list.innerHTML = `
+            <section class="card">
+                <h3>Unable to load past papers</h3>
+                <p>Please try again later.</p>
+            </section>
+        `;
+
+        return;
+    }
+
+    papers = data || [];
+
+    populateFilters();
+
+    filterPapers();
+}
+
+function populateFilters() {
+
+    const categories = [
+        ...new Set(
+            papers
+                .map(paper => paper.category)
+                .filter(Boolean)
+        )
+    ];
+
+    const subjects = [
+        ...new Set(
+            papers
+                .map(paper => paper.subject)
+                .filter(Boolean)
+        )
+    ];
+
+    const years = [
+        ...new Set(
+            papers
+                .map(paper => paper.year)
+                .filter(Boolean)
+        )
+    ].sort((a, b) => b - a);
+
+    const categoryFilter =
+        document.getElementById("categoryFilter");
+
+    const subjectFilter =
+        document.getElementById("subjectFilter");
+
+    const yearFilter =
+        document.getElementById("yearFilter");
+
+    categoryFilter.innerHTML =
+        '<option value="">All Categories</option>' +
+        categories
+            .sort()
+            .map(category =>
+                `<option value="${category}">${category}</option>`
+            )
+            .join("");
+
+    subjectFilter.innerHTML =
+        '<option value="">All Subjects</option>' +
+        subjects
+            .sort()
+            .map(subject =>
+                `<option value="${subject}">${subject}</option>`
+            )
+            .join("");
+
+    yearFilter.innerHTML =
+        '<option value="">All Years</option>' +
+        years
+            .map(year =>
+                `<option value="${year}">${year}</option>`
+            )
+            .join("");
+}
+
+function filterPapers() {
+
+    const query =
+        document
+            .getElementById("paperSearch")
+            .value
+            .toLowerCase()
+            .trim();
+
+    const category =
+        document.getElementById("categoryFilter").value;
+
+    const subject =
+        document.getElementById("subjectFilter").value;
+
+    const year =
+        document.getElementById("yearFilter").value;
+
+    const filtered = papers.filter(function(paper) {
+
+        const matchesSearch =
+            (paper.title || "").toLowerCase().includes(query) ||
+            (paper.subject || "").toLowerCase().includes(query) ||
+            (paper.category || "").toLowerCase().includes(query) ||
+            String(paper.year || "").includes(query);
+
+        const matchesCategory =
+            !category || paper.category === category;
+
+        const matchesSubject =
+            !subject || paper.subject === subject;
+
+        const matchesYear =
+            !year || String(paper.year) === year;
+
+        return (
+            matchesSearch &&
+            matchesCategory &&
+            matchesSubject &&
+            matchesYear
+        );
+    });
+
+    displayPapers(filtered);
+}
+
+function displayPapers(filtered) {
+
+    const list = document.getElementById("paperList");
+
+    if (filtered.length === 0) {
+
+        list.innerHTML = `
+            <section class="card">
+                <h3>No past papers found</h3>
+                <p>Try another search or filter.</p>
+            </section>
+        `;
+
+        return;
+    }
+
+    list.innerHTML = filtered.map(function(paper) {
+
+        return `
+            <section class="card">
+
+                <h3>${paper.title}</h3>
+
+                <p>
+                    <strong>Category:</strong>
+                    ${paper.category}
+                </p>
+
+                <p>
+                    <strong>Subject:</strong>
+                    ${paper.subject}
+                </p>
+
+                <p>
+                    <strong>Year:</strong>
+                    ${paper.year}
+                </p>
+
+                <p>
+                    ${paper.description || ""}
+                </p>
+
+                <button
+                    onclick="window.open('${paper.link}', '_blank')"
+                >
+                    📄 Open Paper
+                </button>
+
+            </section>
+        `;
+
+    }).join("");
+}
+
+loadPapers();
+
+</script>
+
+</body>
+</html>

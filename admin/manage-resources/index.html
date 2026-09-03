@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Resources - MalawiHub</title>
+    <link rel="stylesheet" href="../../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../js/supabase.js"></script>
+
+<script>
+async function checkAdminAuth() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+        window.location.href = "../login.html";
+    }
+}
+
+checkAdminAuth();
+</script>
+</head>
+
+<body>
+
+<header>
+    <h1>🇲🇼 MalawiHub Admin</h1>
+    <nav>
+        <a href="../index.html">Admin</a>
+        <a href="../../resources/index.html">Resources</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h2>📚 Manage Resources</h2>
+    <p>View and manage resources saved in MalawiHub.</p>
+</section>
+
+<main class="container">
+
+    <section class="card">
+        <input
+            id="search"
+            type="search"
+            placeholder="Search resources..."
+            oninput="displayResources()"
+        >
+    </section>
+
+    <div id="resourceList"></div>
+
+</main>
+
+<script>
+
+let resources = [];
+
+async function displayResources() {
+
+    const { data, error } = await supabaseClient
+        .from("resources")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+    const list = document.getElementById("resourceList");
+
+    if (error) {
+        console.error("Failed to load resources:", error);
+
+        list.innerHTML = `
+            <section class="card">
+                <h3>Unable to load resources</h3>
+                <p>Please try again later.</p>
+            </section>
+        `;
+
+        return;
+    }
+
+    resources = data || [];
+
+    const query = document
+        .getElementById("search")
+        .value
+        .toLowerCase()
+        .trim();
+
+    const filtered = resources.filter(function(resource) {
+
+        return (
+            (resource.title || "").toLowerCase().includes(query) ||
+            (resource.subject || "").toLowerCase().includes(query) ||
+            (resource.category || "").toLowerCase().includes(query)
+        );
+
+    });
+
+    if (filtered.length === 0) {
+
+        list.innerHTML = `
+            <section class="card">
+                <h3>No resources found</h3>
+                <p>Add a resource from the Add Resource page.</p>
+            </section>
+        `;
+
+        return;
+    }
+
+    list.innerHTML = filtered.map(function(resource) {
+
+        return `
+            <section class="card">
+                <h3>${resource.title}</h3>
+                <p><strong>Subject:</strong> ${resource.subject}</p>
+                <p><strong>Category:</strong> ${resource.category || ""}</p>
+                <p>${resource.description || ""}</p>
+
+                <button onclick="window.open('${resource.link}', '_blank')">
+                    Open Resource
+                </button>
+
+                <button onclick="location.href='../edit-resource/index.html?id=${resource.id}'">
+                    ✏️ Edit
+                </button>
+
+                <button onclick="deleteResource(${resource.id})">
+                    🗑️ Delete
+                </button>
+            </section>
+        `;
+
+    }).join("");
+}
+
+async function deleteResource(id) {
+
+    if (!confirm("Delete this resource?")) {
+        return;
+    }
+
+    const { error } = await supabaseClient
+        .from("resources")
+        .delete()
+        .eq("id", id);
+
+    if (error) {
+        console.error("Failed to delete resource:", error);
+        alert("❌ Failed to delete resource. Please try again.");
+        return;
+    }
+
+    displayResources();
+}
+
+displayResources();
+
+</script>
+
+</body>
+</html>

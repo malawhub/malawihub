@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Edit Past Paper | MalawiHub</title>
+
+    <link rel="stylesheet" href="../../css/style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/supabase.js"></script>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">🇲🇼 MalawiHub</div>
+
+    <nav>
+        <a href="../index.html">Dashboard</a>
+        <a href="../manage-papers/index.html">Manage Papers</a>
+        <a href="../../papers/index.html">Public Papers</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1>✏️ Edit Past Paper</h1>
+    <p>Update the details of an existing past paper.</p>
+</section>
+
+<main class="tools-section">
+
+    <section class="card">
+
+        <label for="title">Paper Title</label>
+        <input
+            id="title"
+            type="text"
+            placeholder="Paper title"
+        >
+
+        <label for="category">Category</label>
+        <input
+            id="category"
+            type="text"
+            placeholder="Category"
+        >
+
+        <label for="subject">Subject</label>
+        <input
+            id="subject"
+            type="text"
+            placeholder="Subject"
+        >
+
+        <label for="year">Year</label>
+        <input
+            id="year"
+            type="number"
+            placeholder="Year"
+        >
+
+        <label for="description">Description</label>
+        <textarea
+            id="description"
+            placeholder="Description"
+        ></textarea>
+
+        <label for="link">Paper Link</label>
+        <input
+            id="link"
+            type="url"
+            placeholder="https://example.com/paper.pdf"
+        >
+
+        <button onclick="updatePaper()">
+            Save Changes
+        </button>
+
+        <p id="message"></p>
+
+    </section>
+
+</main>
+
+<footer>
+    <p>© 2026 MalawiHub</p>
+    <p>Free study resources for students.</p>
+</footer>
+
+<script>
+
+let paperId = null;
+
+
+async function checkAdminAuth() {
+
+    const { data: { session } } =
+        await supabaseClient.auth.getSession();
+
+    if (!session) {
+        window.location.href = "../login.html";
+    }
+}
+
+checkAdminAuth();
+
+
+async function loadPaper() {
+
+    const params =
+        new URLSearchParams(window.location.search);
+
+    paperId =
+        params.get("id");
+
+
+    if (!paperId) {
+
+        document.getElementById("message").textContent =
+            "❌ No past paper was selected.";
+
+        return;
+    }
+
+
+    const { data: paper, error } =
+        await supabaseClient
+            .from("past_papers")
+            .select("*")
+            .eq("id", paperId)
+            .single();
+
+
+    if (error) {
+
+        console.error(error);
+
+        document.getElementById("message").textContent =
+            "❌ Failed to load the past paper.";
+
+        return;
+    }
+
+
+    document.getElementById("title").value =
+        paper.title || "";
+
+    document.getElementById("category").value =
+        paper.category || "";
+
+    document.getElementById("subject").value =
+        paper.subject || "";
+
+    document.getElementById("year").value =
+        paper.year || "";
+
+    document.getElementById("description").value =
+        paper.description || "";
+
+    document.getElementById("link").value =
+        paper.link || "";
+}
+
+
+async function updatePaper() {
+
+    const title =
+        document.getElementById("title").value.trim();
+
+    const category =
+        document.getElementById("category").value.trim();
+
+    const subject =
+        document.getElementById("subject").value.trim();
+
+    const year =
+        Number(document.getElementById("year").value);
+
+    const description =
+        document.getElementById("description").value.trim();
+
+    const link =
+        document.getElementById("link").value.trim();
+
+    const message =
+        document.getElementById("message");
+
+
+    if (
+        !paperId ||
+        !title ||
+        !category ||
+        !subject ||
+        !year ||
+        !link
+    ) {
+
+        message.textContent =
+            "Please complete the required fields.";
+
+        return;
+    }
+
+
+    const { error } =
+        await supabaseClient
+            .from("past_papers")
+            .update({
+                title: title,
+                category: category,
+                subject: subject,
+                year: year,
+                description: description,
+                link: link
+            })
+            .eq("id", paperId);
+
+
+    if (error) {
+
+        console.error(error);
+
+        message.textContent =
+            "❌ Failed to update the past paper.";
+
+        return;
+    }
+
+
+    message.textContent =
+        "✅ Past paper updated successfully.";
+}
+
+
+loadPaper();
+
+</script>
+
+</body>
+</html>

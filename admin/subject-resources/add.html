@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Add Subject Resource - MalawiHub</title>
+<link rel="stylesheet" href="../../css/style.css">
+<style>
+body{background:#f5f7fb}.box{max-width:700px;margin:30px auto;background:#fff;padding:25px;border-radius:14px;box-shadow:0 4px 18px #0001}
+h1{margin-top:0}.field{margin-bottom:16px}label{display:block;font-weight:600;margin-bottom:6px}
+input,select,textarea{width:100%;padding:11px;border:1px solid #ddd;border-radius:8px;box-sizing:border-box}
+textarea{min-height:110px;resize:vertical}.btn{border:0;border-radius:8px;padding:11px 18px;cursor:pointer;font-weight:600}
+.save{background:#0b7a4b;color:white}.back{background:#eee;margin-left:8px}.msg{margin-top:15px;padding:10px;border-radius:8px;display:none}
+</style>
+</head>
+<body>
+<div class="box">
+<h1>Add Subject Resource</h1>
+<p>Upload a PDF resource to a subject library.</p>
+
+<form id="form">
+<div class="field">
+<label>Title</label>
+<input id="title" required placeholder="e.g. Inorganic Chemistry Notes">
+</div>
+
+<div class="field">
+<label>Subject</label>
+<select id="subject" required>
+<option value="">Select subject</option>
+<option>Chemistry</option>
+<option>Mathematics</option>
+<option>Biology</option>
+<option>Education</option>
+</select>
+</div>
+
+<div class="field">
+<label>Category</label>
+<select id="category" required>
+<option value="">Select category</option>
+<option>Notes</option>
+<option>Textbook</option>
+<option>Study Guide</option>
+<option>Lecture Materials</option>
+<option>Revision Materials</option>
+<option>Other</option>
+</select>
+</div>
+
+<div class="field">
+<label>Year (optional)</label>
+<input id="year" type="number" min="1900" max="2100" placeholder="e.g. 2026">
+</div>
+
+<div class="field">
+<label>Description</label>
+<textarea id="description" placeholder="Brief description of the resource"></textarea>
+</div>
+
+<div class="field">
+<label>PDF File</label>
+<input id="file" type="file" accept="application/pdf" required>
+</div>
+
+<button class="btn save" type="submit">Upload Resource</button>
+<a class="btn back" href="index.html">Cancel</a>
+<div id="msg" class="msg"></div>
+</form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../js/supabase.js"></script>
+<script>
+async function checkAuth(){
+ const {data:{session}}=await supabaseClient.auth.getSession();
+ if(!session) location.href="../login.html";
+}
+checkAuth();
+
+const form=document.getElementById("form");
+const msg=document.getElementById("msg");
+
+function message(text,error=false){
+ msg.textContent=text;
+ msg.style.display="block";
+ msg.style.background=error?"#fee":"#e9f8ef";
+ msg.style.color=error?"#a00":"#075c32";
+}
+
+form.addEventListener("submit",async e=>{
+ e.preventDefault();
+
+ const title=document.getElementById("title").value.trim();
+ const subject=document.getElementById("subject").value;
+ const category=document.getElementById("category").value;
+ const year=document.getElementById("year").value;
+ const description=document.getElementById("description").value.trim();
+ const file=document.getElementById("file").files[0];
+
+ if(!file) return message("Please select a PDF file.",true);
+ if(file.type!=="application/pdf") return message("Only PDF files are allowed.",true);
+ if(file.size>20*1024*1024) return message("PDF must not exceed 20 MB.",true);
+
+ const {data:{session}}=await supabaseClient.auth.getSession();
+ if(!session) return location.href="../login.html";
+
+ const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+ const path=`${subject.toLowerCase()}-${Date.now()}-${safeName}`;
+
+ message("Uploading resource...");
+
+ const {error:uploadError}=await supabaseClient.storage
+  .from("subject-resources")
+  .upload(path,file,{contentType:"application/pdf",upsert:false});
+
+ if(uploadError) return message("Upload failed: "+uploadError.message,true);
+
+ const {data:publicData}=supabaseClient.storage
+  .from("subject-resources")
+  .getPublicUrl(path);
+
+ const {error:dbError}=await supabaseClient
+  .from("subject_resources")
+  .insert({
+   title,
+   subject,
+   category,
+   description:description||null,
+   year:year?Number(year):null,
+   link:publicData.publicUrl
+  });
+
+ if(dbError){
+  await supabaseClient.storage.from("subject-resources").remove([path]);
+  return message("Could not save resource: "+dbError.message,true);
+ }
+
+ message("Resource added successfully.");
+ form.reset();
+});
+</script>
+</body>
+</html>

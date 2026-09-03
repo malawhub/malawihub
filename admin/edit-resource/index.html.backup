@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Resource - MalawiHub</title>
+    <link rel="stylesheet" href="../../css/style.css">
+
+<script>
+if (sessionStorage.getItem("malawihubAdmin") !== "true") {
+    window.location.href = "../login.html";
+}
+</script>
+</head>
+
+<body>
+
+<header>
+    <h1>🇲🇼 MalawiHub Admin</h1>
+    <nav>
+        <a href="../index.html">Admin</a>
+        <a href="../manage-resources/index.html">Manage Resources</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h2>✏️ Edit Resource</h2>
+    <p>Update an existing MalawiHub resource.</p>
+</section>
+
+<main class="container">
+
+    <section class="card">
+
+        <label>Resource Title</label>
+        <input id="title" type="text">
+
+        <label>Subject</label>
+        <input id="subject" type="text">
+
+        <label>Category</label>
+        <input id="category" type="text">
+
+        <label>Description</label>
+        <textarea id="description"></textarea>
+
+        <label>Resource Link</label>
+        <input id="link" type="url">
+
+        <button onclick="updateResource()">Save Changes</button>
+
+        <p id="message"></p>
+
+    </section>
+
+</main>
+
+<script>
+
+const params = new URLSearchParams(window.location.search);
+const resourceId = Number(params.get("id"));
+
+function getResources() {
+    return JSON.parse(localStorage.getItem("malawihubResources")) || [];
+}
+
+const resources = getResources();
+
+const resource = resources.find(function(item) {
+    return item.id === resourceId;
+});
+
+if (!resource) {
+
+    document.getElementById("message").textContent =
+        "Resource not found.";
+
+} else {
+
+    document.getElementById("title").value = resource.title || "";
+    document.getElementById("subject").value = resource.subject || "";
+    document.getElementById("category").value = resource.category || "";
+    document.getElementById("description").value = resource.description || "";
+    document.getElementById("link").value = resource.link || "";
+}
+
+function updateResource() {
+
+    const updatedTitle =
+        document.getElementById("title").value.trim();
+
+    const updatedSubject =
+        document.getElementById("subject").value.trim();
+
+    const updatedCategory =
+        document.getElementById("category").value.trim();
+
+    const updatedDescription =
+        document.getElementById("description").value.trim();
+
+    const updatedLink =
+        document.getElementById("link").value.trim();
+
+    if (!updatedTitle || !updatedSubject || !updatedLink) {
+
+        document.getElementById("message").textContent =
+            "Please enter a title, subject and resource link.";
+
+        return;
+    }
+
+    const updatedResources = resources.map(function(item) {
+
+        if (item.id === resourceId) {
+
+            return {
+                id: item.id,
+                title: updatedTitle,
+                subject: updatedSubject,
+                category: updatedCategory,
+                description: updatedDescription,
+                link: updatedLink
+            };
+
+        }
+
+        return item;
+    });
+
+    localStorage.setItem(
+        "malawihubResources",
+        JSON.stringify(updatedResources)
+    );
+
+    document.getElementById("message").textContent =
+        "✅ Resource updated successfully.";
+}
+
+</script>
+
+</body>
+</html>

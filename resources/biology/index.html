@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biology Resources | MalawiHub</title>
+    <link rel="stylesheet" href="../../css/style.css">
+</head>
+
+<body>
+
+<header>
+    <div class="logo">🇲🇼 MalawiHub</div>
+    <nav>
+        <a href="../../index.html">Home</a>
+        <a href="../index.html">Resources</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1>🧬 Biology Resources</h1>
+    <p>Notes, concepts and revision materials for Biology students.</p>
+</section>
+
+<section class="tools-section">
+    <h2>Biology Topics</h2>
+
+    <div class="card-grid">
+
+        <div class="card">
+            <h3>🔬 Cell Biology</h3>
+            <p>Cell structure, organelles, cell division and cellular processes.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🧬 Genetics</h3>
+            <p>Genes, chromosomes, inheritance, DNA and genetic variation.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🌱 Plant Biology</h3>
+            <p>Plant structure, nutrition, photosynthesis and transport.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🫀 Human Biology</h3>
+            <p>Human body systems, nutrition, health and homeostasis.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🌍 Ecology</h3>
+            <p>Ecosystems, populations, food chains and environmental relationships.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🦠 Microbiology</h3>
+            <p>Microorganisms, bacteria, viruses and their importance.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🧪 Evolution</h3>
+            <p>Natural selection, adaptation, variation and evolutionary evidence.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🐾 Classification</h3>
+            <p>Biological classification, kingdoms and characteristics of organisms.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>📝 Revision Notes</h3>
+            <p>Key definitions, diagrams, concepts and quick revision materials.</p>
+            <button>Open</button>
+        </div>
+
+    </div>
+</section>
+
+
+<section class="tools-section" id="uploaded-resources">
+    <h2>📚 Uploaded Biology Resources</h2>
+    <p>Resources uploaded by the MalawiHub administrator.</p>
+
+    <div id="subjectResources" class="card-grid">
+        <p>Loading resources...</p>
+    </div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../js/supabase.js"></script>
+<script>
+async function loadSubjectResources() {
+    const box = document.getElementById("subjectResources");
+
+    const { data, error } = await supabaseClient
+        .from("subject_resources")
+        .select("*")
+        .eq("subject", "Biology")
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        box.innerHTML = "<p>Unable to load uploaded resources.</p>";
+        console.error(error);
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        box.innerHTML = "<p>No uploaded Biology resources yet.</p>";
+        return;
+    }
+
+    box.innerHTML = data.map(resource => `
+        <div class="card">
+            <h3>${escapeHtml(resource.title)}</h3>
+            <p><strong>Category:</strong> ${escapeHtml(resource.category)}</p>
+            ${resource.year ? `<p><strong>Year:</strong> ${resource.year}</p>` : ""}
+            ${resource.description ? `<p>${escapeHtml(resource.description)}</p>` : ""}
+            <a href="${resource.link}" target="_blank" rel="noopener noreferrer">
+                <button type="button">Open Resource</button>
+            </a>
+        </div>
+    `).join("");
+}
+
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&":"&amp;",
+        "<":"&lt;",
+        ">":"&gt;",
+        '"':"&quot;",
+        "'":"&#039;"
+    }[char]));
+}
+
+loadSubjectResources();
+</script>
+
+<footer>
+    <p>© 2026 MalawiHub</p>
+    <p>Free study resources for students.</p>
+</footer>
+
+</body>
+</html>

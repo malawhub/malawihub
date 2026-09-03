@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grade Calculator - MalawiHub</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f7fa;
+    color: #222;
+}
+
+header {
+    background: #111827;
+    color: white;
+    padding: 16px 6%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 21px;
+    font-weight: bold;
+}
+
+header a {
+    color: white;
+    text-decoration: none;
+}
+
+.container {
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+.calculator {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 3px 15px rgba(0,0,0,.1);
+}
+
+h1 {
+    text-align: center;
+}
+
+.description {
+    text-align: center;
+    color: #666;
+}
+
+.input-group {
+    margin: 20px 0;
+}
+
+label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+button {
+    border: none;
+    background: #111827;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    font-size: 16px;
+}
+
+button:hover {
+    opacity: .85;
+}
+
+.result {
+    display: none;
+    margin-top: 25px;
+    padding: 25px;
+    background: #f3f4f6;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.percentage {
+    font-size: 40px;
+    font-weight: bold;
+}
+
+.grade {
+    font-size: 30px;
+    font-weight: bold;
+    margin: 10px;
+}
+
+.pass {
+    color: #15803d;
+}
+
+.fail {
+    color: #dc2626;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">🇲🇼 MalawiHub</div>
+    <a href="../../index.html">Home</a>
+</header>
+
+<div class="container">
+
+<div class="calculator">
+
+<h1>📝 Grade Calculator</h1>
+
+<p class="description">
+Enter your marks and total possible marks to calculate your percentage and grade.
+</p>
+
+<div class="input-group">
+    <label>Marks Obtained</label>
+    <input
+        type="number"
+        id="obtained"
+        placeholder="e.g. 72"
+        min="0"
+        step="0.01">
+</div>
+
+<div class="input-group">
+    <label>Total Marks</label>
+    <input
+        type="number"
+        id="total"
+        placeholder="e.g. 100"
+        min="1"
+        step="0.01">
+</div>
+
+<button onclick="calculateGrade()">
+    Calculate Grade
+</button>
+
+<div class="result" id="result">
+
+    <div>Percentage</div>
+
+    <div class="percentage" id="percentage">
+        0%
+    </div>
+
+    <div id="grade" class="grade">
+        -
+    </div>
+
+    <div id="status">
+        -
+    </div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+function calculateGrade() {
+
+    const obtained =
+        parseFloat(document.getElementById("obtained").value);
+
+    const total =
+        parseFloat(document.getElementById("total").value);
+
+    if (isNaN(obtained) || isNaN(total)) {
+        alert("Please enter both marks.");
+        return;
+    }
+
+    if (total <= 0) {
+        alert("Total marks must be greater than zero.");
+        return;
+    }
+
+    if (obtained < 0 || obtained > total) {
+        alert("Marks obtained must be between 0 and the total marks.");
+        return;
+    }
+
+    const percentage = (obtained / total) * 100;
+
+    let grade;
+    let status;
+    let pass;
+
+    if (percentage >= 80) {
+        grade = "A";
+        status = "Excellent";
+        pass = true;
+
+    } else if (percentage >= 70) {
+        grade = "B";
+        status = "Very Good";
+        pass = true;
+
+    } else if (percentage >= 60) {
+        grade = "C";
+        status = "Good";
+        pass = true;
+
+    } else if (percentage >= 50) {
+        grade = "D";
+        status = "Pass";
+        pass = true;
+
+    } else {
+        grade = "F";
+        status = "Fail";
+        pass = false;
+    }
+
+    document.getElementById("percentage").textContent =
+        percentage.toFixed(2) + "%";
+
+    document.getElementById("grade").textContent =
+        "Grade " + grade;
+
+    const statusElement =
+        document.getElementById("status");
+
+    statusElement.textContent = status;
+
+    statusElement.className =
+        pass ? "pass" : "fail";
+
+    document.getElementById("result").style.display =
+        "block";
+}
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Timetable Generator - MalawiHub</title>
+<style>
+*{box-sizing:border-box}
+body{font-family:Arial,sans-serif;background:#f4f7fb;margin:0;padding:20px;color:#222}
+.container{max-width:700px;margin:auto;background:white;padding:25px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.1)}
+h1{text-align:center;margin-bottom:8px}
+.subtitle{text-align:center;color:#666;margin-bottom:25px}
+label{display:block;font-weight:bold;margin:15px 0 6px}
+input,select{width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:16px}
+.subject{display:grid;grid-template-columns:1fr 120px 45px;gap:8px;margin-bottom:10px}
+.subject input,.subject select{width:100%}
+.remove{background:#d9534f;color:white;border:0;border-radius:8px;font-size:18px}
+button{width:100%;padding:13px;margin-top:10px;border:0;border-radius:8px;background:#1769aa;color:white;font-size:16px;font-weight:bold}
+.add{background:#555}
+.result{margin-top:25px}
+.day{margin-bottom:18px;border:1px solid #ddd;border-radius:10px;overflow:hidden}
+.day h3{margin:0;padding:12px;background:#eef7ff}
+.session{padding:12px;border-top:1px solid #eee}
+.session strong{display:block}
+.note{margin-top:20px;font-size:13px;color:#666;line-height:1.5}
+@media(max-width:500px){.subject{grid-template-columns:1fr 95px 40px}}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>📚 Study Timetable Generator</h1>
+<p class="subtitle">Create a simple weekly study timetable automatically.</p>
+
+<label for="days">Study Days</label>
+<select id="days">
+<option value="5">Monday - Friday</option>
+<option value="6">Monday - Saturday</option>
+<option value="7">Monday - Sunday</option>
+</select>
+
+<label>Subjects</label>
+<div id="subjects"></div>
+
+<button class="add" onclick="addSubject()">+ Add Subject</button>
+<button onclick="generateTimetable()">Generate Timetable</button>
+
+<div id="result" class="result"></div>
+
+<div class="note">
+<strong>Tip:</strong> Add your subjects and choose how many days you want
+to study. The generator distributes your subjects across the selected days.
+</div>
+</div>
+
+<script>
+const dayNames=["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+
+function addSubject(name="") {
+    const box=document.getElementById("subjects");
+    const row=document.createElement("div");
+    row.className="subject";
+
+    row.innerHTML=`
+        <input type="text" placeholder="Subject name" value="${name}">
+        <select>
+            <option value="1">1 session</option>
+            <option value="2">2 sessions</option>
+            <option value="3">3 sessions</option>
+        </select>
+        <button class="remove" onclick="this.parentElement.remove()">×</button>
+    `;
+
+    box.appendChild(row);
+}
+
+function generateTimetable(){
+    const dayCount=parseInt(document.getElementById("days").value);
+    const rows=[...document.querySelectorAll(".subject")];
+
+    const subjects=[];
+
+    rows.forEach(row=>{
+        const name=row.querySelector("input").value.trim();
+        const sessions=parseInt(row.querySelector("select").value);
+
+        if(name){
+            for(let i=0;i<sessions;i++){
+                subjects.push(name);
+            }
+        }
+    });
+
+    if(subjects.length===0){
+        document.getElementById("result").innerHTML=
+            "<p>Please add at least one subject.</p>";
+        return;
+    }
+
+    const schedule=Array.from({length:dayCount},()=>[]);
+
+    subjects.forEach((subject,index)=>{
+        schedule[index%dayCount].push(subject);
+    });
+
+    let html="<h2>Your Weekly Timetable</h2>";
+
+    for(let d=0;d<dayCount;d++){
+        html+=`<div class="day">
+            <h3>${dayNames[d]}</h3>`;
+
+        if(schedule[d].length===0){
+            html+=`<div class="session">Rest / Revision</div>`;
+        }else{
+            schedule[d].forEach((subject,i)=>{
+                const times=["06:00 - 07:00","16:00 - 17:00","19:00 - 20:00"];
+                const time=times[i%times.length];
+
+                html+=`<div class="session">
+                    <strong>${time}</strong>
+                    ${subject}
+                </div>`;
+            });
+        }
+
+        html+="</div>";
+    }
+
+    document.getElementById("result").innerHTML=html;
+}
+
+addSubject();
+addSubject();
+addSubject();
+</script>
+
+</body>
+</html>

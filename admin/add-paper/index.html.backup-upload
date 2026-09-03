@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Add Past Paper | MalawiHub</title>
+
+    <link rel="stylesheet" href="../../css/style.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/supabase.js"></script>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">🇲🇼 MalawiHub</div>
+
+    <nav>
+        <a href="../index.html">Dashboard</a>
+        <a href="../manage-resources/index.html">Resources</a>
+        <a href="../../papers/index.html">Past Papers</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1>➕ Add Past Paper</h1>
+    <p>Add an examination paper to the MalawiHub Past Papers library.</p>
+</section>
+
+<main class="tools-section">
+
+    <section class="card">
+
+        <label for="title">Paper Title</label>
+        <input
+            id="title"
+            type="text"
+            placeholder="e.g. MSCE Chemistry Paper 1"
+        >
+
+        <label for="category">Category</label>
+        <input
+            id="category"
+            type="text"
+            placeholder="e.g. MANEB"
+        >
+
+        <label for="subject">Subject</label>
+        <input
+            id="subject"
+            type="text"
+            placeholder="e.g. Chemistry"
+        >
+
+        <label for="year">Year</label>
+        <input
+            id="year"
+            type="number"
+            placeholder="e.g. 2024"
+        >
+
+        <label for="description">Description</label>
+        <textarea
+            id="description"
+            placeholder="Short description of the paper"
+        ></textarea>
+
+        <label for="link">Paper Link</label>
+        <input
+            id="link"
+            type="url"
+            placeholder="https://example.com/paper.pdf"
+        >
+
+        <button onclick="savePaper()">
+            Save Past Paper
+        </button>
+
+        <p id="message"></p>
+
+    </section>
+
+</main>
+
+<footer>
+    <p>© 2026 MalawiHub</p>
+    <p>Free study resources for students.</p>
+</footer>
+
+<script>
+
+async function checkAdminAuth() {
+
+    const { data: { session } } =
+        await supabaseClient.auth.getSession();
+
+    if (!session) {
+        window.location.href = "../login.html";
+    }
+}
+
+checkAdminAuth();
+
+
+async function savePaper() {
+
+    const title =
+        document.getElementById("title").value.trim();
+
+    const category =
+        document.getElementById("category").value.trim();
+
+    const subject =
+        document.getElementById("subject").value.trim();
+
+    const year =
+        Number(document.getElementById("year").value);
+
+    const description =
+        document.getElementById("description").value.trim();
+
+    const link =
+        document.getElementById("link").value.trim();
+
+    const message =
+        document.getElementById("message");
+
+
+    if (
+        !title ||
+        !category ||
+        !subject ||
+        !year ||
+        !link
+    ) {
+
+        message.textContent =
+            "Please enter the title, category, subject, year and paper link.";
+
+        return;
+    }
+
+
+    const { error } = await supabaseClient
+        .from("past_papers")
+        .insert([{
+            title: title,
+            category: category,
+            subject: subject,
+            year: year,
+            description: description,
+            link: link
+        }]);
+
+
+    if (error) {
+
+        console.error(
+            "Failed to save past paper:",
+            error
+        );
+
+        message.textContent =
+            "❌ Failed to save past paper. Please try again.";
+
+        return;
+    }
+
+
+    message.textContent =
+        "✅ Past paper saved successfully.";
+
+
+    document.getElementById("title").value = "";
+    document.getElementById("category").value = "";
+    document.getElementById("subject").value = "";
+    document.getElementById("year").value = "";
+    document.getElementById("description").value = "";
+    document.getElementById("link").value = "";
+}
+
+</script>
+
+</body>
+</html>

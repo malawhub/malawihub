@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Resource - MalawiHub</title>
+    <link rel="stylesheet" href="../../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../js/supabase.js"></script>
+
+<script>
+async function checkAdminAuth() {
+    const { data: { session } } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+        window.location.href = "../login.html";
+    }
+}
+
+checkAdminAuth();
+</script>
+</head>
+
+<body>
+
+<header>
+    <h1>🇲🇼 MalawiHub Admin</h1>
+    <nav>
+        <a href="../index.html">Admin</a>
+        <a href="../../index.html">Home</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h2>➕ Add Resource</h2>
+    <p>Add a new learning resource to MalawiHub.</p>
+</section>
+
+<main class="container">
+
+    <section class="card">
+
+        <label>Resource Title</label>
+        <input id="title" type="text" placeholder="e.g. Organic Chemistry Notes">
+
+        <label>Subject</label>
+        <input id="subject" type="text" placeholder="e.g. Chemistry">
+
+        <label>Category</label>
+        <input id="category" type="text" placeholder="e.g. Notes, Past Papers, Study Guide">
+
+        <label>Description</label>
+        <textarea id="description" placeholder="Describe the resource"></textarea>
+
+        <label>Resource Link</label>
+        <input id="link" type="url" placeholder="https://example.com/resource">
+
+        <button onclick="saveResource()">Save Resource</button>
+
+        <p id="message"></p>
+
+    </section>
+
+</main>
+
+<script>
+async function saveResource() {
+
+    const resource = {
+        id: Date.now(),
+        title: document.getElementById("title").value.trim(),
+        subject: document.getElementById("subject").value.trim(),
+        category: document.getElementById("category").value.trim(),
+        description: document.getElementById("description").value.trim(),
+        link: document.getElementById("link").value.trim()
+    };
+
+    if (!resource.title || !resource.subject || !resource.link) {
+        document.getElementById("message").textContent =
+            "Please enter a title, subject and resource link.";
+        return;
+    }
+
+    const { error } = await supabaseClient
+        .from("resources")
+        .insert([{
+            title: resource.title,
+            subject: resource.subject,
+            category: resource.category,
+            description: resource.description,
+            link: resource.link
+        }]);
+
+    if (error) {
+        console.error("Failed to save resource:", error);
+        document.getElementById("message").textContent =
+            "❌ Failed to save resource. Please try again.";
+        return;
+    }
+
+    document.getElementById("message").textContent =
+        "✅ Resource saved successfully.";
+
+    document.getElementById("title").value = "";
+    document.getElementById("subject").value = "";
+    document.getElementById("category").value = "";
+    document.getElementById("description").value = "";
+    document.getElementById("link").value = "";
+}
+</script>
+
+</body>
+</html>

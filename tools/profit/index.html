@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profit Calculator - MalawiHub</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f7fa;
+    color: #222;
+}
+
+header {
+    background: #111827;
+    color: white;
+    padding: 16px 6%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 21px;
+    font-weight: bold;
+}
+
+header a {
+    color: white;
+    text-decoration: none;
+}
+
+.container {
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+.calculator {
+    background: white;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 3px 15px rgba(0,0,0,.1);
+}
+
+h1 {
+    text-align: center;
+}
+
+.description {
+    text-align: center;
+    color: #666;
+}
+
+.input-group {
+    margin: 18px 0;
+}
+
+label {
+    display: block;
+    margin-bottom: 7px;
+    font-weight: bold;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+button {
+    width: 100%;
+    border: none;
+    background: #111827;
+    color: white;
+    padding: 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-top: 10px;
+}
+
+.result {
+    display: none;
+    margin-top: 25px;
+    padding: 20px;
+    background: #f3f4f6;
+    border-radius: 12px;
+}
+
+.result-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #ddd;
+}
+
+.result-row:last-child {
+    border-bottom: none;
+}
+
+.profit {
+    font-size: 30px;
+    font-weight: bold;
+    text-align: center;
+    margin: 15px 0;
+}
+
+@media(max-width:600px) {
+    .container {
+        padding: 12px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">🇲🇼 MalawiHub</div>
+    <a href="../../index.html">Home</a>
+</header>
+
+<div class="container">
+
+<div class="calculator">
+
+<h1>💰 Profit Calculator</h1>
+
+<p class="description">
+Calculate your total cost, revenue, profit or loss and profit percentage.
+</p>
+
+<div class="input-group">
+    <label>Cost Price per Item (MK)</label>
+    <input
+        type="number"
+        id="cost"
+        placeholder="e.g. 5000"
+        min="0"
+        step="0.01">
+</div>
+
+<div class="input-group">
+    <label>Selling Price per Item (MK)</label>
+    <input
+        type="number"
+        id="selling"
+        placeholder="e.g. 7500"
+        min="0"
+        step="0.01">
+</div>
+
+<div class="input-group">
+    <label>Quantity</label>
+    <input
+        type="number"
+        id="quantity"
+        placeholder="e.g. 10"
+        min="1"
+        step="1">
+</div>
+
+<button onclick="calculateProfit()">
+    Calculate Profit
+</button>
+
+<div class="result" id="result">
+
+    <div class="result-row">
+        <span>Total Cost</span>
+        <strong id="totalCost">MK 0.00</strong>
+    </div>
+
+    <div class="result-row">
+        <span>Total Revenue</span>
+        <strong id="revenue">MK 0.00</strong>
+    </div>
+
+    <div class="profit" id="profit">
+        MK 0.00
+    </div>
+
+    <div class="result-row">
+        <span>Profit Percentage</span>
+        <strong id="profitPercent">0%</strong>
+    </div>
+
+    <div class="result-row">
+        <span>Status</span>
+        <strong id="status">-</strong>
+    </div>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+function formatMoney(amount) {
+
+    return "MK " + amount.toLocaleString(
+        "en-MW",
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    );
+}
+
+function calculateProfit() {
+
+    const cost =
+        parseFloat(document.getElementById("cost").value);
+
+    const selling =
+        parseFloat(document.getElementById("selling").value);
+
+    const quantity =
+        parseFloat(document.getElementById("quantity").value);
+
+    if (
+        isNaN(cost) ||
+        isNaN(selling) ||
+        isNaN(quantity)
+    ) {
+        alert("Please enter all values.");
+        return;
+    }
+
+    if (cost < 0 || selling < 0 || quantity <= 0) {
+        alert("Please enter valid values.");
+        return;
+    }
+
+    const totalCost = cost * quantity;
+
+    const revenue = selling * quantity;
+
+    const profit = revenue - totalCost;
+
+    let profitPercent = 0;
+
+    if (totalCost > 0) {
+        profitPercent =
+            (profit / totalCost) * 100;
+    }
+
+    document.getElementById("totalCost").textContent =
+        formatMoney(totalCost);
+
+    document.getElementById("revenue").textContent =
+        formatMoney(revenue);
+
+    document.getElementById("profit").textContent =
+        formatMoney(profit);
+
+    document.getElementById("profitPercent").textContent =
+        profitPercent.toFixed(2) + "%";
+
+    const status =
+        document.getElementById("status");
+
+    if (profit > 0) {
+        status.textContent = "PROFIT";
+    } else if (profit < 0) {
+        status.textContent = "LOSS";
+    } else {
+        status.textContent = "BREAK-EVEN";
+    }
+
+    document.getElementById("result").style.display =
+        "block";
+}
+
+</script>
+
+</body>
+</html>

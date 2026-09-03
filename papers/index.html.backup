@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Past Papers | MalawiHub</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+<header>
+    <div class="logo">🇲🇼 MalawiHub</div>
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="../resources/index.html">Resources</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1>📄 Past Papers</h1>
+    <p>Practice with examination questions and improve your preparation.</p>
+</section>
+
+<section class="tools-section">
+    <h2>Choose a Category</h2>
+
+    <div class="card-grid">
+
+        <div class="card">
+            <h3>🏫 MANEB</h3>
+            <p>Past examination resources for secondary school students.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🎓 University</h3>
+            <p>University-level examination practice and revision resources.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🧪 Science</h3>
+            <p>Chemistry, Biology and other science practice questions.</p>
+            <button>Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🧮 Mathematics</h3>
+            <p>Mathematics examination practice and revision questions.</p>
+            <button>Open</button>
+        </div>
+
+    </div>
+</section>
+
+<footer>
+    <p>© 2026 MalawiHub</p>
+    <p>Free study resources for students.</p>
+</footer>
+
+</body>
+</html>

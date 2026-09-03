@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Resources | MalawiHub</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+<header>
+    <div class="logo">🇲🇼 MalawiHub</div>
+    <nav>
+        <a href="../index.html">Home</a>
+        <a href="#subjects">Subjects</a>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1>📚 Study Resources</h1>
+    <p>Useful study materials and learning resources for Malawian students.</p>
+</section>
+
+<section id="subjects" class="tools-section">
+    <h2>Choose a Subject</h2>
+
+    <div class="card-grid">
+
+        <div class="card">
+            <h3>🧪 Chemistry</h3>
+            <p>Notes, formulas, definitions and revision materials for Chemistry.</p>
+            <button onclick="location.href='chemistry/index.html'">Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🧮 Mathematics</h3>
+            <p>Mathematics notes, formulas, examples and revision materials.</p>
+            <button onclick="location.href='mathematics/index.html'">Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🧬 Biology</h3>
+            <p>Biology notes, key concepts and revision materials.</p>
+            <button onclick="location.href='biology/index.html'">Open</button>
+        </div>
+
+        <div class="card">
+            <h3>🎓 Education</h3>
+            <p>Education notes, teaching models and useful academic materials.</p>
+            <button onclick="location.href='education/index.html'">Open</button>
+        </div>
+
+        <div class="card">
+            <h3>📝 Study Guides</h3>
+            <p>Study tips, revision strategies and examination preparation guides.</p>
+            <button onclick="location.href='study-guides/index.html'">Open</button>
+        </div>
+
+        <div class="card">
+            <h3>📄 Past Papers</h3>
+            <p>Practice questions and examination resources for revision.</p>
+            <button onclick="location.href='../papers/index.html'">Open</button>
+        </div>
+
+    </div>
+</section>
+
+<section class="tools-section" id="added-resources">
+    <h2>📚 Added Resources</h2>
+    <p>Search and filter resources added through the MalawiHub resource manager.</p>
+
+    <div class="card">
+        <input
+            id="resourceSearch"
+            type="search"
+            placeholder="🔎 Search resources..."
+            oninput="loadPublicResources()"
+        >
+
+        <select id="subjectFilter" onchange="loadPublicResources()">
+            <option value="">All Subjects</option>
+        </select>
+
+        <select id="categoryFilter" onchange="loadPublicResources()">
+            <option value="">All Categories</option>
+        </select>
+    </div>
+
+    <div class="card-grid" id="publicResourceList"></div>
+</section>
+
+<footer>
+    <p>© 2026 MalawiHub</p>
+    <p>Free study resources for students.</p>
+</footer>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script>
+supabaseClient
+    .from("resources")
+    .select("id")
+    .limit(1)
+    .then(function(result) {
+        if (result.error) {
+            console.error("Supabase connection error:", result.error);
+        } else {
+            console.log("Supabase connection successful.");
+        }
+    });
+</script>
+
+<script>
+async function loadPublicResources() {
+
+    const { data: resources, error } = await supabaseClient
+        .from("resources")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error("Failed to load resources:", error);
+
+        const list = document.getElementById("publicResourceList");
+
+        if (list) {
+            list.innerHTML = `
+                <div class="card">
+                    <h3>Unable to load resources</h3>
+                    <p>Please try again later.</p>
+                </div>
+            `;
+        }
+
+        return;
+    }
+
+    const list = document.getElementById("publicResourceList");
+
+    const subjectSelect = document.getElementById("subjectFilter");
+    const categorySelect = document.getElementById("categoryFilter");
+
+    const selectedSubject = subjectSelect?.value || "";
+    const selectedCategory = categorySelect?.value || "";
+
+    const subjects = [...new Set(
+        resources
+            .map(r => (r.subject || "").trim())
+            .filter(Boolean)
+    )].sort();
+
+    const categories = [...new Set(
+        resources
+            .map(r => (r.category || "").trim())
+            .filter(Boolean)
+    )].sort();
+
+    if (subjectSelect) {
+        subjectSelect.innerHTML =
+            '<option value="">All Subjects</option>' +
+            subjects.map(s =>
+                `<option value="${s}">${s}</option>`
+            ).join("");
+
+        subjectSelect.value = selectedSubject;
+    }
+
+    if (categorySelect) {
+        categorySelect.innerHTML =
+            '<option value="">All Categories</option>' +
+            categories.map(c =>
+                `<option value="${c}">${c}</option>`
+            ).join("");
+
+        categorySelect.value = selectedCategory;
+    }
+
+    const search =
+        (document.getElementById("resourceSearch")?.value || "")
+        .toLowerCase()
+        .trim();
+
+    const subjectFilter =
+        document.getElementById("subjectFilter")?.value || "";
+
+    const categoryFilter =
+        document.getElementById("categoryFilter")?.value || "";
+
+    const filteredResources = resources.filter(function(resource) {
+
+        const title = (resource.title || "").toLowerCase();
+        const subject = (resource.subject || "").toLowerCase();
+        const category = (resource.category || "").toLowerCase();
+        const description = (resource.description || "").toLowerCase();
+
+        const matchesSearch =
+            !search ||
+            title.includes(search) ||
+            subject.includes(search) ||
+            category.includes(search) ||
+            description.includes(search);
+
+        const matchesSubject =
+            !subjectFilter ||
+            subject === subjectFilter.toLowerCase();
+
+        const matchesCategory =
+            !categoryFilter ||
+            category === categoryFilter.toLowerCase();
+
+        return matchesSearch && matchesSubject && matchesCategory;
+    });
+
+    if (filteredResources.length === 0) {
+        list.innerHTML = `
+            <div class="card">
+                <h3>No Added Resources Yet</h3>
+                <p>New resources added through the Admin Dashboard will appear here.</p>
+            </div>
+        `;
+        return;
+    }
+
+    list.innerHTML = "";
+
+    filteredResources.forEach(function(resource) {
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const title = document.createElement("h3");
+        title.textContent = resource.title;
+
+        const subject = document.createElement("p");
+        subject.innerHTML =
+            "<strong>Subject:</strong> " + resource.subject;
+
+        const category = document.createElement("p");
+        category.innerHTML =
+            "<strong>Category:</strong> " + (resource.category || "General");
+
+        const description = document.createElement("p");
+        description.textContent =
+            resource.description || "Learning resource.";
+
+        const button = document.createElement("button");
+        button.textContent = "Open Resource";
+
+        button.onclick = function() {
+            window.open(resource.link, "_blank");
+        };
+
+        card.appendChild(title);
+        card.appendChild(subject);
+        card.appendChild(category);
+        card.appendChild(description);
+        card.appendChild(button);
+
+        list.appendChild(card);
+    });
+}
+
+loadPublicResources();
+</script>
+
+
+<section id="subject-libraries-section" style="max-width:1100px;margin:40px auto;padding:0 20px">
+    <h2 style="text-align:center">📚 Subject Libraries</h2>
+    <p style="text-align:center;color:#666">Browse learning materials by subject.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:18px;margin-top:25px">
+        <div style="padding:22px;border-radius:14px;background:#fff;box-shadow:0 4px 15px #0001;text-align:center">
+            <h3>🧪 Chemistry</h3>
+            <p>Notes, textbooks, study guides and other Chemistry materials.</p>
+            <button onclick="location.href='chemistry/index.html'">Open Library</button>
+        </div>
+
+        <div style="padding:22px;border-radius:14px;background:#fff;box-shadow:0 4px 15px #0001;text-align:center">
+            <h3>🧮 Mathematics</h3>
+            <p>Notes, textbooks, revision materials and Mathematics resources.</p>
+            <button onclick="location.href='mathematics/index.html'">Open Library</button>
+        </div>
+
+        <div style="padding:22px;border-radius:14px;background:#fff;box-shadow:0 4px 15px #0001;text-align:center">
+            <h3>🧬 Biology</h3>
+            <p>Biology notes, textbooks and useful study materials.</p>
+            <button onclick="location.href='biology/index.html'">Open Library</button>
+        </div>
+
+        <div style="padding:22px;border-radius:14px;background:#fff;box-shadow:0 4px 15px #0001;text-align:center">
+            <h3>🎓 Education</h3>
+            <p>Education notes, teaching materials and study resources.</p>
+            <button onclick="location.href='education/index.html'">Open Library</button>
+        </div>
+    </div>
+</section>
+
+</body>
+</html>

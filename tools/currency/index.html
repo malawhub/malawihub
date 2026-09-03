@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Currency Calculator - MalawiHub</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f7fb;
+            margin: 0;
+            padding: 20px;
+            color: #222;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 6px;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 13px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px;
+            margin-top: 20px;
+            border: none;
+            border-radius: 8px;
+            background: #1769aa;
+            color: white;
+            font-size: 17px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        .result {
+            margin-top: 25px;
+            padding: 18px;
+            background: #eef7ff;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .result-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+
+        .note {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .swap {
+            background: #555;
+            margin-top: 10px;
+        }
+
+        .rate-box {
+            margin-top: 15px;
+            padding: 12px;
+            background: #f8f8f8;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+    <h1>💱 Currency Calculator</h1>
+    <p class="subtitle">Convert currencies quickly</p>
+
+    <label for="amount">Amount</label>
+    <input type="number" id="amount" value="1" min="0" step="any">
+
+    <label for="from">From</label>
+    <select id="from">
+        <option value="MWK">MWK - Malawi Kwacha</option>
+        <option value="USD">USD - US Dollar</option>
+        <option value="ZAR">ZAR - South African Rand</option>
+        <option value="GBP">GBP - British Pound</option>
+        <option value="EUR">EUR - Euro</option>
+        <option value="ZMW">ZMW - Zambian Kwacha</option>
+        <option value="TZS">TZS - Tanzanian Shilling</option>
+    </select>
+
+    <label for="to">To</label>
+    <select id="to">
+        <option value="USD">USD - US Dollar</option>
+        <option value="MWK">MWK - Malawi Kwacha</option>
+        <option value="ZAR">ZAR - South African Rand</option>
+        <option value="GBP">GBP - British Pound</option>
+        <option value="EUR">EUR - Euro</option>
+        <option value="ZMW">ZMW - Zambian Kwacha</option>
+        <option value="TZS">TZS - Tanzanian Shilling</option>
+    </select>
+
+    <button onclick="convert()">Convert</button>
+    <button class="swap" onclick="swapCurrencies()">⇄ Swap Currencies</button>
+
+    <div class="result">
+        <div>Converted Amount</div>
+        <div class="result-value" id="result">0.00</div>
+    </div>
+
+    <div class="rate-box" id="rateInfo">
+        Enter an amount and select currencies.
+    </div>
+
+    <div class="note">
+        <strong>Note:</strong> Exchange rates can change frequently.
+        This calculator uses editable example rates and should not be
+        treated as a live market-rate service.
+    </div>
+</div>
+
+<script>
+const rates = {
+    MWK: 1,
+    USD: 1730,
+    ZAR: 95,
+    GBP: 2350,
+    EUR: 2010,
+    ZMW: 70,
+    TZS: 0.67
+};
+
+function convert() {
+    const amount = parseFloat(document.getElementById("amount").value);
+    const from = document.getElementById("from").value;
+    const to = document.getElementById("to").value;
+
+    if (isNaN(amount) || amount < 0) {
+        document.getElementById("result").textContent = "Enter a valid amount";
+        return;
+    }
+
+    const amountInMWK = amount * rates[from];
+    const converted = amountInMWK / rates[to];
+
+    document.getElementById("result").textContent =
+        converted.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }) + " " + to;
+
+    const rate = rates[from] / rates[to];
+
+    document.getElementById("rateInfo").textContent =
+        "1 " + from + " ≈ " +
+        rate.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 4
+        }) + " " + to;
+}
+
+function swapCurrencies() {
+    const from = document.getElementById("from");
+    const to = document.getElementById("to");
+
+    const oldFrom = from.value;
+    from.value = to.value;
+    to.value = oldFrom;
+
+    convert();
+}
+
+convert();
+</script>
+
+</body>
+</html>
