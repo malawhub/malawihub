@@ -2,125 +2,529 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Assignment Cover Generator - MalawiHub</title>
+
 <style>
 *{box-sizing:border-box}
-body{font-family:Arial,sans-serif;background:#f4f7fb;margin:0;padding:20px;color:#222}
-.container{max-width:650px;margin:auto;background:white;padding:25px;border-radius:15px;box-shadow:0 4px 15px rgba(0,0,0,.1)}
-h1{text-align:center;margin-bottom:8px}
-.subtitle{text-align:center;color:#666;margin-bottom:25px}
-label{display:block;font-weight:bold;margin:14px 0 6px}
-input,textarea{width:100%;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:16px}
-textarea{min-height:80px;resize:vertical}
-button{width:100%;padding:14px;margin-top:18px;border:0;border-radius:8px;background:#1769aa;color:white;font-size:16px;font-weight:bold}
-.cover{display:none;margin-top:30px;padding:40px 25px;border:2px solid #222;min-height:650px;text-align:center;background:white}
-.cover h2{font-size:24px;margin:10px 0 35px}
-.cover h3{font-size:20px;margin:25px 0}
-.cover p{font-size:16px;margin:12px 0}
-.cover .title{font-size:22px;font-weight:bold;margin:35px 0}
-.download-note{margin-top:20px;text-align:center;font-size:13px;color:#666}
+
+body{
+font-family:Arial,sans-serif;
+background:#f4f7fb;
+margin:0;
+padding:20px;
+color:#222
+}
+
+.container{
+max-width:700px;
+margin:auto;
+background:#fff;
+padding:25px;
+border-radius:15px;
+box-shadow:0 4px 15px rgba(0,0,0,.1)
+}
+
+.brand{
+text-align:center;
+color:#1769aa;
+font-weight:bold;
+font-size:14px;
+margin-bottom:8px
+}
+
+h1{
+text-align:center;
+margin:5px 0 8px
+}
+
+.subtitle{
+text-align:center;
+color:#666;
+margin-bottom:25px
+}
+
+label{
+display:block;
+font-weight:bold;
+margin:14px 0 6px
+}
+
+input,select,textarea{
+width:100%;
+padding:12px;
+border:1px solid #ccc;
+border-radius:8px;
+font-size:16px;
+background:#fff
+}
+
+textarea{
+min-height:85px;
+resize:vertical
+}
+
+button{
+width:100%;
+padding:14px;
+margin-top:18px;
+border:0;
+border-radius:8px;
+background:#1769aa;
+color:#fff;
+font-size:16px;
+font-weight:bold;
+cursor:pointer
+}
+
+button:hover{
+opacity:.92
+}
+
+.preview{
+display:none;
+margin-top:30px
+}
+
+.preview-title{
+text-align:center;
+font-size:20px;
+font-weight:bold;
+margin-bottom:15px
+}
+
+.cover{
+padding:55px 45px;
+border:2px solid #222;
+min-height:1000px;
+height:100%;
+text-align:center;
+background:#fff;
+position:relative;
+display:flex;
+flex-direction:column;
+align-items:center
+}
+
+.university-logo-wrap{
+height:95px;
+width:120px;
+display:flex;
+align-items:center;
+justify-content:center;
+margin:0 auto 10px
+}
+
+.university-logo{
+max-width:90px;
+max-height:85px;
+object-fit:contain;
+display:none
+}
+
+.cover h2{
+font-size:28px;
+margin:10px 0 10px;
+max-width:90%
+}
+
+.cover .department{
+font-size:18px;
+margin-bottom:70px
+}
+
+.cover .assignment{
+font-size:26px;
+font-weight:bold;
+margin:20px 0 55px;
+letter-spacing:1px
+}
+
+.cover .title{
+font-size:23px;
+font-weight:bold;
+margin:10px 0 70px;
+line-height:1.5;
+max-width:85%
+}
+
+.info{
+width:92%;
+max-width:760px;
+margin:0 auto;
+text-align:left
+}
+
+.info-row{
+display:grid;
+grid-template-columns:190px 25px minmax(0,1fr);
+align-items:center;
+font-size:17px;
+margin:22px 0;
+line-height:1.4;
+white-space:nowrap;
+text-align:left
+}
+
+.info-label{
+font-weight:bold;
+text-align:left;
+white-space:nowrap
+}
+
+.info-colon{
+font-weight:bold;
+text-align:center
+}
+
+.info-value{
+text-align:left;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;
+min-width:0;
+padding-left:55px
+}
+
+.download{
+background:#198754
+}
+
+.reset{
+background:#6c757d
+}
+
+.note{
+text-align:center;
+font-size:13px;
+color:#666;
+margin-top:12px;
+line-height:1.5
+}
+
 @media print{
-body{background:white;padding:0}
-.container{display:none}
-.cover{display:block;border:0;margin:0;min-height:100vh}
-.download-note{display:none}
+
+body{
+background:#fff;
+padding:0
+}
+
+.container,
+.preview-title,
+.download,
+.reset,
+.note{
+display:none!important
+}
+
+.preview{
+display:block!important;
+margin:0
+}
+
+.cover{
+border:0;
+min-height:100vh;
+padding:60px 40px
+}
 }
 </style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase.js"></script>
+
 </head>
+
 <body>
 
 <div class="container">
-<h1>📝 Assignment Cover Generator</h1>
-<p class="subtitle">Create a professional assignment cover page.</p>
 
-<label>Student Name</label>
+<div class="brand">MalawiHub</div>
+
+<h1>📝 Assignment Cover Generator</h1>
+
+<p class="subtitle">
+Create a clean and professional assignment cover page.
+</p>
+
+<label for="institution">University / College</label>
+<select id="institution">
+<option value="">Select your university or college</option>
+<option>University of Malawi</option>
+<option>Mzuzu University</option>
+<option>Malawi University of Business and Applied Sciences</option>
+<option>Kamuzu University of Health Sciences</option>
+<option>Malawi College of Accountancy</option>
+<option>University of Livingstonia</option>
+<option>Lake Malawi Anglican University</option>
+<option>Daeyang University</option>
+<option>Malawi Adventist University</option>
+<option>Other University / College</option>
+</select>
+
+<label for="student">Student Name</label>
 <input id="student" placeholder="e.g. John Banda">
 
-<label>Student ID / Registration Number</label>
+<label for="studentId">Student ID / Registration Number</label>
 <input id="studentId" placeholder="e.g. BSC/2024/001">
 
-<label>University / College</label>
-<input id="institution" placeholder="e.g. University of Malawi">
+<label for="department">Department</label>
+<input id="department" placeholder="e.g. Chemistry">
 
-<label>Department</label>
-<input id="department" placeholder="e.g. Education">
-
-<label>Course Name</label>
+<label for="course">Course Name</label>
 <input id="course" placeholder="e.g. Physical Chemistry">
 
-<label>Course Code</label>
+<label for="code">Course Code</label>
 <input id="code" placeholder="e.g. CHE321">
 
-<label>Assignment Title</label>
+<label for="assignmentNumber">Assignment Number</label>
+<input id="assignmentNumber" type="text" placeholder="e.g. 1">
+
+<label for="title">Assignment Title</label>
 <textarea id="title" placeholder="Enter assignment title"></textarea>
 
-<label>Lecturer / Instructor</label>
+<label for="lecturer">Lecturer / Instructor</label>
 <input id="lecturer" placeholder="e.g. Dr. Banda">
 
-<label>Submission Date</label>
+<label for="date">Submission Date</label>
 <input id="date" type="date">
 
-<button onclick="generateCover()">Generate Cover Page</button>
+<button onclick="generateCover()">
+Generate Cover Page
+</button>
 
+</div>
+
+<div class="preview" id="preview">
+
+<div class="preview-title">
+Assignment Cover Preview
 </div>
 
 <div class="cover" id="cover">
-<h2 id="outInstitution"></h2>
-<p id="outDepartment"></p>
 
-<h3>ASSIGNMENT</h3>
-
-<p><strong>Student Name:</strong> <span id="outStudent"></span></p>
-<p><strong>Student ID:</strong> <span id="outStudentId"></span></p>
-
-<p><strong>Course:</strong> <span id="outCourse"></span></p>
-<p><strong>Course Code:</strong> <span id="outCode"></span></p>
-
-<div class="title" id="outTitle"></div>
-
-<p><strong>Lecturer:</strong> <span id="outLecturer"></span></p>
-<p><strong>Submission Date:</strong> <span id="outDate"></span></p>
-
-<div class="download-note">
-Use your browser's Print option to save the cover page as a PDF.
+<div class="university-logo-wrap" id="universityLogoWrap">
+<img id="universityLogo" class="university-logo" alt="University logo">
 </div>
+
+<h2 id="outInstitution">University / College</h2>
+
+<div class="department" id="outDepartment">
+Department
+</div>
+
+<div class="assignment">
+ASSIGNMENT
+</div>
+
+<div class="title" id="outTitle">
+Assignment Title
+</div>
+
+<div class="info">
+
+<div class="info-row">
+<div class="info-label">Assignment Number</div>
+<div class="info-colon">:</div>
+<div class="info-value" id="outAssignmentNumber"></div>
+</div>
+
+<div class="info-row">
+<div class="info-label">Student Name</div>
+<div class="info-colon">:</div>
+<div class="info-value" id="outStudent"></div>
+</div>
+
+<div class="info-row">
+<div class="info-label">Student ID</div>
+<div class="info-colon">:</div>
+<div class="info-value" id="outStudentId"></div>
+</div>
+
+<div class="info-row">
+<div class="info-label">Department</div>
+<div class="info-colon">:</div>
+<div class="info-value" id="outDepartmentInfo"></div>
+</div>
+
+<div class="info-row">
+<div class="info-label">Course</div>
+<div class="info-colon">:</div>
+<div class="info-value" id="outCourse"></div>
+</div>
+
+<div class="info-row">
+<div class="info-label">Course Code</div>
+<div class="info-colon">:</div>
+<div class="info-value" id="outCode"></div>
+</div>
+
+<div class="info-row">
+<div class="info-label">Lecturer</div>
+<div class="info-colon">:</div>
+<div class="info-value" id="outLecturer"></div>
+</div>
+
+<div class="info-row">
+<div class="info-label">Submission Date</div>
+<div class="info-colon">:</div>
+<div class="info-value" id="outDate"></div>
+</div>
+
+</div>
+
+</div>
+
+<button class="download" onclick="downloadPDF()">
+⬇️ Download Cover as PDF
+</button>
+
+<button class="reset" onclick="resetForm()">
+Create Another Cover
+</button>
+
+<p class="note">
+On Android, the PDF button opens the print screen.
+Choose <strong>Save as PDF</strong> to save your assignment cover.
+</p>
+
 </div>
 
 <script>
+
 function get(id){
-    return document.getElementById(id).value.trim();
+return document.getElementById(id).value.trim();
 }
 
-function generateCover(){
-    document.getElementById("outInstitution").textContent=get("institution");
-    document.getElementById("outDepartment").textContent=get("department");
-    document.getElementById("outStudent").textContent=get("student");
-    document.getElementById("outStudentId").textContent=get("studentId");
-    document.getElementById("outCourse").textContent=get("course");
-    document.getElementById("outCode").textContent=get("code");
-    document.getElementById("outTitle").textContent=get("title");
-    document.getElementById("outLecturer").textContent=get("lecturer");
+async function updateUniversityLogo(institution){
 
-    const date=get("date");
+    const logo=document.getElementById("universityLogo");
 
-    if(date){
-        const d=new Date(date+"T00:00:00");
-        document.getElementById("outDate").textContent=
-            d.toLocaleDateString(undefined,{
-                day:"numeric",
-                month:"long",
-                year:"numeric"
-            });
-    }else{
-        document.getElementById("outDate").textContent="";
+    logo.style.display="none";
+    logo.removeAttribute("src");
+
+    if(!institution){
+        return;
     }
 
-    document.getElementById("cover").style.display="block";
-    document.getElementById("cover").scrollIntoView({
-        behavior:"smooth"
-    });
+    try{
+
+        const { data, error } = await supabaseClient
+            .from("university_branding")
+            .select("logo_url")
+            .eq("university_name", institution)
+            .eq("active", true)
+            .maybeSingle();
+
+        if(error){
+            console.error("University logo lookup failed:", error);
+            alert("Logo lookup error: " + error.message);
+            return;
+        }
+
+        console.log("University logo lookup:", institution, data);
+
+        if(data && data.logo_url){
+
+            logo.src=data.logo_url;
+            logo.style.display="block";
+
+            logo.onerror=function(){
+                console.warn("University logo could not be loaded:", data.logo_url);
+                logo.style.display="none";
+            };
+
+        }
+
+    }catch(error){
+
+        console.error("University logo error:", error);
+
+    }
 }
+
+async function generateCover(){
+
+const institution=get("institution");
+
+await updateUniversityLogo(institution);
+
+if(!institution){
+alert("Please select your university or college.");
+return;
+}
+
+if(!get("student")){
+alert("Please enter your student name.");
+return;
+}
+
+if(!get("title")){
+alert("Please enter the assignment title.");
+return;
+}
+
+document.getElementById("outInstitution").textContent=institution;
+document.getElementById("outDepartment").textContent=get("department");
+document.getElementById("outDepartmentInfo").textContent=get("department");
+document.getElementById("outAssignmentNumber").textContent=get("assignmentNumber");
+document.getElementById("outStudent").textContent=get("student");
+document.getElementById("outStudentId").textContent=get("studentId");
+document.getElementById("outCourse").textContent=get("course");
+document.getElementById("outCode").textContent=get("code");
+document.getElementById("outTitle").textContent=get("title");
+document.getElementById("outLecturer").textContent=get("lecturer");
+
+const date=get("date");
+
+if(date){
+
+const d=new Date(date+"T00:00:00");
+
+document.getElementById("outDate").textContent=
+d.toLocaleDateString(undefined,{
+day:"numeric",
+month:"long",
+year:"numeric"
+});
+
+}else{
+
+document.getElementById("outDate").textContent="";
+
+}
+
+document.getElementById("preview").style.display="block";
+
+document.getElementById("preview").scrollIntoView({
+behavior:"smooth"
+});
+
+}
+
+function downloadPDF(){
+
+window.print();
+
+}
+
+function resetForm(){
+
+document.getElementById("preview").style.display="none";
+
+document.querySelectorAll("input,textarea").forEach(function(field){
+field.value="";
+});
+
+document.getElementById("institution").value="";
+
+window.scrollTo({
+top:0,
+behavior:"smooth"
+});
+
+}
+
 </script>
 
 </body>
