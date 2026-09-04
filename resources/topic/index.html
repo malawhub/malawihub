@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Topic - MalawiHub</title>
+    <link rel="stylesheet" href="../../css/style.css">
+</head>
+
+<body>
+
+<header>
+    <div class="container">
+        <h2>🇲🇼 MalawiHub</h2>
+        <nav>
+            <a href="../../index.html">Home</a>
+            <a href="../index.html">Resources</a>
+        </nav>
+    </div>
+</header>
+
+<section class="hero">
+    <h1 id="topicTitle">Loading...</h1>
+    <p id="topicDescription">Learning materials and resources.</p>
+</section>
+
+<section class="tools-section">
+    <div class="card-grid">
+
+        <div class="card">
+            <h3>📚 Study Materials</h3>
+            <p>Notes, explanations and learning materials for this topic.</p>
+            <button type="button">Coming Soon</button>
+        </div>
+
+        <div class="card">
+            <h3>📄 Uploaded Resources</h3>
+            <p>Resources uploaded by the MalawiHub administrator.</p>
+            <div id="uploadedResources">
+                <p>Loading resources...</p>
+            </div>
+        </div>
+
+    </div>
+</section>
+
+<footer>
+    <p>© 2026 MalawiHub</p>
+    <p>Free study resources for students.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../js/supabase.js"></script>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+
+const subject = params.get("subject") || "";
+const topic = params.get("topic") || "";
+
+document.title = topic
+    ? `${topic} - MalawiHub`
+    : "Topic - MalawiHub";
+
+document.getElementById("topicTitle").textContent =
+    topic || "Topic";
+
+document.getElementById("topicDescription").textContent =
+    subject
+        ? `${subject} — learning materials and resources.`
+        : "Learning materials and resources.";
+
+async function loadResources() {
+
+    const box = document.getElementById("uploadedResources");
+
+    if (!subject || !topic) {
+        box.innerHTML = "<p>No topic was selected.</p>";
+        return;
+    }
+
+    const { data, error } = await supabaseClient
+        .from("subject_resources")
+        .select("*")
+        .eq("subject", subject)
+        .ilike("title", `%${topic}%`)
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error(error);
+        box.innerHTML = "<p>Unable to load resources.</p>";
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        box.innerHTML =
+            "<p>No uploaded resources for this topic yet.</p>";
+        return;
+    }
+
+    box.innerHTML = data.map(resource => `
+        <div>
+            <h3>${escapeHtml(resource.title)}</h3>
+            ${resource.description
+                ? `<p>${escapeHtml(resource.description)}</p>`
+                : ""}
+            <a href="${resource.link}"
+               target="_blank"
+               rel="noopener noreferrer">
+                <button type="button">Open Resource</button>
+            </a>
+        </div>
+    `).join("");
+}
+
+function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+    }[char]));
+}
+
+loadResources();
+</script>
+
+</body>
+</html>
