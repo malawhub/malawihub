@@ -36,6 +36,13 @@ textarea{min-height:110px;resize:vertical}.btn{border:0;border-radius:8px;paddin
 </div>
 
 <div class="field">
+<label>Topic</label>
+<select id="topic" required disabled>
+<option value="">Select subject first</option>
+</select>
+</div>
+
+<div class="field">
 <label>Category</label>
 <select id="category" required>
 <option value="">Select category</option>
@@ -80,6 +87,74 @@ checkAuth();
 
 const form=document.getElementById("form");
 const msg=document.getElementById("msg");
+const subjectSelect=document.getElementById("subject");
+const topicSelect=document.getElementById("topic");
+
+const topics={
+ Chemistry:[
+  "Atomic Structure",
+  "Periodic Table",
+  "Chemical Bonding",
+  "Stoichiometry",
+  "Acids, Bases & Salts",
+  "Organic Chemistry",
+  "Spectroscopy",
+  "d- & f-Block Elements",
+  "Revision Notes"
+ ],
+ Mathematics:[
+  "Number & Arithmetic",
+  "Algebra",
+  "Functions & Graphs",
+  "Geometry",
+  "Statistics",
+  "Probability",
+  "Trigonometry",
+  "Calculus",
+  "Revision Notes"
+ ],
+ Biology:[
+  "Cell Biology",
+  "Genetics",
+  "Plant Biology",
+  "Human Biology",
+  "Ecology",
+  "Microbiology",
+  "Evolution",
+  "Classification",
+  "Revision Notes"
+ ],
+ Education:[
+  "Teaching Methods",
+  "Lesson Planning",
+  "Learning Objectives",
+  "Assessment",
+  "Educational Technology",
+  "Learning Theories",
+  "Curriculum Studies",
+  "Classroom Management",
+  "Revision Notes"
+ ]
+};
+
+subjectSelect.addEventListener("change",()=>{
+ const subject=subjectSelect.value;
+ topicSelect.innerHTML='<option value="">Select topic</option>';
+
+ if(!topics[subject]){
+  topicSelect.disabled=true;
+  return;
+ }
+
+ topics[subject].forEach(topic=>{
+  const option=document.createElement("option");
+  option.value=topic;
+  option.textContent=topic;
+  topicSelect.appendChild(option);
+ });
+
+ topicSelect.disabled=false;
+});
 
 function message(text,error=false){
  msg.textContent=text;
@@ -93,6 +168,7 @@ form.addEventListener("submit",async e=>{
 
  const title=document.getElementById("title").value.trim();
  const subject=document.getElementById("subject").value;
+ const topic=document.getElementById("topic").value;
  const category=document.getElementById("category").value;
  const year=document.getElementById("year").value;
  const description=document.getElementById("description").value.trim();
@@ -125,6 +201,7 @@ form.addEventListener("submit",async e=>{
   .insert({
    title,
    subject,
+   topic,
    category,
    description:description||null,
    year:year?Number(year):null,

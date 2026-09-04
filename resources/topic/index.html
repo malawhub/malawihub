@@ -83,7 +83,7 @@ async function loadResources() {
         .from("subject_resources")
         .select("*")
         .eq("subject", subject)
-        .ilike("title", `%${topic}%`)
+        .eq("topic", topic)
         .order("created_at", { ascending: false });
 
     if (error) {
