@@ -69,6 +69,16 @@ checkAdminAuth();
                 <p>🎓 Education</p>
             </div>
 
+            <div class="card">
+                <h3 id="totalPastPapers">0</h3>
+                <p>📄 Total Past Papers</p>
+            </div>
+
+            <div class="card">
+                <h3 id="totalSubjectResources">0</h3>
+                <p>📚 Subject Library</p>
+            </div>
+
         </div>
     </section>
 
@@ -136,13 +146,34 @@ async function logout() {
 <script>
 async function loadStatistics() {
 
-    const { data: resources, error } = await supabaseClient
-        .from("resources")
-        .select("subject");
+    const [
+        { data: resources, error: resourcesError },
+        { data: pastPapers, error: papersError },
+        { data: subjectResources, error: subjectResourcesError }
+    ] = await Promise.all([
+        supabaseClient
+            .from("resources")
+            .select("subject"),
 
-    if (error) {
-        console.error("Failed to load statistics:", error);
-        return;
+        supabaseClient
+            .from("past_papers")
+            .select("id"),
+
+        supabaseClient
+            .from("subject_resources")
+            .select("id")
+    ]);
+
+    if (resourcesError) {
+        console.error("Failed to load resources statistics:", resourcesError);
+    }
+
+    if (papersError) {
+        console.error("Failed to load past papers statistics:", papersError);
+    }
+
+    if (subjectResourcesError) {
+        console.error("Failed to load subject library statistics:", subjectResourcesError);
     }
 
     const list = resources || [];
@@ -169,6 +200,12 @@ async function loadStatistics() {
         list.filter(r =>
             (r.subject || "").toLowerCase() === "education"
         ).length;
+
+    document.getElementById("totalPastPapers").textContent =
+        (pastPapers || []).length;
+
+    document.getElementById("totalSubjectResources").textContent =
+        (subjectResources || []).length;
 }
 
 loadStatistics();
