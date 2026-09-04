@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+
+<title>MalawiHub Premium - Assignment Cover</title>
+
+<style>
+*{
+box-sizing:border-box
+}
+
+body{
+font-family:Arial,sans-serif;
+margin:0;
+background:#f4f7fb;
+color:#222;
+padding:20px
+}
+
+.container{
+max-width:850px;
+margin:auto
+}
+
+.header{
+text-align:center;
+margin-bottom:25px
+}
+
+.brand{
+color:#1769aa;
+font-weight:bold;
+font-size:14px
+}
+
+h1{
+margin:8px 0;
+font-size:30px
+}
+
+.subtitle{
+color:#666;
+line-height:1.5
+}
+
+.status{
+background:#fff;
+border-radius:12px;
+padding:16px;
+margin-bottom:20px;
+box-shadow:0 3px 12px rgba(0,0,0,.08);
+display:flex;
+justify-content:space-between;
+align-items:center;
+gap:15px
+}
+
+.status strong{
+font-size:17px
+}
+
+.status span{
+font-weight:bold;
+color:#198754
+}
+
+.plans{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px
+}
+
+.plan{
+background:#fff;
+border-radius:15px;
+padding:25px;
+box-shadow:0 4px 15px rgba(0,0,0,.08);
+position:relative
+}
+
+.plan.premium{
+border:2px solid #d4a017
+}
+
+.badge{
+display:inline-block;
+background:#d4a017;
+color:#fff;
+padding:5px 10px;
+border-radius:20px;
+font-size:12px;
+font-weight:bold;
+margin-bottom:10px
+}
+
+.plan h2{
+margin:5px 0 10px
+}
+
+.price{
+font-size:28px;
+font-weight:bold;
+margin:15px 0
+}
+
+.price small{
+font-size:14px;
+font-weight:normal;
+color:#666
+}
+
+.features{
+list-style:none;
+padding:0;
+margin:20px 0
+}
+
+.features li{
+margin:11px 0;
+line-height:1.4
+}
+
+button{
+width:100%;
+border:0;
+border-radius:9px;
+padding:14px;
+font-size:16px;
+font-weight:bold;
+cursor:pointer
+}
+
+.basic-button{
+background:#6c757d;
+color:#fff
+}
+
+.premium-button{
+background:#d4a017;
+color:#fff
+}
+
+.trial{
+margin-top:25px;
+background:#fffdf2;
+border:1px solid #e6c65c;
+border-radius:12px;
+padding:20px;
+text-align:center
+}
+
+.trial h3{
+margin-top:0
+}
+
+.actions{
+margin-top:20px;
+text-align:center
+}
+
+.back{
+display:inline-block;
+color:#1769aa;
+font-weight:bold;
+text-decoration:none
+}
+
+.note{
+font-size:13px;
+color:#666;
+line-height:1.5;
+margin-top:20px;
+text-align:center
+}
+
+@media(max-width:650px){
+.plans{
+grid-template-columns:1fr
+}
+
+.status{
+flex-direction:column;
+align-items:flex-start
+}
+}
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">
+<div class="brand">MalawiHub</div>
+
+<h1>⭐ MalawiHub Premium</h1>
+
+<p class="subtitle">
+Unlock professional Assignment Cover designs and advanced customization.
+</p>
+</div>
+
+<div class="status" id="status">
+<strong>Checking Premium status...</strong>
+<span>...</span>
+</div>
+
+<div class="plans">
+
+<div class="plan">
+
+<h2>Basic</h2>
+
+<p>For students who need a simple professional assignment cover.</p>
+
+<div class="price">
+MK 0
+<small> / free</small>
+</div>
+
+<ul class="features">
+<li>✓ Standard assignment cover</li>
+<li>✓ University logos</li>
+<li>✓ Student information</li>
+<li>✓ Assignment number</li>
+<li>✓ PDF saving</li>
+</ul>
+
+<button class="basic-button"
+onclick="openAssignmentCover()">
+Use Basic
+</button>
+
+</div>
+
+<div class="plan premium">
+
+<div class="badge">⭐ PREMIUM</div>
+
+<h2>Premium</h2>
+
+<p>Professional designs and advanced Assignment Cover features.</p>
+
+<div class="price">
+Premium
+<small> / 30 days</small>
+</div>
+
+<ul class="features">
+<li>✓ Professional template</li>
+<li>✓ Academic template</li>
+<li>✓ Modern template</li>
+<li>✓ Advanced customization</li>
+<li>✓ Premium features as they are added</li>
+</ul>
+
+<button class="premium-button"
+onclick="startTrial()">
+🎁 Start 7-Day Trial
+</button>
+
+</div>
+
+</div>
+
+<div class="trial">
+
+<h3>🎁 7-Day Premium Trial</h3>
+
+<p>
+Try MalawiHub Premium for 7 days before choosing a paid Premium plan.
+</p>
+
+<button class="premium-button"
+onclick="startTrial()">
+Start Premium Trial
+</button>
+
+</div>
+
+<div class="actions">
+
+<a class="back" href="/tools/assignment/">
+← Back to Assignment Cover
+</a>
+
+</div>
+
+<p class="note">
+Premium activation and payments will be securely connected to your MalawiHub account.
+Your Premium access will be controlled through Supabase.
+</p>
+
+</div>
+
+<script>
+
+async function checkPremiumStatus(){
+
+const status=document.getElementById("status");
+
+try{
+
+const result=await supabaseClient.auth.getUser();
+const user=result.data ? result.data.user : null;
+
+if(!user){
+
+status.innerHTML=
+"<strong>Not signed in</strong><span>Basic</span>";
+
+return;
+
+}
+
+const {data,error}=await supabaseClient
+.from("premium_access")
+.select("status,expires_at")
+.eq("user_id",user.id)
+.in("status",["trial","active"])
+.order("expires_at",{ascending:false})
+.limit(1)
+.maybeSingle();
+
+if(error){
+
+console.error(error);
+
+status.innerHTML=
+"<strong>Premium status</strong><span>Unavailable</span>";
+
+return;
+
+}
+
+if(data){
+
+const expires=data.expires_at
+?new Date(data.expires_at)
+:null;
+
+if(!expires || expires>new Date()){
+
+status.innerHTML=
+"<strong>Premium access</strong><span>Active ⭐</span>";
+
+return;
+
+}
+
+}
+
+status.innerHTML=
+"<strong>Basic version</strong><span>Free</span>";
+
+}catch(error){
+
+console.error(error);
+
+status.innerHTML=
+"<strong>Premium status</strong><span>Basic</span>";
+
+}
+
+}
+
+function startTrial(){
+
+alert(
+"🎁 7-Day Premium Trial\n\n"+
+"Your trial request will be connected to secure Premium activation."
+);
+
+}
+
+function openAssignmentCover(){
+
+window.location.href="/tools/assignment/";
+
+}
+
+document.addEventListener(
+"DOMContentLoaded",
+checkPremiumStatus
+);
+
+</script>
+
+</body>
+</html>
