@@ -369,12 +369,96 @@ status.innerHTML=
 
 }
 
-function startTrial(){
+async function startTrial(){
 
-alert(
-"🎁 7-Day Premium Trial\n\n"+
-"Your trial request will be connected to secure Premium activation."
-);
+    const result = await supabaseClient.auth.getUser();
+    const user = result.data ? result.data.user : null;
+
+    if(!user){
+
+        alert(
+            "🔐 Sign in required\n\n"+
+            "Please sign in to your MalawiHub account before starting the Premium trial."
+        );
+
+        return;
+    }
+
+    const button = document.querySelector(".premium-button");
+
+    if(button){
+        button.disabled = true;
+        button.textContent = "Starting trial...";
+    }
+
+    try{
+
+        const { data, error } = await supabaseClient
+            .rpc("start_premium_trial");
+
+        if(error){
+
+            console.error("Premium trial error:", error);
+
+            alert(
+                "❌ Premium trial could not be started.\n\n"+
+                error.message
+            );
+
+            return;
+        }
+
+        const trial = Array.isArray(data) ? data[0] : data;
+
+        if(!trial){
+
+            alert("❌ No response was received from Premium activation.");
+
+            return;
+        }
+
+        if(trial.success){
+
+            const expiry = trial.expires_at
+                ? new Date(trial.expires_at).toLocaleString()
+                : "";
+
+            alert(
+                "🎉 Premium Trial Started!\n\n"+
+                trial.message+
+                (expiry ? "\n\nYour trial expires:\n"+expiry : "")
+            );
+
+            await checkPremiumStatus();
+
+        }else{
+
+            alert(
+                "⭐ Premium Trial\n\n"+
+                trial.message+
+                (trial.expires_at
+                    ? "\n\nExpiry: "+new Date(trial.expires_at).toLocaleString()
+                    : "")
+            );
+
+        }
+
+    }catch(error){
+
+        console.error("Premium trial error:", error);
+
+        alert(
+            "❌ Something went wrong while starting your Premium trial."
+        );
+
+    }finally{
+
+        if(button){
+            button.disabled = false;
+            button.textContent = "🎁 Start 7-Day Trial";
+        }
+
+    }
 
 }
 
