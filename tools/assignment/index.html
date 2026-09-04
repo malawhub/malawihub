@@ -81,6 +81,72 @@ button:hover{
 opacity:.92
 }
 
+.premium-card{
+margin:0 0 25px;
+padding:18px;
+border:1px solid #d8b24c;
+border-radius:12px;
+background:linear-gradient(135deg,#fffdf4,#fff8df);
+}
+
+.premium-badge{
+display:inline-block;
+padding:5px 10px;
+border-radius:20px;
+background:#d4a017;
+color:#fff;
+font-size:12px;
+font-weight:bold;
+margin-bottom:10px;
+}
+
+.premium-header h3{
+margin:0 0 6px;
+font-size:20px;
+}
+
+.premium-header p{
+margin:0;
+color:#666;
+font-size:14px;
+line-height:1.5;
+}
+
+.premium-status{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-top:15px;
+padding:10px 12px;
+border-radius:8px;
+background:#fff;
+border:1px solid #e5e5e5;
+}
+
+.premium-status span{
+font-weight:bold;
+color:#198754;
+}
+
+.premium-features{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:8px;
+margin-top:15px;
+font-size:14px;
+color:#444;
+}
+
+.premium-upgrade{
+background:#d4a017;
+}
+
+@media(max-width:500px){
+.premium-features{
+grid-template-columns:1fr;
+}
+}
+
 .preview{
 display:none;
 margin-top:30px
@@ -202,6 +268,52 @@ margin-top:12px;
 line-height:1.5
 }
 
+/* Premium cover templates */
+
+.cover.template-professional{
+border:4px solid #1769aa;
+border-radius:4px;
+}
+
+.cover.template-professional .assignment{
+color:#1769aa;
+border-bottom:2px solid #1769aa;
+padding-bottom:15px;
+}
+
+.cover.template-professional .title{
+font-size:25px;
+}
+
+.cover.template-academic{
+border:3px double #222;
+}
+
+.cover.template-academic .assignment{
+font-family:Georgia,serif;
+letter-spacing:2px;
+}
+
+.cover.template-academic .title{
+font-family:Georgia,serif;
+font-size:24px;
+}
+
+.cover.template-modern{
+border:0;
+border-left:10px solid #1769aa;
+box-shadow:inset 0 0 0 1px #ddd;
+}
+
+.cover.template-modern .assignment{
+font-size:30px;
+letter-spacing:3px;
+}
+
+.cover.template-modern .title{
+font-size:25px;
+}
+
 @media print{
 
 body{
@@ -246,6 +358,42 @@ padding:60px 40px
 <p class="subtitle">
 Create a clean and professional assignment cover page.
 </p>
+
+
+<div class="premium-card" id="premiumCard">
+  <div class="premium-badge">⭐ PREMIUM</div>
+
+  <div class="premium-header">
+    <div>
+      <h3>Premium Assignment Cover</h3>
+      <p>Create more professional assignment covers with premium templates and customization.</p>
+    </div>
+  </div>
+
+  <div class="premium-status" id="premiumStatus">
+    <strong>Basic version</strong>
+    <span>Free</span>
+  </div>
+
+  <label for="template">Cover Template</label>
+  <select id="template" onchange="handleTemplateChange()">
+    <option value="basic">Basic — Free</option>
+    <option value="professional">Professional — Premium</option>
+    <option value="academic">Academic — Premium</option>
+    <option value="modern">Modern — Premium</option>
+  </select>
+
+  <div class="premium-features">
+    <div>✓ Professional layouts</div>
+    <div>✓ Premium cover templates</div>
+    <div>✓ Advanced customization</div>
+    <div>✓ Future premium features</div>
+  </div>
+
+  <button type="button" class="premium-upgrade" onclick="showPremiumMessage()">
+    ⭐ Upgrade to Premium
+  </button>
+</div>
 
 <label for="institution">University / College</label>
 <select id="institution">
@@ -392,9 +540,121 @@ Choose <strong>Save as PDF</strong> to save your assignment cover.
 
 <script>
 
+let premiumUser = false;
+
+async function checkPremiumAccess(){
+
+    premiumUser = false;
+
+    try{
+
+        const userResult = await supabaseClient.auth.getUser();
+        const user = userResult.data ? userResult.data.user : null;
+
+        if(!user){
+            updatePremiumStatus(false);
+            return;
+        }
+
+        const { data, error } = await supabaseClient
+            .from("premium_access")
+            .select("status, expires_at")
+            .eq("user_id", user.id)
+            .in("status", ["trial","active"])
+            .order("expires_at", { ascending:false })
+            .limit(1)
+            .maybeSingle();
+
+        if(error){
+            console.error("Premium access lookup failed:", error);
+            updatePremiumStatus(false);
+            return;
+        }
+
+        if(data){
+
+            const expiresAt = data.expires_at
+                ? new Date(data.expires_at)
+                : null;
+
+            if(!expiresAt || expiresAt > new Date()){
+                premiumUser = true;
+            }
+
+        }
+
+        updatePremiumStatus(premiumUser);
+
+    }catch(error){
+
+        console.error("Premium access error:", error);
+        updatePremiumStatus(false);
+
+    }
+
+}
+
+function updatePremiumStatus(isPremium){
+
+    const status=document.getElementById("premiumStatus");
+
+    if(!status){
+        return;
+    }
+
+    if(isPremium){
+
+        status.innerHTML=
+            "<strong>Premium access</strong><span>Active ⭐</span>";
+
+    }else{
+
+        status.innerHTML=
+            "<strong>Basic version</strong><span>Free</span>";
+
+    }
+
+}
+
+function handleTemplateChange(){
+
+    const template=document.getElementById("template");
+
+    if(!template){
+        return;
+    }
+
+    const selected=template.value;
+
+    if(selected !== "basic" && !premiumUser){
+
+        template.value="basic";
+
+        showPremiumMessage();
+
+    }
+
+}
+
+function showPremiumMessage(){
+
+    alert(
+        "⭐ Premium feature\n\n" +
+        "This template is available with MalawiHub Premium.\n\n" +
+        "The free Basic template is still available."
+    );
+
+}
+
+
 function get(id){
 return document.getElementById(id).value.trim();
 }
+
+document.addEventListener("DOMContentLoaded", function(){
+    checkPremiumAccess();
+});
+
 
 async function updateUniversityLogo(institution){
 
@@ -446,6 +706,7 @@ async function updateUniversityLogo(institution){
 async function generateCover(){
 
 const institution=get("institution");
+const template=document.getElementById("template").value;
 
 await updateUniversityLogo(institution);
 
@@ -492,6 +753,18 @@ year:"numeric"
 
 document.getElementById("outDate").textContent="";
 
+}
+
+const cover=document.getElementById("cover");
+
+cover.classList.remove(
+    "template-professional",
+    "template-academic",
+    "template-modern"
+);
+
+if(template !== "basic"){
+    cover.classList.add("template-" + template);
 }
 
 document.getElementById("preview").style.display="block";
