@@ -672,6 +672,18 @@ async function startPremiumPayment(){
 
     try{
 
+        const { data: sessionData, error: sessionError } =
+            await supabaseClient.auth.getSession();
+
+        if(sessionError || !sessionData?.session?.access_token){
+            throw new Error(
+                "Your login session has expired. Please sign in again."
+            );
+        }
+
+        const accessToken =
+            sessionData.session.access_token;
+
         const { data, error } =
             await supabaseClient.functions.invoke(
                 "onekhusa-initiate-payment",
@@ -679,6 +691,10 @@ async function startPremiumPayment(){
                     body:{
                         payment_method:paymentMethod,
                         phone_number:phoneNumber
+                    },
+                    headers:{
+                        Authorization:
+                            "Bearer " + accessToken
                     }
                 }
             );
