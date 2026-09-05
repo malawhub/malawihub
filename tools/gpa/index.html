@@ -6,109 +6,172 @@
 <title>GPA Calculator - MalawiHub</title>
 
 <style>
-* {
-    box-sizing: border-box;
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    font-family:Arial,sans-serif;
+    background:#f5f7fa;
+    color:#222;
 }
 
-body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f5f7fa;
-    color: #222;
+header{
+    background:#111827;
+    color:white;
+    padding:16px 6%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
 }
 
-header {
-    background: #111827;
-    color: white;
-    padding: 16px 6%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.logo{
+    font-size:21px;
+    font-weight:bold;
 }
 
-.logo {
-    font-size: 21px;
-    font-weight: bold;
+header a{
+    color:white;
+    text-decoration:none;
 }
 
-header a {
-    color: white;
-    text-decoration: none;
+.container{
+    max-width:800px;
+    margin:30px auto;
+    padding:20px;
 }
 
-.container {
-    max-width: 700px;
-    margin: 30px auto;
-    padding: 20px;
+.calculator{
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 3px 15px rgba(0,0,0,.1);
 }
 
-.calculator {
-    background: white;
-    padding: 25px;
-    border-radius: 15px;
-    box-shadow: 0 3px 15px rgba(0,0,0,.1);
+h1{text-align:center}
+
+.description{
+    text-align:center;
+    color:#666;
 }
 
-h1 {
-    text-align: center;
+.university-box{
+    margin:20px 0;
 }
 
-.description {
-    text-align: center;
-    color: #666;
+label{
+    display:block;
+    font-weight:bold;
+    margin-bottom:7px;
 }
 
-.course {
-    display: grid;
-    grid-template-columns: 1fr 90px 100px 40px;
-    gap: 8px;
-    margin-bottom: 10px;
+input,select{
+    width:100%;
+    padding:11px;
+    border:1px solid #ccc;
+    border-radius:7px;
+    background:white;
 }
 
-input,
-select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 7px;
+.status{
+    margin-top:10px;
+    padding:11px;
+    border-radius:8px;
+    font-size:14px;
 }
 
-button {
-    border: none;
-    background: #111827;
-    color: white;
-    padding: 11px 18px;
-    border-radius: 8px;
-    cursor: pointer;
-    margin-top: 10px;
+.status.verified{
+    background:#dcfce7;
+    color:#166534;
 }
 
-.remove {
-    background: #dc2626;
-    margin-top: 0;
+.status.provisional{
+    background:#fef3c7;
+    color:#92400e;
 }
 
-.actions {
-    text-align: center;
-    margin-top: 15px;
+.status.unverified{
+    background:#fee2e2;
+    color:#991b1b;
 }
 
-.result {
-    margin-top: 25px;
-    padding: 20px;
-    background: #f3f4f6;
-    border-radius: 10px;
-    text-align: center;
+.course{
+    display:grid;
+    grid-template-columns:1fr 90px 1.3fr 40px;
+    gap:8px;
+    margin-bottom:10px;
 }
 
-#gpa {
-    font-size: 40px;
-    font-weight: bold;
+button{
+    border:none;
+    background:#111827;
+    color:white;
+    padding:11px 18px;
+    border-radius:8px;
+    cursor:pointer;
+    margin-top:10px;
 }
 
-@media(max-width:600px) {
-    .course {
-        grid-template-columns: 1fr 1fr;
+button:disabled{
+    opacity:.5;
+    cursor:not-allowed;
+}
+
+.remove{
+    background:#dc2626;
+    margin-top:0;
+}
+
+.actions{
+    text-align:center;
+    margin-top:15px;
+}
+
+.result{
+    margin-top:25px;
+    padding:20px;
+    background:#f3f4f6;
+    border-radius:10px;
+    text-align:center;
+}
+
+#gpa{
+    font-size:40px;
+    font-weight:bold;
+}
+
+#error{
+    display:none;
+    margin-top:15px;
+    padding:12px;
+    border-radius:8px;
+    background:#fee2e2;
+    color:#991b1b;
+}
+
+.loading{
+    color:#666;
+    font-size:14px;
+}
+
+@media(max-width:600px){
+    .course{
+        grid-template-columns:1fr 1fr;
+    }
+
+    .course select{
+        grid-column:span 1;
+    }
+
+    .remove{
+        grid-column:auto;
+    }
+
+    .container{
+        padding:12px;
+    }
+
+    .calculator{
+        padding:18px;
     }
 }
 </style>
@@ -128,41 +191,334 @@ button {
 <h1>📊 GPA Calculator</h1>
 
 <p class="description">
-Calculate your GPA by entering your courses, credits and grades.
+Select your university, then enter your courses, credits and grades.
 </p>
+
+<div class="university-box">
+
+<label for="university">University</label>
+
+<select id="university" onchange="loadGradingScale()">
+    <option value="">Loading universities...</option>
+</select>
+
+<div id="scaleStatus" class="status" style="display:none;"></div>
+
+</div>
+
+<div id="error"></div>
 
 <div id="courses"></div>
 
 <div class="actions">
-    <button onclick="addCourse()">+ Add Course</button>
-    <button onclick="calculateGPA()">Calculate GPA</button>
-</div>
 
-<div class="result">
-    <p>Your GPA</p>
-    <div id="gpa">0.00</div>
-    <p id="details">Enter your course information</p>
-</div>
+<button id="addBtn" onclick="addCourse()" disabled>
++ Add Course
+</button>
 
-</div>
+<button id="calculateBtn" onclick="calculateGPA()" disabled>
+Calculate GPA
+</button>
 
 </div>
+
+<div class="result" id="gpaResult" style="display:none;">
+
+<p>Your GPA</p>
+
+<div id="gpa">0.00</div>
+
+<p id="details">
+Select your university and enter your course information.
+</p>
+
+</div>
+
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../js/supabase.js"></script>
 
 <script>
 
 let courseNumber = 0;
+let universities = [];
+let gradingScale = [];
+let selectedUniversity = null;
 
-function addCourse() {
+const universitySelect =
+    document.getElementById("university");
+
+const scaleStatus =
+    document.getElementById("scaleStatus");
+
+const errorBox =
+    document.getElementById("error");
+
+const addBtn =
+    document.getElementById("addBtn");
+
+const calculateBtn =
+    document.getElementById("calculateBtn");
+const gpaResult =
+    document.getElementById("gpaResult");
+
+
+function showError(message){
+
+    errorBox.textContent = message;
+    errorBox.style.display = "block";
+
+}
+
+
+function hideError(){
+
+    errorBox.textContent = "";
+    errorBox.style.display = "none";
+
+}
+
+
+async function loadUniversities(){
+
+    hideError();
+
+    try{
+
+        const {data,error} =
+            await supabaseClient
+                .from("gpa_universities")
+                .select(`
+                    id,
+                    university_name,
+                    university_key,
+                    scale_max,
+                    scale_status,
+                    source_note
+                `)
+                .eq("active",true)
+                .order("university_name");
+
+        if(error) throw error;
+
+        universities = data || [];
+
+        universitySelect.innerHTML =
+            '<option value="">Select university</option>';
+
+        universities.forEach(university => {
+
+            const option =
+                document.createElement("option");
+
+            option.value = university.id;
+
+            option.textContent =
+                university.university_name;
+
+            universitySelect.appendChild(option);
+
+        });
+
+        if(!universities.length){
+
+            showError(
+                "No university grading scales are currently available."
+            );
+
+        }
+
+    }catch(error){
+
+        console.error(error);
+
+        universitySelect.innerHTML =
+            '<option value="">Unable to load universities</option>';
+
+        showError(
+            "Unable to load university grading scales. Please try again later."
+        );
+
+    }
+
+}
+
+
+async function loadGradingScale(){
+
+    hideError();
+
+    gradingScale = [];
+
+    selectedUniversity = null;
+
+    const universityId =
+        universitySelect.value;
+
+    addBtn.disabled = true;
+    calculateBtn.disabled = true;
+
+    document.getElementById("courses").innerHTML = "";
+
+    if(!universityId){
+
+        scaleStatus.style.display = "none";
+
+        document.getElementById("gpa").textContent = "0.00";
+
+        document.getElementById("details").textContent =
+            "Select your university and enter your course information.";
+
+        return;
+
+    }
+
+    selectedUniversity =
+        universities.find(
+            university =>
+                String(university.id) === String(universityId)
+        );
+
+    if(!selectedUniversity) return;
+
+    showScaleStatus(selectedUniversity);
+
+    try{
+
+        const {data,error} =
+            await supabaseClient
+                .from("gpa_grading_scales")
+                .select(`
+                    grade,
+                    min_mark,
+                    max_mark,
+                    grade_point,
+                    pass,
+                    sort_order,
+                    source_note
+                `)
+                .eq("university_id",universityId)
+                .eq("active",true)
+                .order("sort_order");
+
+        if(error) throw error;
+
+        gradingScale = data || [];
+
+        if(!gradingScale.length){
+
+            addBtn.style.display = "none";
+            calculateBtn.style.display = "none";
+            gpaResult.style.display = "none";
+
+            return;
+
+        }
+
+        addBtn.style.display = "";
+        calculateBtn.style.display = "";
+        gpaResult.style.display = "";
+
+        addBtn.disabled = false;
+        calculateBtn.disabled = false;
+
+        addCourse();
+        addCourse();
+        addCourse();
+
+    }catch(error){
+
+        console.error(error);
+
+        showError(
+            "Unable to load this university's grading scale."
+        );
+
+    }
+
+}
+
+
+function showScaleStatus(university){
+
+    scaleStatus.style.display = "block";
+
+    scaleStatus.className =
+        "status " + university.scale_status;
+
+    if(university.scale_status === "verified"){
+
+        scaleStatus.textContent =
+            "✓ Verified grading scale";
+
+    }else if(university.scale_status === "provisional"){
+
+        scaleStatus.textContent =
+            "⚠ Provisional grading scale — verify with your university before relying on the result.";
+
+    }else{
+
+        scaleStatus.textContent =
+            "⚠ This university's grading scale has not yet been verified. MalawiHub will not guess your GPA scale.";
+
+    }
+
+}
+
+
+function addCourse(){
+
+    if(!gradingScale.length) return;
 
     courseNumber++;
 
-    const course = document.createElement("div");
+    const course =
+        document.createElement("div");
 
     course.className = "course";
-    course.id = "course-" + courseNumber;
+
+    course.id =
+        "course-" + courseNumber;
+
+    let gradeOptions =
+        '<option value="">Grade</option>';
+
+    gradingScale.forEach((scale,index) => {
+
+        const min =
+            scale.min_mark !== null
+                ? scale.min_mark
+                : "";
+
+        const max =
+            scale.max_mark !== null
+                ? scale.max_mark
+                : "";
+
+        let range = "";
+
+        if(min !== "" && max !== ""){
+
+            range =
+                ` (${min}–${max})`;
+
+        }
+
+        gradeOptions += `
+            <option value="${index}">
+                ${escapeHtml(scale.grade)}${range} — ${Number(scale.grade_point).toFixed(2)}
+            </option>
+        `;
+
+    });
 
     course.innerHTML = `
-        <input type="text" placeholder="Course name">
+
+        <input
+            type="text"
+            placeholder="Course name">
 
         <input
             type="number"
@@ -172,12 +528,7 @@ function addCourse() {
             step="0.5">
 
         <select class="grade">
-            <option value="">Grade</option>
-            <option value="4">A</option>
-            <option value="3">B</option>
-            <option value="2">C</option>
-            <option value="1">D</option>
-            <option value="0">F</option>
+            ${gradeOptions}
         </select>
 
         <button
@@ -187,58 +538,114 @@ function addCourse() {
         </button>
     `;
 
-    document.getElementById("courses").appendChild(course);
+    document
+        .getElementById("courses")
+        .appendChild(course);
+
 }
 
-function removeCourse(id) {
 
-    const course = document.getElementById("course-" + id);
+function removeCourse(id){
 
-    if (course) {
-        course.remove();
+    const course =
+        document.getElementById("course-" + id);
+
+    if(course) course.remove();
+
+}
+
+
+function calculateGPA(){
+
+    if(!gradingScale.length){
+
+        showError(
+            "Please select a university with an available grading scale."
+        );
+
+        return;
+
     }
 
-    calculateGPA();
-}
+    hideError();
 
-function calculateGPA() {
+    const credits =
+        document.querySelectorAll(".credit");
 
-    const credits = document.querySelectorAll(".credit");
-    const grades = document.querySelectorAll(".grade");
+    const grades =
+        document.querySelectorAll(".grade");
 
-    let totalPoints = 0;
+    let qualityPoints = 0;
     let totalCredits = 0;
+    let courseCount = 0;
 
-    for (let i = 0; i < credits.length; i++) {
+    for(let i = 0; i < credits.length; i++){
 
-        const credit = parseFloat(credits[i].value);
-        const grade = parseFloat(grades[i].value);
+        const credit =
+            parseFloat(credits[i].value);
 
-        if (!isNaN(credit) && !isNaN(grade)) {
+        const gradeIndex =
+            grades[i].value;
 
-            totalPoints += credit * grade;
+        if(
+            !isNaN(credit) &&
+            credit > 0 &&
+            gradeIndex !== ""
+        ){
+
+            const scale =
+                gradingScale[Number(gradeIndex)];
+
+            if(!scale) continue;
+
+            qualityPoints +=
+                credit * Number(scale.grade_point);
+
             totalCredits += credit;
+
+            courseCount++;
+
         }
+
     }
 
-    let gpa = 0;
+    if(totalCredits <= 0){
 
-    if (totalCredits > 0) {
-        gpa = totalPoints / totalCredits;
+        document.getElementById("gpa").textContent =
+            "0.00";
+
+        document.getElementById("details").textContent =
+            "Enter valid credits and grades.";
+
+        return;
+
     }
+
+    const gpa =
+        qualityPoints / totalCredits;
 
     document.getElementById("gpa").textContent =
         gpa.toFixed(2);
 
     document.getElementById("details").textContent =
-        totalCredits > 0
-        ? "Total credits: " + totalCredits
-        : "Enter your course information";
+        `${courseCount} course(s) • Total credits: ${totalCredits} • ${selectedUniversity.university_name}`;
+
 }
 
-addCourse();
-addCourse();
-addCourse();
+
+function escapeHtml(value){
+
+    return String(value)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+loadUniversities();
 
 </script>
 
