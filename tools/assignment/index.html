@@ -194,9 +194,17 @@ margin:10px 0 10px;
 max-width:90%
 }
 
+.cover .school{
+font-size:20px;
+margin-top:12px;
+margin-bottom:18px;
+line-height:1.4
+}
+
 .cover .department{
 font-size:18px;
-margin-bottom:70px
+margin-bottom:70px;
+line-height:1.4
 }
 
 .cover .assignment{
@@ -410,6 +418,13 @@ Create a clean and professional assignment cover page.
 <option>Other University / College</option>
 </select>
 
+<label for="school">School / Faculty / College</label>
+<input
+type="text"
+id="school"
+placeholder="Enter your school, faculty or college"
+>
+
 <label for="student">Student Name</label>
 <input id="student" placeholder="e.g. John Banda">
 
@@ -457,6 +472,10 @@ Assignment Cover Preview
 
 <h2 id="outInstitution">University / College</h2>
 
+<div class="school" id="outSchool">
+School / Faculty / College
+</div>
+
 <div class="department" id="outDepartment">
 Department
 </div>
@@ -487,6 +506,12 @@ Assignment Title
 <div class="info-label">Student ID</div>
 <div class="info-colon">:</div>
 <div class="info-value" id="outStudentId"></div>
+</div>
+
+<div class="info-row">
+<div class="info-label">School / Faculty / College</div>
+<div class="info-colon">:</div>
+<div class="info-value" id="outSchoolInfo"></div>
 </div>
 
 <div class="info-row">
@@ -715,6 +740,11 @@ alert("Please select your university or college.");
 return;
 }
 
+if(!get("school")){
+alert("Please enter your school, faculty or college.");
+return;
+}
+
 if(!get("student")){
 alert("Please enter your student name.");
 return;
@@ -726,6 +756,8 @@ return;
 }
 
 document.getElementById("outInstitution").textContent=institution;
+document.getElementById("outSchool").textContent=get("school");
+document.getElementById("outSchoolInfo").textContent=get("school");
 document.getElementById("outDepartment").textContent=get("department");
 document.getElementById("outDepartmentInfo").textContent=get("department");
 document.getElementById("outAssignmentNumber").textContent=get("assignmentNumber");
@@ -790,6 +822,8 @@ field.value="";
 });
 
 document.getElementById("institution").value="";
+
+
 
 window.scrollTo({
 top:0,
