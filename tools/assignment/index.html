@@ -480,9 +480,7 @@ School / Faculty / College
 Department
 </div>
 
-<div class="assignment">
-ASSIGNMENT
-</div>
+
 
 <div class="title" id="outTitle">
 Assignment Title
@@ -491,9 +489,9 @@ Assignment Title
 <div class="info">
 
 <div class="info-row">
-<div class="info-label">Assignment Number</div>
+<div class="info-label">Lecturer</div>
 <div class="info-colon">:</div>
-<div class="info-value" id="outAssignmentNumber"></div>
+<div class="info-value" id="outLecturer"></div>
 </div>
 
 <div class="info-row">
@@ -509,18 +507,6 @@ Assignment Title
 </div>
 
 <div class="info-row">
-<div class="info-label">School / Faculty / College</div>
-<div class="info-colon">:</div>
-<div class="info-value" id="outSchoolInfo"></div>
-</div>
-
-<div class="info-row">
-<div class="info-label">Department</div>
-<div class="info-colon">:</div>
-<div class="info-value" id="outDepartmentInfo"></div>
-</div>
-
-<div class="info-row">
 <div class="info-label">Course</div>
 <div class="info-colon">:</div>
 <div class="info-value" id="outCourse"></div>
@@ -533,9 +519,9 @@ Assignment Title
 </div>
 
 <div class="info-row">
-<div class="info-label">Lecturer</div>
+<div class="info-label">Assignment Number</div>
 <div class="info-colon">:</div>
-<div class="info-value" id="outLecturer"></div>
+<div class="info-value" id="outAssignmentNumber"></div>
 </div>
 
 <div class="info-row">
@@ -757,9 +743,7 @@ return;
 
 document.getElementById("outInstitution").textContent=institution;
 document.getElementById("outSchool").textContent=get("school");
-document.getElementById("outSchoolInfo").textContent=get("school");
 document.getElementById("outDepartment").textContent=get("department");
-document.getElementById("outDepartmentInfo").textContent=get("department");
 document.getElementById("outAssignmentNumber").textContent=get("assignmentNumber");
 document.getElementById("outStudent").textContent=get("student");
 document.getElementById("outStudentId").textContent=get("studentId");
