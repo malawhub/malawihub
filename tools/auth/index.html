@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MalawiHub Account</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../js/supabase.js"></script>
+
+<style>
+*{
+    box-sizing:border-box;
+}
+
+body{
+    margin:0;
+    min-height:100vh;
+    font-family:Arial,sans-serif;
+    background:#f5f7fb;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+}
+
+.auth-card{
+    width:100%;
+    max-width:430px;
+    background:white;
+    border-radius:18px;
+    padding:28px 22px;
+    box-shadow:0 8px 30px rgba(0,0,0,.08);
+}
+
+.logo{
+    text-align:center;
+    font-size:30px;
+    font-weight:800;
+    margin-bottom:6px;
+}
+
+.logo span{
+    color:#087f5b;
+}
+
+.subtitle{
+    text-align:center;
+    color:#666;
+    margin-bottom:25px;
+}
+
+.tabs{
+    display:flex;
+    background:#f0f2f5;
+    border-radius:10px;
+    padding:4px;
+    margin-bottom:22px;
+}
+
+.tabs button{
+    flex:1;
+    border:0;
+    padding:11px;
+    border-radius:8px;
+    background:transparent;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.tabs button.active{
+    background:white;
+    box-shadow:0 2px 6px rgba(0,0,0,.08);
+}
+
+label{
+    display:block;
+    margin:13px 0 6px;
+    font-weight:600;
+}
+
+input{
+    width:100%;
+    padding:13px;
+    border:1px solid #d7dbe0;
+    border-radius:9px;
+    font-size:16px;
+}
+
+input:focus{
+    outline:none;
+    border-color:#087f5b;
+}
+
+.main-button{
+    width:100%;
+    margin-top:20px;
+    padding:14px;
+    border:0;
+    border-radius:9px;
+    background:#087f5b;
+    color:white;
+    font-size:16px;
+    font-weight:700;
+    cursor:pointer;
+}
+
+.main-button:disabled{
+    opacity:.6;
+}
+
+.secondary{
+    text-align:center;
+    margin-top:16px;
+}
+
+.secondary button{
+    border:0;
+    background:none;
+    color:#087f5b;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.message{
+    display:none;
+    margin-top:15px;
+    padding:12px;
+    border-radius:8px;
+    font-size:14px;
+    line-height:1.5;
+}
+
+.message.success{
+    display:block;
+    background:#e8f7ef;
+    color:#146c43;
+}
+
+.message.error{
+    display:block;
+    background:#fdecec;
+    color:#a61b1b;
+}
+
+.password-note{
+    color:#777;
+    font-size:13px;
+    margin-top:5px;
+}
+
+.back{
+    display:block;
+    text-align:center;
+    margin-top:22px;
+    color:#666;
+    text-decoration:none;
+    font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="auth-card">
+
+    <div class="logo">Malawi<span>Hub</span></div>
+    <div class="subtitle">Your student tools in one place</div>
+
+    <div class="tabs">
+        <button id="signInTab" class="active" type="button">
+            Sign In
+        </button>
+        <button id="signUpTab" type="button">
+            Create Account
+        </button>
+    </div>
+
+    <form id="authForm">
+
+        <label for="email">Email address</label>
+        <input
+            id="email"
+            type="email"
+            placeholder="Enter your email"
+            required
+        >
+
+        <label for="password">Password</label>
+        <input
+            id="password"
+            type="password"
+            placeholder="Enter your password"
+            required
+            minlength="6"
+        >
+
+        <div id="confirmGroup" style="display:none;">
+            <label for="confirmPassword">Confirm password</label>
+            <input
+                id="confirmPassword"
+                type="password"
+                placeholder="Confirm your password"
+                minlength="6"
+            >
+        </div>
+
+        <button id="submitButton" class="main-button" type="submit">
+            Sign In
+        </button>
+
+    </form>
+
+    <div id="forgotPassword" class="secondary">
+        <button type="button" id="forgotButton">
+            Forgot password?
+        </button>
+    </div>
+
+    <div id="message" class="message"></div>
+
+    <a class="back" href="/tools/assignment/premium.html">
+        ← Back to Premium
+    </a>
+
+</div>
+
+<script>
+let mode = "signin";
+
+const params = new URLSearchParams(window.location.search);
+const redirectTo =
+    params.get("redirect") ||
+    "/tools/assignment/premium.html";
+
+const signInTab = document.getElementById("signInTab");
+const signUpTab = document.getElementById("signUpTab");
+const confirmGroup = document.getElementById("confirmGroup");
+const confirmPassword = document.getElementById("confirmPassword");
+const submitButton = document.getElementById("submitButton");
+const forgotPassword = document.getElementById("forgotPassword");
+const forgotButton = document.getElementById("forgotButton");
+const authForm = document.getElementById("authForm");
+const message = document.getElementById("message");
+
+function showMessage(text, type){
+    message.textContent = text;
+    message.className = "message " + type;
+}
+
+function setMode(newMode){
+    mode = newMode;
+
+    const isSignUp = mode === "signup";
+
+    signInTab.classList.toggle("active", !isSignUp);
+    signUpTab.classList.toggle("active", isSignUp);
+
+    confirmGroup.style.display = isSignUp ? "block" : "none";
+    confirmPassword.required = isSignUp;
+
+    submitButton.textContent =
+        isSignUp ? "Create Account" : "Sign In";
+
+    forgotPassword.style.display =
+        isSignUp ? "none" : "block";
+
+    message.className = "message";
+    message.textContent = "";
+}
+
+signInTab.addEventListener("click", () => setMode("signin"));
+signUpTab.addEventListener("click", () => setMode("signup"));
+
+authForm.addEventListener("submit", async function(event){
+    event.preventDefault();
+
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    submitButton.disabled = true;
+
+    try{
+
+        if(mode === "signup"){
+
+            if(password !== confirmPassword.value){
+                throw new Error("The passwords do not match.");
+            }
+
+            const { error } = await supabaseClient.auth.signUp({
+                email,
+                password,
+                options:{
+                    emailRedirectTo:
+                        window.location.origin +
+                        "/tools/assignment/premium.html"
+                }
+            });
+
+            if(error) throw error;
+
+            console.log("Signup response:", {
+                user: data?.user || null,
+                session: data?.session || null
+            });
+
+            if(!data?.user){
+                throw new Error(
+                    "Supabase did not return a user after signup."
+                );
+            }
+
+            showMessage(
+                "Account created. Please check your email and confirm your account before signing in.",
+                "success"
+            );
+
+            authForm.reset();
+
+        }else{
+
+            const { data, error } =
+                await supabaseClient.auth.signInWithPassword({
+                    email,
+                    password
+                });
+
+            if(error) throw error;
+
+            if(data.user){
+
+                showMessage(
+                    "Sign in successful. Opening Premium...",
+                    "success"
+                );
+
+                setTimeout(() => {
+                    window.location.href = redirectTo;
+                }, 700);
+            }
+        }
+
+    }catch(error){
+
+        console.error("Authentication error:", error);
+
+        showMessage(
+            error.message || "Unable to complete authentication.",
+            "error"
+        );
+
+    }finally{
+        submitButton.disabled = false;
+    }
+});
+
+forgotButton.addEventListener("click", async function(){
+
+    const email = document.getElementById("email").value.trim();
+
+    if(!email){
+        showMessage(
+            "Enter your email address first.",
+            "error"
+        );
+        return;
+    }
+
+    try{
+
+        const { error } =
+            await supabaseClient.auth.resetPasswordForEmail(
+                email,
+                {
+                    redirectTo:
+                        window.location.origin +
+                        "/tools/auth/"
+                }
+            );
+
+        if(error) throw error;
+
+        showMessage(
+            "If an account exists for this email, a password reset link has been sent.",
+            "success"
+        );
+
+    }catch(error){
+
+        showMessage(
+            error.message || "Unable to send the reset email.",
+            "error"
+        );
+    }
+});
+
+async function checkExistingSession(){
+
+    const { data } =
+        await supabaseClient.auth.getSession();
+
+    if(data.session){
+        showMessage(
+            "You are already signed in.",
+            "success"
+        );
+    }
+}
+
+checkExistingSession();
+</script>
+
+</body>
+</html>

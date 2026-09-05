@@ -312,7 +312,9 @@ const user=result.data ? result.data.user : null;
 if(!user){
 
 status.innerHTML=
-"<strong>Not signed in</strong><span>Basic</span>";
+"<strong>Not signed in</strong>" +
+"<span>Basic</span>" +
+'<button type="button" onclick="openAuth()" style="margin-top:10px;padding:9px 14px;border:0;border-radius:8px;background:#087f5b;color:white;font-weight:600;cursor:pointer;">🔐 Sign in / Create account</button>';
 
 return;
 
@@ -369,6 +371,11 @@ status.innerHTML=
 
 }
 
+function openAuth(){
+    window.location.href =
+        "/tools/auth/?redirect=/tools/assignment/premium.html";
+}
+
 async function startTrial(){
 
     const result = await supabaseClient.auth.getUser();
@@ -376,10 +383,8 @@ async function startTrial(){
 
     if(!user){
 
-        alert(
-            "🔐 Sign in required\n\n"+
-            "Please sign in to your MalawiHub account before starting the Premium trial."
-        );
+        window.location.href =
+            "/tools/auth/?redirect=/tools/assignment/premium.html";
 
         return;
     }
