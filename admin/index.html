@@ -1,1693 +1,671 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Resource Discovery - MalawiHub Admin</title>
+<title>MalawiHub Admin Dashboard</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<style>
+* {
+    box-sizing: border-box;
+}
 
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f5f7fb;
-            color: #1f2937;
-        }
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background: #f5f7fb;
+    color: #333;
+}
 
-        header {
-            background: #0f172a;
-            color: white;
-            padding: 18px 20px;
-        }
+.header {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
+}
 
-        header h1 {
-            margin: 0;
-            font-size: 22px;
-        }
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
 
-        .container {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+.header h1 {
+    margin: 0;
+    color: #087f5b;
+}
 
-        .back {
-            display: inline-block;
-            margin-bottom: 18px;
-            color: #2563eb;
-            text-decoration: none;
-            font-weight: bold;
-        }
+.header p {
+    margin: 8px 0 0;
+    color: #666;
+}
 
-        .back:hover {
-            text-decoration: underline;
-        }
+.logout-btn {
+    border: none;
+    background: #dc3545;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
 
-        .card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-        }
+.logout-btn:hover {
+    background: #bb2d3b;
+}
 
-        h2 {
-            margin-top: 0;
-        }
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
 
-        .description {
-            color: #64748b;
-            line-height: 1.6;
-        }
+.stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
+}
 
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 16px;
-        }
+.stat-card h3 {
+    margin: 0 0 10px;
+    color: #666;
+    font-size: 14px;
+}
 
-        .field {
-            display: flex;
-            flex-direction: column;
-        }
+.stat-card p {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 800;
+    color: #087f5b;
+}
 
-        .field.full {
-            grid-column: 1 / -1;
-        }
+.section-title {
+    margin: 25px 0 12px;
+    color: #333;
+}
 
-        label {
-            font-weight: bold;
-            margin-bottom: 7px;
-        }
+.menu {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
 
-        select,
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            background: white;
-            font-size: 15px;
-        }
+.menu a {
+    display: block;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #333;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    font-weight: 600;
+    transition: .2s;
+}
 
-        select:disabled {
-            background: #e2e8f0;
-            cursor: not-allowed;
-            color: #64748b;
-        }
+.menu a:hover {
+    background: #087f5b;
+    color: white;
+    transform: translateY(-2px);
+}
 
-        button {
-            border: none;
-            border-radius: 8px;
-            padding: 12px 18px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-        }
+.menu a span {
+    display: block;
+    font-size: 13px;
+    font-weight: normal;
+    margin-top: 6px;
+    color: #777;
+}
 
-        .primary {
-            background: #2563eb;
-            color: white;
-        }
+.menu a:hover span {
+    color: #e8fff7;
+}
 
-        .primary:hover {
-            background: #1d4ed8;
-        }
+.loading {
+    text-align: center;
+    padding: 50px 20px;
+    font-size: 18px;
+    color: #666;
+}
 
-        .primary:disabled {
-            background: #94a3b8;
-            cursor: not-allowed;
-        }
+.error-box {
+    max-width: 600px;
+    margin: 50px auto;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.08);
+    text-align: center;
+}
 
-        .secondary {
-            background: #e2e8f0;
-            color: #1e293b;
-        }
+.error-box h2 {
+    color: #dc3545;
+    margin-top: 0;
+}
 
-        .results-title {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
+.error-box p {
+    color: #666;
+    line-height: 1.6;
+}
 
-        .result {
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 16px;
-            margin-bottom: 14px;
-        }
+.retry-btn {
+    border: none;
+    background: #087f5b;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
 
-        .result h3 {
-            margin: 0 0 8px;
-        }
+.footer {
+    text-align: center;
+    margin-top: 30px;
+    padding: 20px;
+    color: #777;
+    font-size: 13px;
+}
 
-        .result h3 a {
-            color: #1d4ed8;
-            text-decoration: none;
-        }
+@media (max-width: 600px) {
+    body {
+        padding: 12px;
+    }
 
-        .result h3 a:hover {
-            text-decoration: underline;
-        }
+    .header {
+        padding: 16px;
+    }
 
-        .meta {
-            color: #64748b;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
+    .stat-card {
+        padding: 16px;
+    }
 
-        .status {
-            display: inline-block;
-            padding: 5px 9px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
+    .stat-card p {
+        font-size: 28px;
+    }
 
-        .approved {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .review {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .rejected {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 12px;
-        }
-
-        .message {
-            padding: 12px;
-            border-radius: 8px;
-            margin-top: 15px;
-            display: none;
-        }
-
-        .message.info {
-            display: block;
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .message.error {
-            display: block;
-            background: #fee2e2;
-            color: #991b1b;
-        }
-
-        .message.success {
-            display: block;
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .empty {
-            text-align: center;
-            padding: 35px 15px;
-            color: #64748b;
-        }
-
-        .notice {
-            background: #fff7ed;
-            border: 1px solid #fed7aa;
-            color: #9a3412;
-            padding: 14px;
-            border-radius: 9px;
-            line-height: 1.6;
-            margin-top: 18px;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 25px;
-            color: #64748b;
-        }
-
-        @media (max-width: 700px) {
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .field.full {
-                grid-column: auto;
-            }
-
-            .container {
-                padding: 14px;
-            }
-
-            header {
-                padding: 15px;
-            }
-        }
-    </style>
+    .menu a {
+        padding: 16px;
+    }
+}
+</style>
 </head>
 
 <body>
 
-<header>
-    <h1>🔎 Resource Discovery</h1>
-</header>
+<div id="loading" class="loading">
+    Checking admin access...
+</div>
 
-<div class="container">
+<div id="error" style="display:none;"></div>
 
-    <a class="back" href="../index.html">
-        ← Back to Admin Dashboard
-    </a>
+<div id="admin-content" style="display:none;">
 
-    <div class="card">
+    <div class="header">
 
-        <h2>Find Educational Resources</h2>
+        <div class="header-top">
 
-        <p class="description">
-            Find open-access educational and academic materials,
-            classify them by subject and topic, check duplicates,
-            and add approved resources to the MalawiHub library.
-        </p>
-
-        <div class="form-grid">
-
-            <div class="field">
-                <label for="subject">
-                    Subject
-                </label>
-
-                <select id="subject">
-                    <option value="">
-                        Select subject
-                    </option>
-
-                    <option value="Chemistry">
-                        Chemistry
-                    </option>
-
-                    <option value="Mathematics">
-                        Mathematics
-                    </option>
-
-                    <option value="Biology">
-                        Biology
-                    </option>
-
-                    <option value="Education">
-                        Education
-                    </option>
-                </select>
+            <div>
+                <h1>MalawiHub Admin</h1>
+                <p id="admin-email">Loading account...</p>
             </div>
-
-
-            <div class="field">
-
-                <label for="topic">
-                    Topic
-                </label>
-
-                <select id="topic" disabled>
-
-                    <option value="">
-                        Select a subject first
-                    </option>
-
-                </select>
-
-            </div>
-
-
-            <div class="field full">
-
-                <label for="searchTerms">
-                    Search terms
-                </label>
-
-                <input
-                    id="searchTerms"
-                    type="text"
-                    placeholder="Optional extra keywords"
-                >
-
-            </div>
-
-        </div>
-
-
-        <div style="margin-top:18px;">
 
             <button
-                id="findBtn"
-                class="primary"
-                disabled
-            >
-                🔎 Find Resources
+                type="button"
+                class="logout-btn"
+                id="logoutBtn">
+                Logout
             </button>
 
         </div>
 
+    </div>
 
-        <div id="message" class="message"></div>
+    <div class="stats">
 
+        <div class="stat-card">
+            <h3>Total Resources</h3>
+            <p id="total-resources">0</p>
+        </div>
 
-        <div class="notice">
+        <div class="stat-card">
+            <h3>Chemistry</h3>
+            <p id="chem-resources">0</p>
+        </div>
 
-            Discovery currently uses OpenAlex's
-            open-access scholarly catalog.
+        <div class="stat-card">
+            <h3>Mathematics</h3>
+            <p id="math-resources">0</p>
+        </div>
 
-            Results are checked for an available
-            open-access location and PDF where possible.
+        <div class="stat-card">
+            <h3>Biology</h3>
+            <p id="biology-resources">0</p>
+        </div>
 
-            A free-to-read resource is not automatically
-            safe to redistribute.
+        <div class="stat-card">
+            <h3>Education</h3>
+            <p id="education-resources">0</p>
+        </div>
 
-            Resources without a clear reuse license are
-            marked <strong>Needs Review</strong> rather than
-            being automatically published.
+        <div class="stat-card">
+            <h3>Subject Resources</h3>
+            <p id="subject-resources">0</p>
+        </div>
 
+        <div class="stat-card">
+            <h3>Past Papers</h3>
+            <p id="total-papers">0</p>
         </div>
 
     </div>
 
+    <h2 class="section-title">Resources</h2>
 
-    <div class="card">
+    <div class="menu">
 
-        <div class="results-title">
+        <a href="/admin/add-resource/">
+            + Add Resource
+            <span>Add a general MalawiHub resource</span>
+        </a>
 
-            <h2>
-                Discovered Resources
-            </h2>
+        <a href="/admin/manage-resources/">
+            Manage Resources
+            <span>View and manage existing resources</span>
+        </a>
 
-            <span id="resultCount"></span>
+        <a href="/admin/subject-resources/add.html">
+            + Add Subject Resource
+            <span>Upload a PDF and assign it to a subject/topic</span>
+        </a>
 
-        </div>
+        <a href="/admin/subject-resources/">
+            Manage Subject Resources
+            <span>Manage subject learning materials</span>
+        </a>
 
+    </div>
 
-        <div id="results">
+    <h2 class="section-title">Past Papers</h2>
 
-            <div class="empty">
-                Choose a subject and topic,
-                then press Find Resources.
-            </div>
+    <div class="menu">
 
-        </div>
+        <a href="/admin/add-paper/">
+            + Add Past Paper
+            <span>Upload a new past paper</span>
+        </a>
 
+        <a href="/admin/manage-papers/">
+            Manage Past Papers
+            <span>View, edit and delete past papers</span>
+        </a>
+
+    </div>
+
+    <h2 class="section-title">Resource Discovery</h2>
+
+    <div class="menu">
+
+        <a href="/admin/resource-discovery/">
+            🔎 Resource Discovery
+            <span>Discover and classify educational resources</span>
+        </a>
+
+    </div>
+
+    <div class="footer">
+        MalawiHub Admin Dashboard
     </div>
 
 </div>
 
-
 <script>
-
-const SUPABASE_URL =
-    "https://YOUR-SUPABASE-PROJECT.supabase.co";
-
-const SUPABASE_ANON_KEY =
-    "YOUR-SUPABASE-ANON-KEY";
-
-
-/*
-==========================================================
-ADMIN UUID
-==========================================================
-*/
 
 const ADMIN_UUID =
     "759a11e5-6166-4fc0-8979-352ba589e88f";
 
 
-/*
-==========================================================
-SUPABASE
-==========================================================
-*/
+const loading =
+    document.getElementById("loading");
 
-const supabaseClient =
-    window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-    );
+const adminContent =
+    document.getElementById("admin-content");
 
+const errorBox =
+    document.getElementById("error");
 
-/*
-==========================================================
-TOPICS
-==========================================================
-*/
+const adminEmail =
+    document.getElementById("admin-email");
 
-const TOPICS = {
 
-    Chemistry: [
+function showError(title, message) {
 
-        "Atomic Structure",
+    loading.style.display = "none";
 
-        "Periodic Table",
+    adminContent.style.display = "none";
 
-        "Chemical Bonding",
+    errorBox.style.display = "block";
 
-        "Stoichiometry",
+    errorBox.innerHTML = `
+        <div class="error-box">
+            <h2>${title}</h2>
 
-        "Acids, Bases & Salts",
+            <p>${message}</p>
 
-        "Introduction to Organic Chemistry",
-
-        "Organic Chemistry",
-
-        "Alkanes",
-
-        "Alkenes",
-
-        "Alkynes",
-
-        "Haloalkanes",
-
-        "Alcohols",
-
-        "Aldehydes & Ketones",
-
-        "Carboxylic Acids",
-
-        "Esters",
-
-        "Amines",
-
-        "Organic Reactions",
-
-        "Spectroscopy",
-
-        "d- & f-Block Elements",
-
-        "Revision Notes"
-
-    ],
-
-
-    Mathematics: [
-
-        "Algebra",
-
-        "Arithmetic",
-
-        "Calculus",
-
-        "Geometry",
-
-        "Trigonometry",
-
-        "Statistics",
-
-        "Probability",
-
-        "Vectors",
-
-        "Matrices",
-
-        "Number Theory",
-
-        "Revision Notes"
-
-    ],
-
-
-    Biology: [
-
-        "Cell Biology",
-
-        "Genetics",
-
-        "Ecology",
-
-        "Evolution",
-
-        "Human Biology",
-
-        "Plant Biology",
-
-        "Animal Biology",
-
-        "Microbiology",
-
-        "Biochemistry",
-
-        "Reproduction",
-
-        "Revision Notes"
-
-    ],
-
-
-    Education: [
-
-        "Educational Psychology",
-
-        "Curriculum Studies",
-
-        "Teaching Methods",
-
-        "Assessment",
-
-        "Educational Technology",
-
-        "Inclusive Education",
-
-        "Classroom Management",
-
-        "Educational Research",
-
-        "Guidance & Counselling",
-
-        "Revision Notes"
-
-    ]
-
-};
-
-
-/*
-==========================================================
-ELEMENTS
-==========================================================
-*/
-
-const subjectSelect =
-    document.getElementById("subject");
-
-const topicSelect =
-    document.getElementById("topic");
-
-const searchTerms =
-    document.getElementById("searchTerms");
-
-const findBtn =
-    document.getElementById("findBtn");
-
-const results =
-    document.getElementById("results");
-
-const resultCount =
-    document.getElementById("resultCount");
-
-const message =
-    document.getElementById("message");
-
-
-/*
-==========================================================
-MESSAGE
-==========================================================
-*/
-
-function showMessage(
-    text,
-    type = "info"
-) {
-
-    message.textContent = text;
-
-    message.className =
-        "message " + type;
-
+            <button
+                type="button"
+                class="retry-btn"
+                onclick="location.reload()">
+                Try Again
+            </button>
+        </div>
+    `;
 }
 
 
-/*
-==========================================================
-CLEAR MESSAGE
-==========================================================
-*/
-
-function clearMessage() {
-
-    message.textContent = "";
-
-    message.className =
-        "message";
-
-}
-
-
-/*
-==========================================================
-UPDATE TOPICS
-==========================================================
-*/
-
-function updateTopics() {
-
-    const subject =
-        subjectSelect.value;
-
-
-    topicSelect.innerHTML = "";
-
-
-    if (!subject) {
-
-        topicSelect.disabled = true;
-
-        const option =
-            document.createElement("option");
-
-        option.value = "";
-
-        option.textContent =
-            "Select a subject first";
-
-        topicSelect.appendChild(option);
-
-        findBtn.disabled = true;
-
-        return;
-    }
-
-
-    const defaultOption =
-        document.createElement("option");
-
-    defaultOption.value = "";
-
-    defaultOption.textContent =
-        "Select topic";
-
-    topicSelect.appendChild(
-        defaultOption
-    );
-
-
-    const topics =
-        TOPICS[subject] || [];
-
-
-    topics.forEach(
-        function(topic) {
-
-            const option =
-                document.createElement("option");
-
-            option.value =
-                topic;
-
-            option.textContent =
-                topic;
-
-            topicSelect.appendChild(
-                option
-            );
-
-        }
-    );
-
-
-    topicSelect.disabled =
-        false;
-
-    findBtn.disabled =
-        true;
-
-}
-
-
-/*
-==========================================================
-TOPIC CHANGE
-==========================================================
-*/
-
-function updateFindButton() {
-
-    const subject =
-        subjectSelect.value;
-
-    const topic =
-        topicSelect.value;
-
-
-    findBtn.disabled =
-        !(subject && topic);
-
-}
-
-
-subjectSelect.addEventListener(
-    "change",
-    function() {
-
-        updateTopics();
-
-        clearMessage();
-
-    }
-);
-
-
-topicSelect.addEventListener(
-    "change",
-    function() {
-
-        updateFindButton();
-
-        clearMessage();
-
-    }
-);
-
-
-/*
-==========================================================
-OPENALEX SEARCH
-==========================================================
-*/
-
-async function searchOpenAlex(
-    subject,
-    topic,
-    extraTerms
-) {
+async function getCount(table, subject = null) {
 
     let query =
-        subject + " " + topic;
+        supabaseClient
+            .from(table)
+            .select("*", {
+                count: "exact",
+                head: true
+            });
 
+    if (subject !== null) {
 
-    if (extraTerms) {
-
-        query +=
-            " " + extraTerms;
-
-    }
-
-
-    const url =
-        "https://api.openalex.org/works"
-        + "?search="
-        + encodeURIComponent(query)
-        + "&filter=open_access.is_oa:true"
-        + "&sort=relevance_score"
-        + "&per_page=20";
-
-
-    const response =
-        await fetch(url);
-
-
-    if (!response.ok) {
-
-        throw new Error(
-            "OpenAlex request failed: "
-            + response.status
-        );
+        query =
+            query.eq("subject", subject);
 
     }
-
-
-    return await response.json();
-
-}
-
-
-/*
-==========================================================
-GET BEST OPEN ACCESS LOCATION
-==========================================================
-*/
-
-function getBestLocation(work) {
-
-    if (
-        work.best_oa_location
-    ) {
-
-        return work.best_oa_location;
-
-    }
-
-
-    if (
-        work.locations &&
-        work.locations.length
-    ) {
-
-        return work.locations.find(
-            function(location) {
-
-                return (
-                    location.pdf_url ||
-                    location.landing_page_url
-                );
-
-            }
-        );
-
-    }
-
-
-    return null;
-
-}
-
-
-/*
-==========================================================
-LICENSE CHECK
-==========================================================
-*/
-
-function checkLicense(location) {
-
-    if (!location) {
-
-        return {
-            status: "rejected",
-            label: "🔴 No Open Access Location"
-        };
-
-    }
-
-
-    const license =
-        (
-            location.license || ""
-        ).toLowerCase();
-
-
-    if (
-        license.includes("cc-by") ||
-        license.includes("cc0") ||
-        license.includes("public-domain")
-    ) {
-
-        return {
-            status: "approved",
-            label: "🟢 Open License"
-        };
-
-    }
-
-
-    if (license) {
-
-        return {
-            status: "review",
-            label: "🟡 Needs Review"
-        };
-
-    }
-
-
-    return {
-        status: "review",
-        label: "🟡 Needs Review"
-    };
-
-}
-
-
-/*
-==========================================================
-CURRENT RESULTS
-==========================================================
-*/
-
-let currentResults = [];
-
-
-/*
-==========================================================
-RENDER RESULTS
-==========================================================
-*/
-
-function renderResults(
-    resources
-) {
-
-    currentResults =
-        resources;
-
-
-    results.innerHTML = "";
-
-
-    resultCount.textContent =
-        resources.length
-        ? resources.length + " result(s)"
-        : "";
-
-
-    if (!resources.length) {
-
-        results.innerHTML = `
-            <div class="empty">
-                No resources were found
-                for this topic.
-            </div>
-        `;
-
-        return;
-
-    }
-
-
-    resources.forEach(
-        function(resource, index) {
-
-            const div =
-                document.createElement("div");
-
-            div.className =
-                "result";
-
-
-            const title =
-                resource.title ||
-                "Untitled resource";
-
-
-            const location =
-                resource.location;
-
-
-            const license =
-                checkLicense(location);
-
-
-            let url =
-                "";
-
-
-            if (location) {
-
-                url =
-                    location.pdf_url ||
-                    location.landing_page_url ||
-                    "";
-
-            }
-
-
-            const publicationYear =
-                resource.publication_year ||
-                "";
-
-
-            const description =
-                resource.abstract ||
-                "No description available.";
-
-
-            div.innerHTML = `
-
-                <span class="status ${license.status}">
-                    ${license.label}
-                </span>
-
-                <h3>
-                    ${
-                        url
-                        ? `
-                            <a
-                                href="${escapeHtml(url)}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                ${escapeHtml(title)}
-                            </a>
-                        `
-                        : escapeHtml(title)
-                    }
-                </h3>
-
-                <div class="meta">
-
-                    ${
-                        publicationYear
-                        ? "Year: "
-                            + escapeHtml(
-                                String(
-                                    publicationYear
-                                )
-                            )
-                        : ""
-                    }
-
-                </div>
-
-                <p>
-                    ${escapeHtml(
-                        description
-                    )}
-                </p>
-
-                <div class="meta">
-
-                    Subject:
-                    ${escapeHtml(
-                        resource.subject
-                    )}
-
-                    <br>
-
-                    Topic:
-                    ${escapeHtml(
-                        resource.topic
-                    )}
-
-                </div>
-
-                <div class="actions">
-
-                    ${
-                        url
-                        ? `
-                            <a
-                                href="${escapeHtml(url)}"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                <button
-                                    class="secondary"
-                                >
-                                    Open Resource
-                                </button>
-                            </a>
-                        `
-                        : ""
-                    }
-
-                    ${
-                        license.status === "approved"
-                        ? `
-                            <button
-                                class="primary"
-                                onclick="approveResource(${index})"
-                            >
-                                Add to MalawiHub
-                            </button>
-                        `
-                        : license.status === "review"
-                        ? `
-                            <button
-                                class="primary"
-                                onclick="approveResource(${index})"
-                            >
-                                Add After Review
-                            </button>
-                        `
-                        : ""
-                    }
-
-                </div>
-
-            `;
-
-
-            results.appendChild(div);
-
-        }
-    );
-
-}
-
-
-/*
-==========================================================
-ESCAPE HTML
-==========================================================
-*/
-
-function escapeHtml(
-    value
-) {
-
-    const div =
-        document.createElement("div");
-
-    div.textContent =
-        value == null
-        ? ""
-        : String(value);
-
-    return div.innerHTML;
-
-}
-
-
-/*
-==========================================================
-DUPLICATE CHECK
-==========================================================
-*/
-
-async function isDuplicate(
-    link
-) {
-
-    if (!link) {
-
-        return false;
-
-    }
-
 
     const {
-        data,
+        count,
         error
-    } =
-        await supabaseClient
-            .from("subject_resources")
-            .select("id")
-            .eq("link", link)
-            .limit(1);
-
+    } = await query;
 
     if (error) {
 
         console.error(
-            "Duplicate check error:",
+            `Error loading ${table}:`,
             error
         );
 
-        return false;
-
+        return 0;
     }
 
-
-    return (
-        data &&
-        data.length > 0
-    );
-
+    return count || 0;
 }
 
 
-/*
-==========================================================
-ADD RESOURCE
-==========================================================
-*/
+async function loadStats() {
 
-async function approveResource(
-    index
-) {
+    const totalResources =
+        await getCount("resources");
 
-    const resource =
-        currentResults[index];
-
-
-    if (!resource) {
-
-        showMessage(
-            "Resource could not be found.",
-            "error"
+    const chemistryResources =
+        await getCount(
+            "resources",
+            "Chemistry"
         );
 
-        return;
-
-    }
-
-
-    const location =
-        resource.location;
-
-
-    const link =
-        location
-        ? (
-            location.pdf_url ||
-            location.landing_page_url ||
-            ""
-        )
-        : "";
-
-
-    if (!link) {
-
-        showMessage(
-            "This resource has no usable link.",
-            "error"
+    const mathResources =
+        await getCount(
+            "resources",
+            "Mathematics"
         );
 
-        return;
+    const biologyResources =
+        await getCount(
+            "resources",
+            "Biology"
+        );
 
-    }
+    const educationResources =
+        await getCount(
+            "resources",
+            "Education"
+        );
 
+    const subjectResources =
+        await getCount(
+            "subject_resources"
+        );
 
-    try {
-
-        showMessage(
-            "Checking for duplicates..."
+    const totalPapers =
+        await getCount(
+            "past_papers"
         );
 
 
-        const duplicate =
-            await isDuplicate(link);
+    document.getElementById(
+        "total-resources"
+    ).textContent =
+        totalResources;
 
 
-        if (duplicate) {
-
-            showMessage(
-                "This resource is already in MalawiHub.",
-                "error"
-            );
-
-            return;
-
-        }
+    document.getElementById(
+        "chem-resources"
+    ).textContent =
+        chemistryResources;
 
 
-        const title =
-            resource.title ||
-            "Untitled resource";
+    document.getElementById(
+        "math-resources"
+    ).textContent =
+        mathResources;
 
 
-        const year =
-            resource.publication_year ||
-            null;
+    document.getElementById(
+        "biology-resources"
+    ).textContent =
+        biologyResources;
 
 
-        const description =
-            resource.abstract ||
-            "Discovered through OpenAlex.";
+    document.getElementById(
+        "education-resources"
+    ).textContent =
+        educationResources;
 
 
-        const {
-            error
-        } =
-            await supabaseClient
-                .from("subject_resources")
-                .insert({
-
-                    title: title,
-
-                    subject:
-                        resource.subject,
-
-                    topic:
-                        resource.topic,
-
-                    category:
-                        "Study Guide",
-
-                    description:
-                        description,
-
-                    year:
-                        year,
-
-                    link:
-                        link
-
-                });
+    document.getElementById(
+        "subject-resources"
+    ).textContent =
+        subjectResources;
 
 
-        if (error) {
-
-            console.error(
-                "Insert error:",
-                error
-            );
-
-            throw error;
-
-        }
-
-
-        showMessage(
-            "Resource successfully added to MalawiHub.",
-            "success"
-        );
-
-
-        const updated =
-            currentResults.filter(
-                function(
-                    item,
-                    itemIndex
-                ) {
-
-                    return (
-                        itemIndex !== index
-                    );
-
-                }
-            );
-
-
-        renderResults(
-            updated
-        );
-
-    }
-    catch (error) {
-
-        console.error(
-            error
-        );
-
-
-        showMessage(
-            "Could not add resource: "
-            + (
-                error.message ||
-                "Unknown error"
-            ),
-            "error"
-        );
-
-    }
-
+    document.getElementById(
+        "total-papers"
+    ).textContent =
+        totalPapers;
 }
 
-
-/*
-==========================================================
-FIND RESOURCES
-==========================================================
-*/
-
-findBtn.addEventListener(
-    "click",
-    async function() {
-
-        const subject =
-            subjectSelect.value;
-
-
-        const topic =
-            topicSelect.value;
-
-
-        const extraTerms =
-            searchTerms.value.trim();
-
-
-        if (!subject || !topic) {
-
-            showMessage(
-                "Please select a subject and topic.",
-                "error"
-            );
-
-            return;
-
-        }
-
-
-        findBtn.disabled =
-            true;
-
-
-        results.innerHTML = `
-            <div class="loading">
-                🔎 Searching OpenAlex...
-            </div>
-        `;
-
-
-        resultCount.textContent =
-            "";
-
-
-        showMessage(
-            "Searching for resources..."
-        );
-
-
-        try {
-
-            const data =
-                await searchOpenAlex(
-                    subject,
-                    topic,
-                    extraTerms
-                );
-
-
-            const works =
-                data.results || [];
-
-
-            const discovered =
-                works.map(
-                    function(work) {
-
-                        return {
-
-                            id:
-                                work.id,
-
-                            title:
-                                work.title ||
-                                "Untitled",
-
-                            publication_year:
-                                work.publication_year,
-
-                            abstract:
-                                getAbstract(
-                                    work
-                                ),
-
-                            location:
-                                getBestLocation(
-                                    work
-                                ),
-
-                            subject:
-                                subject,
-
-                            topic:
-                                topic
-
-                        };
-
-                    }
-                );
-
-
-            renderResults(
-                discovered
-            );
-
-
-            showMessage(
-                discovered.length
-                ? "Search completed."
-                : "No resources found.",
-                discovered.length
-                ? "success"
-                : "info"
-            );
-
-        }
-        catch (error) {
-
-            console.error(
-                error
-            );
-
-
-            results.innerHTML = `
-                <div class="empty">
-                    Unable to search for resources.
-                    Please try again.
-                </div>
-            `;
-
-
-            showMessage(
-                "Search failed: "
-                + (
-                    error.message ||
-                    "Unknown error"
-                ),
-                "error"
-            );
-
-        }
-        finally {
-
-            updateFindButton();
-
-        }
-
-    }
-);
-
-
-/*
-==========================================================
-OPENALEX ABSTRACT
-==========================================================
-*/
-
-function getAbstract(
-    work
-) {
-
-    if (
-        work.abstract_inverted_index
-    ) {
-
-        const words = [];
-
-
-        Object.keys(
-            work.abstract_inverted_index
-        ).forEach(
-            function(word) {
-
-                const positions =
-                    work.abstract_inverted_index[
-                        word
-                    ];
-
-
-                positions.forEach(
-                    function(position) {
-
-                        words[position] =
-                            word;
-
-                    }
-                );
-
-            }
-        );
-
-
-        return words
-            .filter(Boolean)
-            .join(" ");
-
-    }
-
-
-    return "";
-
-}
-
-
-/*
-==========================================================
-ADMIN ACCESS
-==========================================================
-*/
 
 async function checkAdminAccess() {
 
     try {
 
+        if (
+            typeof supabaseClient ===
+            "undefined"
+        ) {
+
+            showError(
+                "Configuration Error",
+                "Supabase could not be loaded."
+            );
+
+            return;
+        }
+
+
         const {
             data,
             error
         } =
-            await supabaseClient
-                .auth
-                .getSession();
+            await supabaseClient.auth.getSession();
 
 
         if (error) {
 
             console.error(
+                "Session error:",
                 error
             );
 
-            window.location.href =
-                "../login.html";
+            showError(
+                "Authentication Error",
+                "Unable to check your login session."
+            );
 
             return;
-
         }
 
 
         const session =
-            data.session;
-
-
-        if (!session) {
-
-            window.location.href =
-                "../login.html";
-
-            return;
-
-        }
+            data?.session;
 
 
         if (
-            session.user.id !==
-            ADMIN_UUID
+            !session ||
+            !session.user
         ) {
 
-            document.body.innerHTML = `
-
-                <div
-                    style="
-                        padding:40px;
-                        text-align:center;
-                        font-family:Arial;
-                    "
-                >
-
-                    <h2>
-                        Access Denied
-                    </h2>
-
-                    <p>
-                        You do not have permission
-                        to access the MalawiHub
-                        Resource Discovery system.
-                    </p>
-
-                    <a href="../index.html">
-                        Back to Admin Dashboard
-                    </a>
-
-                </div>
-
-            `;
+            window.location.href =
+                "login.html";
 
             return;
-
         }
 
-    }
-    catch (error) {
+
+        const user =
+            session.user;
+
+
+        if (
+            user.id !== ADMIN_UUID
+        ) {
+
+            showError(
+                "Access Denied",
+                "Your account does not have administrator access."
+            );
+
+            return;
+        }
+
+
+        adminEmail.textContent =
+            user.email ||
+            "Administrator";
+
+
+        loading.style.display =
+            "none";
+
+        adminContent.style.display =
+            "block";
+
+
+        await loadStats();
+
+
+    } catch (error) {
 
         console.error(
+            "Admin error:",
             error
         );
 
-        window.location.href =
-            "../login.html";
-
+        showError(
+            "Something went wrong",
+            "Unable to load the administrator dashboard."
+        );
     }
-
 }
 
 
-/*
-==========================================================
-START
-==========================================================
-*/
+document
+    .getElementById("logoutBtn")
+    .addEventListener(
+        "click",
+        async function () {
 
-updateTopics();
+            try {
+
+                const {
+                    error
+                } =
+                    await supabaseClient.auth.signOut();
+
+
+                if (error) {
+
+                    console.error(
+                        "Logout error:",
+                        error
+                    );
+
+                    alert(
+                        "Unable to log out. Please try again."
+                    );
+
+                    return;
+                }
+
+
+                window.location.href =
+                    "login.html";
+
+
+            } catch (error) {
+
+                console.error(
+                    "Logout error:",
+                    error
+                );
+
+                alert(
+                    "Unable to log out. Please try again."
+                );
+            }
+
+        }
+    );
+
+
+if (
+    typeof supabaseClient !==
+    "undefined"
+) {
+
+    supabaseClient.auth.onAuthStateChange(
+        function(event) {
+
+            if (
+                event ===
+                "SIGNED_OUT"
+            ) {
+
+                window.location.href =
+                    "login.html";
+            }
+
+        }
+    );
+
+}
+
 
 checkAdminAccess();
 

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Organic Chemistry - MalawiHub</title>
+<link rel="stylesheet" href="../../css/style.css">
+</head>
+
+<body>
+
+<header>
+    <div class="container">
+        <h1>🇲🇼 MalawiHub</h1>
+        <nav>
+            <a href="../../index.html">Home</a>
+            <a href="../index.html">Resources</a>
+            <a href="../chemistry/index.html">Chemistry</a>
+        </nav>
+    </div>
+</header>
+
+<section class="hero">
+    <div class="container">
+        <h2>🌿 Organic Chemistry</h2>
+        <p>Learning materials organized by Organic Chemistry topic.</p>
+    </div>
+</section>
+
+<section class="tools-section">
+    <div class="container">
+
+        <div class="card-grid">
+
+            <div class="card">
+                <h3>📖 Introduction to Organic Chemistry</h3>
+                <p>Basic concepts, carbon compounds, structures and nomenclature.</p>
+                <button type="button" onclick="openTopic('Introduction to Organic Chemistry')">Open</button>
+            </div>
+
+            <div class="card">
+                <h3>🧪 Alkanes</h3>
+                <p>Structure, nomenclature, properties and reactions of alkanes.</p>
+                <button type="button" onclick="openTopic('Alkanes')">Open</button>
+            </div>
+
+            <div class="card">
+                <h3>⚗️ Alkenes</h3>
+                <p>Structure, nomenclature, properties and reactions of alkenes.</p>
+                <button type="button" onclick="openTopic('Alkenes')">Open</button>
+            </div>
+
+            <div class="card">
+                <h3>⚗️ Alkynes</h3>
+                <p>Structure, nomenclature, properties and reactions of alkynes.</p>
+                <button type="button" onclick="openTopic('Alkynes')">Open</button>
+            </div>
+
+            <div class="card">
+                <h3>🧪 Haloalkanes</h3>
+                <p>Structure, properties and reactions of haloalkanes.</p>
+                <button type="button" onclick="openTopic('Haloalkanes')">Open</button>
+            </div>
+
+            <div class="card">
+                <h3>🍶 Alcohols</h3>
+                <p>Structure, classification, properties and reactions of alcohols.</p>
+                <button type="button" onclick="openTopic('Alcohols')">Open</button>
+            </div>
+
+            <div class="card">
+                <h3>🧪 Aldehydes & Ketones</h3>
+                <p>Carbonyl compounds, properties and important reactions.</p>
+                <button type="button" onclick="openTopic('Aldehydes & Ketones')">Open</button>
+            </div>
+
+            <div class="card">
+                <h3>🧪 Carboxylic Acids</h3>
+                <p>Structure, acidity, properties and reactions of carboxylic acids.</p>
+                <button type="button" onclick="openTopic('Carboxylic Acids')">Open</button>
+            </div>
+
+            <div class="card">
+                <h3>🧪 Esters</h3>
+                <p>Structure, preparation, properties and reactions of esters.</p>
+                <button type="button" onclick="openTopic('Esters')">Open</button>
+            </div>
+
+            <div class="card">
+                <h3>🧪 Amines</h3>
+                <p>Structure, classification, properties and reactions of amines.</p>
+                <button type="button" onclick="openTopic('Amines')">Open</button>
+            </div>
+
+            <div class="card">
+                <h3>🔬 Organic Reactions</h3>
+                <p>Important reaction types, mechanisms and reaction pathways.</p>
+                <button type="button" onclick="openTopic('Organic Reactions')">Open</button>
+            </div>
+
+        </div>
+
+    </div>
+</section>
+
+<script>
+function openTopic(topic){
+    const url = "../topic/index.html?subject=" +
+        encodeURIComponent("Chemistry") +
+        "&topic=" +
+        encodeURIComponent(topic);
+
+    location.href = url;
+}
+</script>
+
+</body>
+</html>
