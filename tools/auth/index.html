@@ -90,6 +90,20 @@ authForm.addEventListener("submit", async function(event){
                 throw new Error("Supabase did not return a user after signup.");
             }
 
+            // Create/update MalawiHub user profile
+            const { error: profileError } = await supabaseClient
+                .from("profiles")
+                .upsert({
+                    id: data.user.id,
+                    email: data.user.email,
+                    last_seen: new Date().toISOString(),
+                    is_online: false
+                });
+
+            if(profileError){
+                console.error("Profile tracking error:", profileError);
+            }
+
             showMessage("Account created. Please check your email and confirm your account before signing in.","success");
             authForm.reset();
 
@@ -98,6 +112,21 @@ authForm.addEventListener("submit", async function(event){
             if(error) throw error;
 
             if(data.user){
+
+                // Update MalawiHub profile as online
+                const { error: profileError } = await supabaseClient
+                    .from("profiles")
+                    .upsert({
+                        id: data.user.id,
+                        email: data.user.email,
+                        last_seen: new Date().toISOString(),
+                        is_online: true
+                    });
+
+                if(profileError){
+                    console.error("Online tracking error:", profileError);
+                }
+
                 showMessage("Sign in successful. Opening Premium...","success");
                 setTimeout(() => { window.location.href = redirectTo; }, 700);
             }

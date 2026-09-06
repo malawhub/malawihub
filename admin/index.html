@@ -251,6 +251,46 @@ body {
 
     <main class="main">
 
+        <section class="user-stats-card" style="
+            margin-top:18px;
+            padding:20px;
+            border-radius:16px;
+            background:#ffffff;
+            box-shadow:0 4px 18px rgba(0,0,0,.08);
+        ">
+            <h2 style="margin:0 0 16px;">👥 MalawiHub Users</h2>
+
+            <div style="
+                display:grid;
+                grid-template-columns:repeat(2,1fr);
+                gap:12px;
+            ">
+                <div style="
+                    padding:16px;
+                    border-radius:12px;
+                    background:#f1f8f5;
+                ">
+                    <div style="font-size:13px;color:#666;">Registered Users</div>
+                    <strong id="registeredUsers" style="font-size:28px;">—</strong>
+                </div>
+
+                <div style="
+                    padding:16px;
+                    border-radius:12px;
+                    background:#eef7ff;
+                ">
+                    <div style="font-size:13px;color:#666;">Active Users</div>
+                    <strong id="activeUsers" style="font-size:28px;">—</strong>
+                </div>
+            </div>
+
+            <p id="userStatsStatus" style="
+                margin:14px 0 0;
+                font-size:13px;
+                color:#666;
+            ">Loading user statistics...</p>
+        </section>
+
         <section class="profile-card">
 
             <div class="avatar">
@@ -413,6 +453,38 @@ async function checkAdminAccess() {
 
         adminContent.style.display =
             "flex";
+
+        // Load MalawiHub user statistics
+        try {
+            const {
+                data: functionData,
+                error: functionError
+            } = await supabaseClient.functions.invoke(
+                "admin-user-stats"
+            );
+
+            if (functionError) throw functionError;
+
+            document.getElementById("registeredUsers").textContent =
+                functionData?.registeredUsers ?? "0";
+
+            document.getElementById("activeUsers").textContent =
+                functionData?.activeUsers ?? "0";
+
+            document.getElementById("userStatsStatus").textContent =
+                "Updated just now";
+
+        } catch (statsError) {
+            console.error(
+                "User statistics error:",
+                statsError
+            );
+
+            document.getElementById("registeredUsers").textContent = "—";
+            document.getElementById("activeUsers").textContent = "—";
+            document.getElementById("userStatsStatus").textContent =
+                "Unable to load user statistics";
+        }
 
 
     } catch (error) {

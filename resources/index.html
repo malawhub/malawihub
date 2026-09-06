@@ -386,5 +386,11 @@ loadPublicResources();
     </div>
 </section>
 
+<script>
+if (window.updateMalawiHubLastSeen) {
+    updateMalawiHubLastSeen();
+    setInterval(updateMalawiHubLastSeen, 60000);
+}
+</script>
 </body>
 </html>
