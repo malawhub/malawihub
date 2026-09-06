@@ -1,217 +1,90 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MalawiHub Admin</title>
-    <link rel="stylesheet" href="../css/style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MalawiHub Admin Dashboard</title>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase.js"></script>
 
-<script>
-async function checkAdminAuth() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-
-    if (!session) {
-        window.location.href = "login.html";
-    }
+<style>
+* { box-sizing: border-box; }
+body { 
+    margin:0; 
+    font-family: Arial, sans-serif; 
+    background:#f5f7fb; 
+    padding:20px;
 }
-
-checkAdminAuth();
-</script>
+.header {
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    margin-bottom:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,.05);
+}
+.header h1 { margin:0; color:#087f5b; }
+.stats {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap:15px;
+    margin-bottom:20px;
+}
+.stat-card {
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,.05);
+}
+.stat-card h3 { margin:0 0 10px; color:#666; font-size:14px; }
+.stat-card p { margin:0; font-size:32px; font-weight:800; color:#087f5b; }
+.menu {
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap:15px;
+}
+.menu a {
+    display:block;
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    text-decoration:none;
+    color:#333;
+    box-shadow:0 2px 10px rgba(0,0,0,.05);
+    font-weight:600;
+}
+.menu a:hover { background:#087f5b; color:white; }
+.loading {
+    text-align:center;
+    padding:50px;
+    font-size:18px;
+    color:#666;
+}
+</style>
 </head>
-
 <body>
 
-<header>
-    <h1>🇲🇼 MalawiHub Admin</h1>
-    <nav>
-        <a href="../index.html">Home</a>
-        <a href="../resources/index.html">Resources</a>
-        <a href="#" onclick="logout()">Logout</a>
-    </nav>
-</header>
+<div id="loading" class="loading">Checking access...</div>
 
-<section class="hero">
-    <h2>⚙️ Admin Dashboard</h2>
-    <p>Manage MalawiHub learning resources from one place.</p>
-</section>
-
-<main class="container">
-
-    <section class="tools-section">
-        <h2>📊 Resource Statistics</h2>
-
-        <div class="card-grid">
-
-            <div class="card">
-                <h3 id="totalResources">0</h3>
-                <p>Total Resources</p>
-            </div>
-
-            <div class="card">
-                <h3 id="chemistryResources">0</h3>
-                <p>🧪 Chemistry</p>
-            </div>
-
-            <div class="card">
-                <h3 id="mathematicsResources">0</h3>
-                <p>🧮 Mathematics</p>
-            </div>
-
-            <div class="card">
-                <h3 id="biologyResources">0</h3>
-                <p>🧬 Biology</p>
-            </div>
-
-            <div class="card">
-                <h3 id="educationResources">0</h3>
-                <p>🎓 Education</p>
-            </div>
-
-            <div class="card">
-                <h3 id="totalPastPapers">0</h3>
-                <p>📄 Total Past Papers</p>
-            </div>
-
-            <div class="card">
-                <h3 id="totalSubjectResources">0</h3>
-                <p>📚 Subject Library</p>
-            </div>
-
-        </div>
-    </section>
-
-    <section class="card">
-        <h3>➕ Add Resource</h3>
-        <p>Create and add a new learning resource.</p>
-        <button onclick="location.href='add-resource/index.html'">Open</button>
-    </section>
-
-
-    <section class="card">
-        <h3>📚 Subject Libraries</h3>
-        <p>Manage Chemistry, Mathematics, Biology and Education resources.</p>
-        <button onclick="location.href='subject-resources/index.html'">Open</button>
-    </section>
-
-    <section class="card">
-        <h3>📚 Manage Resources</h3>
-        <p>View, edit and organize existing resources.</p>
-        <button onclick="location.href='manage-resources/index.html'">Open</button>
-    </section>
-
-    <section class="card">
-        <h3>🔎 Search Resources</h3>
-        <p>Find resources quickly by subject or title.</p>
-        <button onclick="location.href='manage-resources/index.html'">Open</button>
-    </section>
-
-</main>
-
-
-<!-- MALAWIHUB_PAST_PAPERS_START -->
-<section class="card" style="margin-top:20px;">
-    <h2>📚 Past Papers</h2>
-    <p>Manage the MalawiHub past papers library.</p>
-
-    <div style="display:flex;gap:10px;flex-wrap:wrap;">
-        <a href="add-paper/index.html">
-            <button type="button">➕ Add Past Paper</button>
-        </a>
-
-        <a href="manage-papers/index.html">
-            <button type="button">📚 Manage Past Papers</button>
-        </a>
-
-        <a href="../papers/index.html">
-            <button type="button">🌐 View Public Papers</button>
-        </a>
+<div id="admin-content" style="display:none;">
+    <div class="header">
+        <h1>MalawiHub Admin</h1>
+        <p id="admin-email"></p>
     </div>
-</section>
-<!-- MALAWIHUB_PAST_PAPERS_END -->
 
-<footer>
-    <p>© 2026 MalawiHub</p>
-</footer>
+    <div class="stats" id="stats">
+        <div class="stat-card"><h3>Total Resources</h3><p id="total-resources">0</p></div>
+        <div class="stat-card"><h3>Chemistry</h3><p id="chem-resources">0</p></div>
+        <div class="stat-card"><h3>Mathematics</h3><p id="math-resources">0</p></div>
+        <div class="stat-card"><h3>Past Papers</h3><p id="total-papers">0</p></div>
+    </div>
 
+    <div class="menu">
+        <a href="/admin/add-resource/">+ Add Resource</a>
+        <a href="/admin/manage-resources/">Manage Resources</a>
+        <a href="/admin/add-paper/">+ Add Past Paper</a>
+        <a href="/admin/manage-papers/">Manage Past Papers</a>
+    </div>
+</div>
 
-<script>
-async function logout() {
-    await supabaseClient.auth.signOut();
-    window.location.href = "login.html";
-}
-</script>
-
-<script>
-async function loadStatistics() {
-
-    const [
-        { data: resources, error: resourcesError },
-        { data: pastPapers, error: papersError },
-        { data: subjectResources, error: subjectResourcesError }
-    ] = await Promise.all([
-        supabaseClient
-            .from("resources")
-            .select("subject"),
-
-        supabaseClient
-            .from("past_papers")
-            .select("id"),
-
-        supabaseClient
-            .from("subject_resources")
-            .select("id")
-    ]);
-
-    if (resourcesError) {
-        console.error("Failed to load resources statistics:", resourcesError);
-    }
-
-    if (papersError) {
-        console.error("Failed to load past papers statistics:", papersError);
-    }
-
-    if (subjectResourcesError) {
-        console.error("Failed to load subject library statistics:", subjectResourcesError);
-    }
-
-    const list = resources || [];
-
-    document.getElementById("totalResources").textContent =
-        list.length;
-
-    document.getElementById("chemistryResources").textContent =
-        list.filter(r =>
-            (r.subject || "").toLowerCase() === "chemistry"
-        ).length;
-
-    document.getElementById("mathematicsResources").textContent =
-        list.filter(r =>
-            (r.subject || "").toLowerCase() === "mathematics"
-        ).length;
-
-    document.getElementById("biologyResources").textContent =
-        list.filter(r =>
-            (r.subject || "").toLowerCase() === "biology"
-        ).length;
-
-    document.getElementById("educationResources").textContent =
-        list.filter(r =>
-            (r.subject || "").toLowerCase() === "education"
-        ).length;
-
-    document.getElementById("totalPastPapers").textContent =
-        (pastPapers || []).length;
-
-    document.getElementById("totalSubjectResources").textContent =
-        (subjectResources || []).length;
-}
-
-loadStatistics();
-</script>
-
-
-
-</body>
-</html>
+<script type="
