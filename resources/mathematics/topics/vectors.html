@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vectors | MalawiHub</title>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']]
+  },
+  svg: {fontCache: 'global'}
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+<link rel="stylesheet" href="../../../css/style.css">
+
+<style>
+.notes-container{max-width:950px;margin:auto;padding:20px;line-height:1.75}
+.notes-header{padding:20px 0;border-bottom:1px solid #ddd;margin-bottom:25px}
+.notes-header h1{margin:0 0 5px}
+.chapter{margin:35px 0}
+.definition,.important,.example,.solution,.exam-tip{
+padding:16px 18px;margin:18px 0;border-left:4px solid #2563eb;background:#f7f9fc
+}
+.example{border-left-color:#16a34a}
+.solution{border-left-color:#9333ea}
+.exam-tip{border-left-color:#ea580c}
+.math{text-align:center;margin:20px 0;overflow-x:auto}
+.diagram{text-align:center;margin:25px auto;overflow-x:auto}
+.notes-container table{width:100%;border-collapse:collapse;margin:20px 0}
+.notes-container th,.notes-container td{border:1px solid #bbb;padding:9px}
+.notes-container th{background:#f1f5f9}
+.exercise li,.answers li{margin-bottom:10px}
+.topic-nav{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 35px}
+.topic-nav a{padding:7px 12px;border:1px solid #ddd;border-radius:6px;text-decoration:none}
+</style>
+</head>
+
+<body>
+<div class="notes-container">
+
+<header class="notes-header">
+<h1>Vectors</h1>
+<p>Mathematics • Secondary School</p>
+</header>
+
+<nav class="topic-nav">
+<a href="../index.html">← Mathematics</a>
+<a href="number-arithmetic.html">Number</a>
+<a href="algebra.html">Algebra</a>
+<a href="functions-graphs.html">Functions &amp; Graphs</a>
+<a href="geometry-mensuration.html">Geometry</a>
+<a href="coordinate-geometry.html">Coordinate Geometry</a>
+<a href="trigonometry.html">Trigonometry</a>
+<a href="statistics.html">Statistics</a>
+<a href="probability.html">Probability</a>
+<a href="vectors.html">Vectors</a>
+<a href="sequences-patterns.html">Sequences</a>
+<a href="financial-mathematics.html">Financial Mathematics</a>
+<a href="revision-maneb.html">Revision</a>
+</nav>
+
+<section class="chapter">
+<h2>1. Introduction</h2>
+
+<p>
+A vector is a quantity that has both <strong>magnitude</strong> and
+<strong>direction</strong>. Examples include displacement, velocity and
+force.
+</p>
+
+<h3>Learning objectives</h3>
+<ul>
+<li>Understand vectors and scalar quantities.</li>
+<li>Represent vectors using diagrams and column vectors.</li>
+<li>Add and subtract vectors.</li>
+<li>Multiply vectors by scalars.</li>
+<li>Find the magnitude of a vector.</li>
+<li>Use vectors to describe movement between points.</li>
+<li>Solve geometric problems using vectors.</li>
+</ul>
+</section>
+
+<section class="chapter">
+<h2>2. Scalars and Vectors</h2>
+
+<table>
+<tr>
+<th>Scalar</th>
+<th>Vector</th>
+</tr>
+<tr>
+<td>Has magnitude only</td>
+<td>Has magnitude and direction</td>
+</tr>
+<tr>
+<td>Mass</td>
+<td>Displacement</td>
+</tr>
+<tr>
+<td>Time</td>
+<td>Velocity</td>
+</tr>
+<tr>
+<td>Distance</td>
+<td>Force</td>
+</tr>
+</table>
+
+<div class="important">
+<strong>Distance</strong> is a scalar, while <strong>displacement</strong>
+is a vector.
+</div>
+</section>
+
+<section class="chapter">
+<h2>3. Representing Vectors</h2>
+
+<p>
+A vector can be written using a column vector:
+</p>
+
+<div class="math">
+\[
+\mathbf{a}=
+\begin{pmatrix}
+3\\
+2
+\end{pmatrix}
+\]
+</div>
+
+<p>
+This means 3 units horizontally and 2 units vertically.
+</p>
+
+<div class="diagram">
+<svg width="430" height="300" viewBox="0 0 430 300">
+<line x1="60" y1="240" x2="390" y2="240"
+stroke="black" stroke-width="2"/>
+<line x1="60" y1="240" x2="60" y2="40"
+stroke="black" stroke-width="2"/>
+<line x1="60" y1="240" x2="300" y2="100"
+stroke="black" stroke-width="3"/>
+<polygon points="300,100 283,108 292,122"
+fill="black"/>
+<text x="305" y="95">a</text>
+<text x="380" y="235">x</text>
+<text x="65" y="45">y</text>
+</svg>
+</div>
+</section>
+
+<section class="chapter">
+<h2>4. Equal Vectors</h2>
+
+<p>
+Two vectors are equal when they have the same magnitude and the same
+direction.
+</p>
+
+<div class="example">
+The vectors
+
+\[
+\begin{pmatrix}3\\2\end{pmatrix}
+\quad\text{and}\quad
+\begin{pmatrix}3\\2\end{pmatrix}
+\]
+
+are equal.
+</div>
+</section>
+
+<section class="chapter">
+<h2>5. Addition of Vectors</h2>
+
+<p>
+Corresponding components are added.
+</p>
+
+<div class="math">
+\[
+\begin{pmatrix}
+a\\b
+\end{pmatrix}
++
+\begin{pmatrix}
+c\\d
+\end{pmatrix}
+=
+\begin{pmatrix}
+a+c\\b+d
+\end{pmatrix}
+\]
+</div>
+
+<div class="example">
+\[
+\begin{pmatrix}2\\3\end{pmatrix}
++
+\begin{pmatrix}4\\1\end{pmatrix}
+=
+\begin{pmatrix}6\\4\end{pmatrix}
+\]
+
+Therefore:
+
+\[
+\boxed{
+\begin{pmatrix}6\\4\end{pmatrix}}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>6. Subtraction of Vectors</h2>
+
+<div class="math">
+\[
+\begin{pmatrix}
+a\\b
+\end{pmatrix}
+-
+\begin{pmatrix}
+c\\d
+\end{pmatrix}
+=
+\begin{pmatrix}
+a-c\\b-d
+\end{pmatrix}
+\]
+</div>
+
+<div class="example">
+\[
+\begin{pmatrix}7\\5\end{pmatrix}
+-
+\begin{pmatrix}2\\3\end{pmatrix}
+=
+\begin{pmatrix}5\\2\end{pmatrix}
+\]
+
+\[
+\boxed{
+\begin{pmatrix}5\\2\end{pmatrix}}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>7. Multiplying a Vector by a Scalar</h2>
+
+<p>
+A scalar is an ordinary number. Multiplying a vector by a scalar changes
+its magnitude and may reverse its direction if the scalar is negative.
+</p>
+
+<div class="math">
+\[
+k
+\begin{pmatrix}
+a\\b
+\end{pmatrix}
+=
+\begin{pmatrix}
+ka\\kb
+\end{pmatrix}
+\]
+</div>
+
+<div class="example">
+\[
+3
+\begin{pmatrix}
+2\\4
+\end{pmatrix}
+=
+\begin{pmatrix}
+6\\12
+\end{pmatrix}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>8. Magnitude of a Vector</h2>
+
+<p>
+For:
+
+\[
+\mathbf{a}=
+\begin{pmatrix}
+x\\y
+\end{pmatrix}
+\]
+
+the magnitude is:</p>
+
+<div class="math">
+\[
+|\mathbf{a}|=\sqrt{x^2+y^2}
+\]
+</div>
+
+<div class="example">
+Find the magnitude of:
+
+\[
+\mathbf{a}=
+\begin{pmatrix}
+3\\4
+\end{pmatrix}
+\]
+
+\[
+|\mathbf{a}|=\sqrt{3^2+4^2}
+\]
+
+\[
+=\sqrt{25}
+\]
+
+\[
+\boxed{5}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>9. Position Vectors</h2>
+
+<p>
+A position vector describes the position of a point relative to the
+origin.
+</p>
+
+<p>
+If \(A(x,y)\), then:
+
+\[
+\vec{OA}=
+\begin{pmatrix}
+x\\y
+\end{pmatrix}
+\]
+</p>
+
+<div class="example">
+If \(A(4,7)\), then:
+
+\[
+\boxed{
+\vec{OA}=
+\begin{pmatrix}
+4\\7
+\end{pmatrix}}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>10. Vector Between Two Points</h2>
+
+<p>
+The vector from \(A\) to \(B\) is:
+</p>
+
+<div class="math">
+\[
+\vec{AB}=\vec{OB}-\vec{OA}
+\]
+</div>
+
+<div class="example">
+Let:
+
+\[
+A(2,3),\qquad B(7,8)
+\]
+
+Then:
+
+\[
+\vec{AB}=
+\begin{pmatrix}
+7\\8
+\end{pmatrix}
+-
+\begin{pmatrix}
+2\\3
+\end{pmatrix}
+\]
+
+\[
+=
+\begin{pmatrix}
+5\\5
+\end{pmatrix}
+\]
+
+Therefore:
+
+\[
+\boxed{
+\vec{AB}=
+\begin{pmatrix}
+5\\5
+\end{pmatrix}}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>11. Parallel Vectors</h2>
+
+<p>
+Two vectors are parallel if one is a scalar multiple of the other.
+</p>
+
+<div class="example">
+Consider:
+
+\[
+\mathbf{a}=
+\begin{pmatrix}2\\3\end{pmatrix}
+\]
+
+and
+
+\[
+\mathbf{b}=
+\begin{pmatrix}6\\9\end{pmatrix}
+\]
+
+Since:
+
+\[
+\mathbf{b}=3\mathbf{a}
+\]
+
+the vectors are parallel.
+</div>
+</section>
+
+<section class="chapter">
+<h2>12. Geometric Applications</h2>
+
+<p>
+Vectors can be used to prove relationships in geometric figures such as
+triangles and parallelograms.
+</p>
+
+<div class="important">
+When working with a geometric vector problem, identify the starting point
+and ending point carefully. The order of the letters determines the
+direction.
+</div>
+
+<p>
+For example:
+
+\[
+\vec{AB}=-\vec{BA}
+\]
+</p>
+</section>
+
+<section class="chapter">
+<h2>13. MANEB-style Practice</h2>
+
+<ol class="exercise">
+
+<li>Add:
+\[
+\begin{pmatrix}3\\4\end{pmatrix}
++
+\begin{pmatrix}2\\5\end{pmatrix}
+\]
+</li>
+
+<li>Subtract:
+\[
+\begin{pmatrix}8\\7\end{pmatrix}
+-
+\begin{pmatrix}3\\2\end{pmatrix}
+\]
+</li>
+
+<li>Find:
+\[
+4\begin{pmatrix}2\\3\end{pmatrix}
+\]
+</li>
+
+<li>Find the magnitude of:
+\[
+\begin{pmatrix}5\\12\end{pmatrix}
+\]
+</li>
+
+<li>Find \(\vec{AB}\) when \(A(3,2)\) and \(B(9,7)\).</li>
+
+<li>Determine whether
+\[
+\begin{pmatrix}2\\4\end{pmatrix}
+\quad\text{and}\quad
+\begin{pmatrix}6\\12\end{pmatrix}
+\]
+are parallel.</li>
+
+<li>If
+\[
+\vec{OA}=
+\begin{pmatrix}4\\3\end{pmatrix}
+\]
+and
+\[
+\vec{OB}=
+\begin{pmatrix}9\\8\end{pmatrix},
+\]
+find \(\vec{AB}\).</li>
+
+</ol>
+
+<h3>Answers</h3>
+
+<ol class="answers">
+
+<li>
+\[
+\begin{pmatrix}5\\9\end{pmatrix}
+\]
+</li>
+
+<li>
+\[
+\begin{pmatrix}5\\5\end{pmatrix}
+\]
+</li>
+
+<li>
+\[
+\begin{pmatrix}8\\12\end{pmatrix}
+\]
+</li>
+
+<li>\(13\)</li>
+
+<li>
+\[
+\begin{pmatrix}6\\5\end{pmatrix}
+\]
+</li>
+
+<li>Yes, because the second vector is \(3\) times the first.</li>
+
+<li>
+\[
+\begin{pmatrix}5\\5\end{pmatrix}
+\]
+</li>
+
+</ol>
+</section>
+
+<section class="chapter">
+<h2>14. Common Mistakes</h2>
+
+<ul>
+<li>Reversing the direction of a vector.</li>
+<li>Adding coordinates incorrectly.</li>
+<li>Forgetting that a negative scalar reverses direction.</li>
+<li>Confusing a vector with its magnitude.</li>
+<li>Using \(AB\) when the question requires \(\vec{AB}\).</li>
+<li>Forgetting to subtract the starting position from the final position.</li>
+</ul>
+
+<div class="exam-tip">
+<strong>Examination tip:</strong>
+Always write the vector as a column vector and keep the direction clear.
+For a vector from \(A\) to \(B\), use final position minus initial
+position.
+</div>
+</section>
+
+<footer>
+<p>MalawiHub • Mathematics • Secondary School</p>
+</footer>
+
+</div>
+</body>
+</html>

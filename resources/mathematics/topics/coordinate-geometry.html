@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coordinate Geometry | MalawiHub</title>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']]
+  },
+  svg: {fontCache: 'global'}
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+<link rel="stylesheet" href="../../../css/style.css">
+
+<style>
+.notes-container{max-width:950px;margin:auto;padding:20px;line-height:1.75}
+.notes-header{padding:20px 0;border-bottom:1px solid #ddd;margin-bottom:25px}
+.notes-header h1{margin:0 0 5px}
+.chapter{margin:35px 0}
+.definition,.important,.example,.solution,.exam-tip{
+padding:16px 18px;margin:18px 0;border-left:4px solid #2563eb;background:#f7f9fc
+}
+.example{border-left-color:#16a34a}
+.solution{border-left-color:#9333ea}
+.exam-tip{border-left-color:#ea580c}
+.math{text-align:center;margin:20px 0;overflow-x:auto}
+.diagram{text-align:center;margin:25px auto;overflow-x:auto}
+.notes-container table{width:100%;border-collapse:collapse;margin:20px 0}
+.notes-container th,.notes-container td{border:1px solid #bbb;padding:9px}
+.notes-container th{background:#f1f5f9}
+.exercise li,.answers li{margin-bottom:10px}
+.topic-nav{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 35px}
+.topic-nav a{padding:7px 12px;border:1px solid #ddd;border-radius:6px;text-decoration:none}
+</style>
+</head>
+
+<body>
+<div class="notes-container">
+
+<header class="notes-header">
+<h1>Coordinate Geometry</h1>
+<p>Mathematics • Secondary School</p>
+</header>
+
+<nav class="topic-nav">
+<a href="../index.html">← Mathematics</a>
+<a href="number-arithmetic.html">Number</a>
+<a href="algebra.html">Algebra</a>
+<a href="functions-graphs.html">Functions &amp; Graphs</a>
+<a href="geometry-mensuration.html">Geometry</a>
+<a href="coordinate-geometry.html">Coordinate Geometry</a>
+<a href="trigonometry.html">Trigonometry</a>
+<a href="statistics.html">Statistics</a>
+<a href="probability.html">Probability</a>
+<a href="vectors.html">Vectors</a>
+<a href="sequences-patterns.html">Sequences</a>
+<a href="financial-mathematics.html">Financial Mathematics</a>
+<a href="revision-maneb.html">Revision</a>
+</nav>
+
+<section class="chapter">
+<h2>1. Introduction</h2>
+
+<p>
+Coordinate geometry combines algebra and geometry. It uses coordinates,
+equations and graphs to describe the position of points and the properties
+of lines.
+</p>
+
+<h3>Learning objectives</h3>
+<ul>
+<li>Plot and interpret coordinates.</li>
+<li>Calculate gradients.</li>
+<li>Find equations of straight lines.</li>
+<li>Identify parallel and perpendicular lines.</li>
+<li>Calculate distances between points.</li>
+<li>Find midpoints.</li>
+<li>Apply coordinate geometry to examination problems.</li>
+</ul>
+</section>
+
+<section class="chapter">
+<h2>2. Cartesian Coordinates</h2>
+
+<p>
+A point is written as:
+</p>
+
+<div class="math">\[
+(x,y)
+\]</div>
+
+<p>
+The \(x\)-coordinate gives the horizontal position and the \(y\)-coordinate
+gives the vertical position.
+</p>
+
+<div class="diagram">
+<svg width="430" height="310" viewBox="0 0 430 310">
+<line x1="35" y1="155" x2="395" y2="155"
+stroke="black" stroke-width="2"/>
+<line x1="215" y1="25" x2="215" y2="285"
+stroke="black" stroke-width="2"/>
+
+<circle cx="305" cy="85" r="5" fill="black"/>
+
+<text x="315" y="80">(2,2)</text>
+<text x="380" y="145">x</text>
+<text x="225" y="35">y</text>
+<text x="220" y="170">O</text>
+</svg>
+</div>
+
+<div class="important">
+The origin is \((0,0)\).
+</div>
+</section>
+
+<section class="chapter">
+<h2>3. Gradient of a Line</h2>
+
+<p>
+The gradient describes the steepness of a straight line.
+</p>
+
+<div class="math">\[
+m=\frac{y_2-y_1}{x_2-x_1}
+\]</div>
+
+<div class="example">
+Find the gradient of the line passing through
+\(A(2,3)\) and \(B(6,11)\).
+
+\[
+m=\frac{11-3}{6-2}
+\]
+
+\[
+=\frac84
+\]
+
+\[
+\boxed{m=2}
+\]
+</div>
+
+<div class="important">
+A horizontal line has gradient \(0\). A vertical line has an undefined
+gradient.
+</div>
+</section>
+
+<section class="chapter">
+<h2>4. Equation of a Straight Line</h2>
+
+<p>The general form is:</p>
+
+<div class="math">\[
+y=mx+c
+\]</div>
+
+<p>where:</p>
+
+<ul>
+<li>\(m\) is the gradient;</li>
+<li>\(c\) is the \(y\)-intercept.</li>
+</ul>
+
+<div class="example">
+Find the equation of a line with gradient \(3\) passing through
+\((2,5)\).
+
+Use:
+
+\[
+y-y_1=m(x-x_1)
+\]
+
+Therefore:
+
+\[
+y-5=3(x-2)
+\]
+
+\[
+y-5=3x-6
+\]
+
+\[
+\boxed{y=3x-1}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>5. Parallel Lines</h2>
+
+<p>
+Parallel lines never meet and have equal gradients.
+</p>
+
+<div class="math">\[
+m_1=m_2
+\]</div>
+
+<div class="example">
+The line
+
+\[
+y=4x+2
+\]
+
+has gradient 4.
+
+Any line parallel to it must also have gradient:
+
+\[
+\boxed{4}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>6. Perpendicular Lines</h2>
+
+<p>
+Two non-vertical lines are perpendicular when the product of their
+gradients is \(-1\).
+</p>
+
+<div class="math">\[
+m_1m_2=-1
+\]</div>
+
+<div class="example">
+If one line has gradient \(4\), the perpendicular gradient is:
+
+\[
+4m=-1
+\]
+
+\[
+\boxed{m=-\frac14}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>7. Distance Between Two Points</h2>
+
+<p>
+For points \((x_1,y_1)\) and \((x_2,y_2)\):
+</p>
+
+<div class="math">\[
+d=\sqrt{(x_2-x_1)^2+(y_2-y_1)^2}
+\]</div>
+
+<div class="example">
+Find the distance between \((1,2)\) and \((4,6)\).
+
+\[
+d=\sqrt{(4-1)^2+(6-2)^2}
+\]
+
+\[
+=\sqrt{3^2+4^2}
+\]
+
+\[
+=\sqrt{25}
+\]
+
+\[
+\boxed{d=5}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>8. Midpoint of a Line Segment</h2>
+
+<div class="math">\[
+M=
+\left(
+\frac{x_1+x_2}{2},
+\frac{y_1+y_2}{2}
+\right)
+\]</div>
+
+<div class="example">
+Find the midpoint of \(A(2,4)\) and \(B(8,10)\).
+
+\[
+M=
+\left(
+\frac{2+8}{2},
+\frac{4+10}{2}
+\right)
+\]
+
+\[
+M=(5,7)
+\]
+
+Therefore:
+
+\[
+\boxed{(5,7)}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>9. Finding an Unknown Coordinate</h2>
+
+<p>
+The gradient formula can be rearranged to find an unknown coordinate.
+</p>
+
+<div class="example">
+The gradient between \(A(2,3)\) and \(B(x,9)\) is 2. Find \(x\).
+
+\[
+2=\frac{9-3}{x-2}
+\]
+
+\[
+2=\frac6{x-2}
+\]
+
+\[
+2(x-2)=6
+\]
+
+\[
+2x-4=6
+\]
+
+\[
+2x=10
+\]
+
+\[
+\boxed{x=5}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>10. Coordinate Geometry and Triangles</h2>
+
+<p>
+Coordinates can be used to determine whether a triangle is right-angled,
+isosceles or has other special properties.
+</p>
+
+<p>
+For example, distances between the three vertices can be calculated and
+compared.
+</p>
+
+<div class="important">
+When a question asks you to prove that a triangle is right-angled,
+Pythagoras' theorem can be used after finding the side lengths.
+</div>
+</section>
+
+<section class="chapter">
+<h2>11. MANEB-style Practice</h2>
+
+<ol class="exercise">
+
+<li>Find the gradient through \((1,2)\) and \((5,10)\).</li>
+
+<li>Find the equation of a line with gradient \(2\) passing through
+\((1,4)\).</li>
+
+<li>Find the distance between \((0,0)\) and \((6,8)\).</li>
+
+<li>Find the midpoint of \((2,5)\) and \((8,11)\).</li>
+
+<li>State the gradient of a line perpendicular to a line of gradient 5.</li>
+
+<li>The gradient between \((3,4)\) and \((x,10)\) is 2. Find \(x\).</li>
+
+<li>Are the lines \(y=3x+1\) and \(y=3x-7\) parallel? Give a reason.</li>
+
+</ol>
+
+<h3>Answers</h3>
+
+<ol class="answers">
+
+<li>\(2\)</li>
+
+<li>\(y=2x+2\)</li>
+
+<li>\(10\)</li>
+
+<li>\((5,8)\)</li>
+
+<li>\(-\frac15\)</li>
+
+<li>\(x=6\)</li>
+
+<li>Yes. They have equal gradients of 3.</li>
+
+</ol>
+</section>
+
+<section class="chapter">
+<h2>12. Common Mistakes</h2>
+
+<ul>
+<li>Reversing the order of coordinates.</li>
+<li>Using \(x\)-values where \(y\)-values should be used.</li>
+<li>Forgetting brackets when substituting negative coordinates.</li>
+<li>Confusing the gradient with the \(y\)-intercept.</li>
+<li>Using the wrong sign for perpendicular gradients.</li>
+<li>Forgetting to square both differences in the distance formula.</li>
+</ul>
+
+<div class="exam-tip">
+<strong>Examination tip:</strong>
+Write down the relevant formula before substituting values. This reduces
+errors and makes your method clear to the examiner.
+</div>
+
+</section>
+
+<footer>
+<p>MalawiHub • Mathematics • Secondary School</p>
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trigonometry | MalawiHub</title>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']]
+  },
+  svg: {fontCache: 'global'}
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+<link rel="stylesheet" href="../../../css/style.css">
+
+<style>
+.notes-container{max-width:950px;margin:auto;padding:20px;line-height:1.75}
+.notes-header{padding:20px 0;border-bottom:1px solid #ddd;margin-bottom:25px}
+.notes-header h1{margin:0 0 5px}
+.chapter{margin:35px 0}
+.definition,.important,.example,.solution,.exam-tip{
+padding:16px 18px;margin:18px 0;border-left:4px solid #2563eb;background:#f7f9fc
+}
+.example{border-left-color:#16a34a}
+.solution{border-left-color:#9333ea}
+.exam-tip{border-left-color:#ea580c}
+.math{text-align:center;margin:20px 0;overflow-x:auto}
+.diagram{text-align:center;margin:25px auto;overflow-x:auto}
+.notes-container table{width:100%;border-collapse:collapse;margin:20px 0}
+.notes-container th,.notes-container td{border:1px solid #bbb;padding:9px}
+.notes-container th{background:#f1f5f9}
+.exercise li,.answers li{margin-bottom:10px}
+.topic-nav{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 35px}
+.topic-nav a{padding:7px 12px;border:1px solid #ddd;border-radius:6px;text-decoration:none}
+</style>
+</head>
+
+<body>
+<div class="notes-container">
+
+<header class="notes-header">
+<h1>Trigonometry</h1>
+<p>Mathematics • Secondary School</p>
+</header>
+
+<nav class="topic-nav">
+<a href="../index.html">← Mathematics</a>
+<a href="number-arithmetic.html">Number</a>
+<a href="algebra.html">Algebra</a>
+<a href="functions-graphs.html">Functions &amp; Graphs</a>
+<a href="geometry-mensuration.html">Geometry</a>
+<a href="coordinate-geometry.html">Coordinate Geometry</a>
+<a href="trigonometry.html">Trigonometry</a>
+<a href="statistics.html">Statistics</a>
+<a href="probability.html">Probability</a>
+<a href="vectors.html">Vectors</a>
+<a href="sequences-patterns.html">Sequences</a>
+<a href="financial-mathematics.html">Financial Mathematics</a>
+<a href="revision-maneb.html">Revision</a>
+</nav>
+
+<section class="chapter">
+<h2>1. Introduction</h2>
+
+<p>
+Trigonometry is the study of relationships between the sides and angles of
+triangles. It is especially useful for finding unknown lengths and angles.
+</p>
+
+<h3>Learning objectives</h3>
+<ul>
+<li>Identify the sides of a right-angled triangle.</li>
+<li>Use sine, cosine and tangent.</li>
+<li>Find unknown sides.</li>
+<li>Find unknown angles.</li>
+<li>Use Pythagoras' theorem with trigonometry.</li>
+<li>Solve practical problems involving heights and distances.</li>
+<li>Apply trigonometry to examination questions.</li>
+</ul>
+</section>
+
+<section class="chapter">
+<h2>2. Right-Angled Triangles</h2>
+
+<p>
+A right-angled triangle contains one angle equal to \(90^\circ\).
+</p>
+
+<div class="diagram">
+<svg width="430" height="280" viewBox="0 0 430 280">
+<polygon points="70,220 70,60 350,220"
+fill="none" stroke="black" stroke-width="3"/>
+<rect x="70" y="195" width="25" height="25"
+fill="none" stroke="black" stroke-width="2"/>
+<text x="45" y="235">A</text>
+<text x="55" y="50">B</text>
+<text x="355" y="235">C</text>
+<text x="170" y="145">Hypotenuse</text>
+<text x="55" y="140">Opposite</text>
+<text x="190" y="235">Adjacent</text>
+</svg>
+</div>
+
+<h3>The three important sides</h3>
+
+<ul>
+<li><strong>Hypotenuse:</strong> the side opposite the \(90^\circ\) angle.</li>
+<li><strong>Opposite:</strong> the side opposite the angle being considered.</li>
+<li><strong>Adjacent:</strong> the side next to the angle being considered,
+excluding the hypotenuse.</li>
+</ul>
+</section>
+
+<section class="chapter">
+<h2>3. SOH CAH TOA</h2>
+
+<p>
+The three basic trigonometric ratios are remembered using:
+</p>
+
+<div class="math">
+\[
+\boxed{\text{SOH}}
+\qquad
+\boxed{\text{CAH}}
+\qquad
+\boxed{\text{TOA}}
+\]
+</div>
+
+<table>
+<tr>
+<th>Ratio</th>
+<th>Formula</th>
+</tr>
+<tr>
+<td>Sine</td>
+<td>\(\sin\theta=\frac{\text{opposite}}{\text{hypotenuse}}\)</td>
+</tr>
+<tr>
+<td>Cosine</td>
+<td>\(\cos\theta=\frac{\text{adjacent}}{\text{hypotenuse}}\)</td>
+</tr>
+<tr>
+<td>Tangent</td>
+<td>\(\tan\theta=\frac{\text{opposite}}{\text{adjacent}}\)</td>
+</tr>
+</table>
+
+<div class="important">
+<strong>SOH:</strong> Sine = Opposite ÷ Hypotenuse<br>
+<strong>CAH:</strong> Cosine = Adjacent ÷ Hypotenuse<br>
+<strong>TOA:</strong> Tangent = Opposite ÷ Adjacent
+</div>
+</section>
+
+<section class="chapter">
+<h2>4. Finding an Unknown Side</h2>
+
+<div class="example">
+A right-angled triangle has an angle of \(30^\circ\) and a hypotenuse of
+\(10\) cm. Find the opposite side.
+
+Use sine:
+
+\[
+\sin30^\circ=\frac{\text{opposite}}{10}
+\]
+
+Therefore:
+
+\[
+\text{opposite}=10\sin30^\circ
+\]
+
+Since:
+
+\[
+\sin30^\circ=\frac12
+\]
+
+\[
+\boxed{\text{opposite}=5\text{ cm}}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>5. Finding an Unknown Angle</h2>
+
+<p>
+When the angle is unknown, use the inverse trigonometric functions:
+</p>
+
+<div class="math">
+\[
+\sin^{-1},\qquad \cos^{-1},\qquad \tan^{-1}
+\]
+</div>
+
+<div class="example">
+A right-angled triangle has opposite side \(6\) cm and adjacent side
+\(8\) cm. Find angle \(\theta\).
+
+\[
+\tan\theta=\frac68
+\]
+
+\[
+\tan\theta=0.75
+\]
+
+Therefore:
+
+\[
+\theta=\tan^{-1}(0.75)
+\]
+
+\[
+\boxed{\theta\approx36.9^\circ}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>6. Pythagoras and Trigonometry</h2>
+
+<p>
+Pythagoras' theorem states:
+</p>
+
+<div class="math">
+\[
+a^2+b^2=c^2
+\]
+</div>
+
+<p>
+where \(c\) is the hypotenuse.
+</p>
+
+<div class="example">
+A right-angled triangle has shorter sides \(6\) cm and \(8\) cm.
+
+\[
+c^2=6^2+8^2
+\]
+
+\[
+c^2=36+64=100
+\]
+
+\[
+\boxed{c=10\text{ cm}}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>7. Exact Trigonometric Values</h2>
+
+<table>
+<tr>
+<th>Angle</th>
+<th>\(\sin\theta\)</th>
+<th>\(\cos\theta\)</th>
+<th>\(\tan\theta\)</th>
+</tr>
+<tr>
+<td>\(0^\circ\)</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td>\(30^\circ\)</td>
+<td>\(\frac12\)</td>
+<td>\(\frac{\sqrt3}{2}\)</td>
+<td>\(\frac1{\sqrt3}\)</td>
+</tr>
+<tr>
+<td>\(45^\circ\)</td>
+<td>\(\frac{\sqrt2}{2}\)</td>
+<td>\(\frac{\sqrt2}{2}\)</td>
+<td>1</td>
+</tr>
+<tr>
+<td>\(60^\circ\)</td>
+<td>\(\frac{\sqrt3}{2}\)</td>
+<td>\(\frac12\)</td>
+<td>\(\sqrt3\)</td>
+</tr>
+<tr>
+<td>\(90^\circ\)</td>
+<td>1</td>
+<td>0</td>
+<td>Undefined</td>
+</tr>
+</table>
+</section>
+
+<section class="chapter">
+<h2>8. Heights and Distances</h2>
+
+<p>
+Trigonometry can be used to calculate heights and distances that cannot be
+measured directly.
+</p>
+
+<div class="example">
+A person stands \(20\) m from the base of a vertical tree. The angle of
+elevation to the top is \(40^\circ\). Find the height of the tree.
+
+\[
+\tan40^\circ=\frac{h}{20}
+\]
+
+Therefore:
+
+\[
+h=20\tan40^\circ
+\]
+
+\[
+\boxed{h\approx16.8\text{ m}}
+\]
+</div>
+
+<div class="important">
+An <strong>angle of elevation</strong> is measured upwards from the
+horizontal. An <strong>angle of depression</strong> is measured downwards
+from the horizontal.
+</div>
+</section>
+
+<section class="chapter">
+<h2>9. Bearings and Trigonometry</h2>
+
+<p>
+Bearings are measured clockwise from North and are normally written as
+three-figure angles.
+</p>
+
+<p>Examples:</p>
+
+<ul>
+<li>East = \(090^\circ\)</li>
+<li>South = \(180^\circ\)</li>
+<li>West = \(270^\circ\)</li>
+<li>North = \(000^\circ\)</li>
+</ul>
+
+<div class="important">
+Always draw a diagram when solving a bearing problem.
+</div>
+</section>
+
+<section class="chapter">
+<h2>10. MANEB-style Practice</h2>
+
+<ol class="exercise">
+
+<li>A right-angled triangle has opposite side \(9\) cm and hypotenuse
+\(15\) cm. Find the angle.</li>
+
+<li>A ladder \(5\) m long rests against a vertical wall. The ladder makes
+an angle of \(60^\circ\) with the ground. Find the height reached by the
+ladder.</li>
+
+<li>Find the missing side if the adjacent side is \(8\) cm and the angle is
+\(35^\circ\).</li>
+
+<li>A tree is \(15\) m from an observer. The angle of elevation to its top
+is \(50^\circ\). Find its height.</li>
+
+<li>A right-angled triangle has sides \(7\) cm and \(24\) cm. Find the
+hypotenuse.</li>
+
+<li>Find \(\theta\) if \(\cos\theta=0.6\), where \(0^\circ<\theta<90^\circ\).</li>
+
+</ol>
+
+<h3>Answers</h3>
+
+<ol class="answers">
+
+<li>\(\theta\approx36.9^\circ\)</li>
+
+<li>\(5\sin60^\circ\approx4.33\) m</li>
+
+<li>\(8\tan35^\circ\approx5.60\) cm</li>
+
+<li>\(15\tan50^\circ\approx17.88\) m</li>
+
+<li>\(25\) cm</li>
+
+<li>\(\theta\approx53.1^\circ\)</li>
+
+</ol>
+</section>
+
+<section class="chapter">
+<h2>11. Common Mistakes</h2>
+
+<ul>
+<li>Choosing the wrong trigonometric ratio.</li>
+<li>Confusing opposite and adjacent sides.</li>
+<li>Using the hypotenuse as the adjacent side.</li>
+<li>Forgetting to use degree mode on the calculator.</li>
+<li>Using \(\tan^{-1}\) when the question requires sine or cosine.</li>
+<li>Rounding too early.</li>
+<li>Failing to draw a diagram for word problems.</li>
+</ul>
+
+<div class="exam-tip">
+<strong>Examination tip:</strong>
+First mark the given angle, identify the opposite, adjacent and hypotenuse
+sides, then choose SOH, CAH or TOA. Keep your calculator in degree mode
+unless the question specifically states otherwise.
+</div>
+</section>
+
+<footer>
+<p>MalawiHub • Mathematics • Secondary School</p>
+</footer>
+
+</div>
+</body>
+</html>

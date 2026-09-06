@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Probability | MalawiHub</title>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']]
+  },
+  svg: {fontCache: 'global'}
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+<link rel="stylesheet" href="../../../css/style.css">
+
+<style>
+.notes-container{max-width:950px;margin:auto;padding:20px;line-height:1.75}
+.notes-header{padding:20px 0;border-bottom:1px solid #ddd;margin-bottom:25px}
+.notes-header h1{margin:0 0 5px}
+.chapter{margin:35px 0}
+.definition,.important,.example,.solution,.exam-tip{
+padding:16px 18px;margin:18px 0;border-left:4px solid #2563eb;background:#f7f9fc
+}
+.example{border-left-color:#16a34a}
+.solution{border-left-color:#9333ea}
+.exam-tip{border-left-color:#ea580c}
+.math{text-align:center;margin:20px 0;overflow-x:auto}
+.diagram{text-align:center;margin:25px auto;overflow-x:auto}
+.notes-container table{width:100%;border-collapse:collapse;margin:20px 0}
+.notes-container th,.notes-container td{border:1px solid #bbb;padding:9px}
+.notes-container th{background:#f1f5f9}
+.exercise li,.answers li{margin-bottom:10px}
+.topic-nav{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 35px}
+.topic-nav a{padding:7px 12px;border:1px solid #ddd;border-radius:6px;text-decoration:none}
+</style>
+</head>
+
+<body>
+<div class="notes-container">
+
+<header class="notes-header">
+<h1>Probability</h1>
+<p>Mathematics • Secondary School</p>
+</header>
+
+<nav class="topic-nav">
+<a href="../index.html">← Mathematics</a>
+<a href="number-arithmetic.html">Number</a>
+<a href="algebra.html">Algebra</a>
+<a href="functions-graphs.html">Functions &amp; Graphs</a>
+<a href="geometry-mensuration.html">Geometry</a>
+<a href="coordinate-geometry.html">Coordinate Geometry</a>
+<a href="trigonometry.html">Trigonometry</a>
+<a href="statistics.html">Statistics</a>
+<a href="probability.html">Probability</a>
+<a href="vectors.html">Vectors</a>
+<a href="sequences-patterns.html">Sequences</a>
+<a href="financial-mathematics.html">Financial Mathematics</a>
+<a href="revision-maneb.html">Revision</a>
+</nav>
+
+<section class="chapter">
+<h2>1. Introduction</h2>
+
+<p>
+Probability is the study of how likely an event is to occur. It is used
+when dealing with uncertainty, chance and random experiments.
+</p>
+
+<h3>Learning objectives</h3>
+<ul>
+<li>Understand probability and sample spaces.</li>
+<li>Calculate probabilities of simple events.</li>
+<li>Use complementary events.</li>
+<li>Understand mutually exclusive events.</li>
+<li>Use probability addition rules.</li>
+<li>Use tree diagrams and tables.</li>
+<li>Understand independent events.</li>
+<li>Solve examination problems involving probability.</li>
+</ul>
+</section>
+
+<section class="chapter">
+<h2>2. Probability Scale</h2>
+
+<p>
+Probability lies between 0 and 1.
+</p>
+
+<div class="math">
+\[
+0\leq P(A)\leq1
+\]
+</div>
+
+<table>
+<tr>
+<th>Probability</th>
+<th>Meaning</th>
+</tr>
+<tr>
+<td>0</td>
+<td>Impossible</td>
+</tr>
+<tr>
+<td>Between 0 and 1</td>
+<td>Possible</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Certain</td>
+</tr>
+</table>
+
+<p>
+Probability can also be expressed as a fraction, decimal or percentage.
+</p>
+</section>
+
+<section class="chapter">
+<h2>3. Sample Space</h2>
+
+<p>
+The <strong>sample space</strong> is the set of all possible outcomes of
+an experiment.
+</p>
+
+<div class="example">
+When a fair die is rolled:
+
+\[
+S=\{1,2,3,4,5,6\}
+\]
+
+Therefore, there are 6 possible outcomes.
+</div>
+
+<div class="example">
+When a coin is tossed:
+
+\[
+S=\{H,T\}
+\]
+
+where \(H\) represents heads and \(T\) represents tails.
+</div>
+</section>
+
+<section class="chapter">
+<h2>4. Simple Probability</h2>
+
+<p>
+When all outcomes are equally likely:
+</p>
+
+<div class="math">
+\[
+P(A)=
+\frac{\text{number of favourable outcomes}}
+{\text{total number of possible outcomes}}
+\]
+</div>
+
+<div class="example">
+A fair die is rolled. Find the probability of obtaining a 4.
+
+There is one favourable outcome and six possible outcomes.
+
+\[
+P(4)=\frac16
+\]
+
+\[
+\boxed{\frac16}
+\]
+</div>
+
+<div class="example">
+Find the probability of obtaining an even number when a fair die is rolled.
+
+Even numbers are:
+
+\[
+2,4,6
+\]
+
+Therefore:
+
+\[
+P(\text{even})=\frac36
+\]
+
+\[
+\boxed{\frac12}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>5. Complementary Events</h2>
+
+<p>
+The complement of event \(A\) means that \(A\) does not occur.
+</p>
+
+<div class="math">
+\[
+P(A')=1-P(A)
+\]
+</div>
+
+<div class="example">
+If the probability that a student passes an examination is \(0.8\),
+find the probability that the student does not pass.
+
+\[
+P(\text{not pass})=1-0.8
+\]
+
+\[
+\boxed{0.2}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>6. Mutually Exclusive Events</h2>
+
+<p>
+Two events are mutually exclusive if they cannot happen at the same time.
+</p>
+
+<div class="example">
+When a die is rolled, obtaining an odd number and obtaining an even number
+are mutually exclusive events.
+</div>
+
+<p>For mutually exclusive events:</p>
+
+<div class="math">
+\[
+P(A\cup B)=P(A)+P(B)
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>7. Addition Rule</h2>
+
+<p>
+For general events:
+</p>
+
+<div class="math">
+\[
+P(A\cup B)=P(A)+P(B)-P(A\cap B)
+\]
+</div>
+
+<p>
+The subtraction prevents the overlap from being counted twice.
+</p>
+
+<div class="example">
+Suppose:
+
+\[
+P(A)=0.5,\qquad P(B)=0.4,\qquad P(A\cap B)=0.2
+\]
+
+Then:
+
+\[
+P(A\cup B)=0.5+0.4-0.2
+\]
+
+\[
+\boxed{0.7}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>8. Independent Events</h2>
+
+<p>
+Two events are independent when the occurrence of one does not affect the
+probability of the other.
+</p>
+
+<div class="math">
+\[
+P(A\cap B)=P(A)\times P(B)
+\]
+</div>
+
+<div class="example">
+A fair coin is tossed twice. Find the probability of getting two heads.
+
+\[
+P(H)=\frac12
+\]
+
+Therefore:
+
+\[
+P(H\text{ and }H)
+=
+\frac12\times\frac12
+\]
+
+\[
+\boxed{\frac14}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>9. Tree Diagrams</h2>
+
+<p>
+Tree diagrams show possible sequences of outcomes.
+</p>
+
+<div class="diagram">
+<svg width="500" height="300" viewBox="0 0 500 300">
+<line x1="70" y1="150" x2="190" y2="80" stroke="black" stroke-width="2"/>
+<line x1="70" y1="150" x2="190" y2="220" stroke="black" stroke-width="2"/>
+
+<line x1="190" y1="80" x2="330" y2="40" stroke="black" stroke-width="2"/>
+<line x1="190" y1="80" x2="330" y2="120" stroke="black" stroke-width="2"/>
+<line x1="190" y1="220" x2="330" y2="180" stroke="black" stroke-width="2"/>
+<line x1="190" y1="220" x2="330" y2="260" stroke="black" stroke-width="2"/>
+
+<text x="35" y="145">Start</text>
+<text x="195" y="70">H</text>
+<text x="195" y="240">T</text>
+<text x="335" y="35">HH</text>
+<text x="335" y="125">HT</text>
+<text x="335" y="185">TH</text>
+<text x="335" y="270">TT</text>
+</svg>
+</div>
+
+<div class="important">
+Multiply probabilities along a branch. Add probabilities of separate
+branches when finding the probability of alternative outcomes.
+</div>
+</section>
+
+<section class="chapter">
+<h2>10. Probability from Tables</h2>
+
+<p>
+Probability can be obtained from frequency tables.
+</p>
+
+<div class="example">
+A class contains 30 students. 18 are girls and 12 are boys.
+
+The probability of selecting a girl at random is:
+
+\[
+P(\text{girl})=\frac{18}{30}
+\]
+
+\[
+\boxed{\frac35}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>11. Experimental Probability</h2>
+
+<p>
+Experimental probability is based on results obtained from an actual
+experiment.
+</p>
+
+<div class="math">
+\[
+P(A)=
+\frac{\text{number of times A occurs}}
+{\text{number of trials}}
+\]
+</div>
+
+<div class="example">
+A coin is tossed 100 times and heads occurs 56 times.
+
+\[
+P(H)=\frac{56}{100}
+\]
+
+\[
+\boxed{0.56}
+\]
+</div>
+
+<p>
+Experimental probability may differ from theoretical probability because
+of random variation.
+</p>
+</section>
+
+<section class="chapter">
+<h2>12. Expected Frequency</h2>
+
+<p>
+Expected frequency estimates how many times an event should occur.
+</p>
+
+<div class="math">
+\[
+\text{Expected frequency}
+=
+\text{number of trials}\times P(A)
+\]
+</div>
+
+<div class="example">
+A die is rolled 120 times. Find the expected number of sixes.
+
+\[
+120\times\frac16
+\]
+
+\[
+\boxed{20}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>13. MANEB-style Practice</h2>
+
+<ol class="exercise">
+
+<li>A fair die is rolled. Find the probability of obtaining a number
+greater than 4.</li>
+
+<li>A bag contains 5 red balls and 3 blue balls. Find the probability of
+selecting a blue ball.</li>
+
+<li>If \(P(A)=0.35\), find \(P(A')\).</li>
+
+<li>A coin is tossed twice. Find the probability of obtaining exactly one
+head.</li>
+
+<li>Two independent events have probabilities \(\frac23\) and
+\(\frac34\). Find the probability that both occur.</li>
+
+<li>A die is rolled 180 times. Find the expected number of sixes.</li>
+
+<li>A class contains 25 boys and 15 girls. Find the probability of
+selecting a girl at random.</li>
+
+<li>Explain the difference between mutually exclusive and independent
+events.</li>
+
+</ol>
+
+<h3>Answers</h3>
+
+<ol class="answers">
+
+<li>
+\[
+\frac26=\boxed{\frac13}
+\]
+</li>
+
+<li>
+\[
+\frac38
+\]
+</li>
+
+<li>
+\[
+1-0.35=\boxed{0.65}
+\]
+</li>
+
+<li>
+\[
+\frac14+\frac14=\boxed{\frac12}
+\]
+</li>
+
+<li>
+\[
+\frac23\times\frac34=\boxed{\frac12}
+\]
+</li>
+
+<li>
+\[
+180\times\frac16=\boxed{30}
+\]
+</li>
+
+<li>
+\[
+\frac{15}{40}=\boxed{\frac38}
+\]
+</li>
+
+<li>
+Mutually exclusive events cannot occur together, while independent events
+do not affect each other's probabilities.</li>
+
+</ol>
+</section>
+
+<section class="chapter">
+<h2>14. Common Mistakes</h2>
+
+<ul>
+<li>Forgetting that probability must lie between 0 and 1.</li>
+<li>Counting the sample space incorrectly.</li>
+<li>Adding probabilities when multiplication is required.</li>
+<li>Multiplying probabilities when alternatives should be added.</li>
+<li>Confusing mutually exclusive and independent events.</li>
+<li>Forgetting to subtract the overlap in the general addition rule.</li>
+<li>Failing to simplify the final fraction.</li>
+</ul>
+
+<div class="exam-tip">
+<strong>Examination tip:</strong>
+For probability questions, clearly identify the possible outcomes first.
+For tree diagrams, multiply along branches and add separate successful
+branches.
+</div>
+</section>
+
+<footer>
+<p>MalawiHub • Mathematics • Secondary School</p>
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sequences and Patterns | MalawiHub Mathematics</title>
+
+    <link rel="stylesheet" href="../../../css/style.css">
+
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['\\(', '\\)']],
+                displayMath: [['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+
+    <style>
+        body {
+            background: #f5f6f8;
+            color: #222;
+            line-height: 1.7;
+        }
+
+        .notes-container {
+            max-width: 950px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+        }
+
+        .notes-header {
+            padding: 20px 0;
+            border-bottom: 2px solid #222;
+            margin-bottom: 30px;
+        }
+
+        .notes-header h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+
+        .notes-header p {
+            margin: 5px 0 0;
+        }
+
+        .chapter {
+            margin: 35px 0;
+        }
+
+        .chapter h2 {
+            border-bottom: 1px solid #bbb;
+            padding-bottom: 7px;
+        }
+
+        .chapter h3 {
+            margin-top: 25px;
+        }
+
+        .definition,
+        .important,
+        .example,
+        .warning {
+            padding: 15px;
+            margin: 18px 0;
+            border-left: 4px solid #333;
+            background: #f7f7f7;
+        }
+
+        .example {
+            border-left-color: #555;
+        }
+
+        .solution {
+            margin-top: 10px;
+            padding: 12px;
+            background: #fafafa;
+        }
+
+        .math {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0;
+        }
+
+        th,
+        td {
+            border: 1px solid #aaa;
+            padding: 9px;
+            text-align: center;
+        }
+
+        th {
+            background: #eee;
+        }
+
+        .exercise {
+            margin: 12px 0;
+        }
+
+        .answer {
+            margin: 8px 0;
+        }
+
+        .tip {
+            font-weight: bold;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+            .notes-container {
+                padding: 15px;
+            }
+
+            .notes-header h1 {
+                font-size: 1.6rem;
+            }
+
+            table {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="notes-container">
+
+    <header class="notes-header">
+        <h1>Sequences and Patterns</h1>
+        <p>Mathematics • Secondary School</p>
+    </header>
+
+    <a class="back-link" href="../index.html">← Back to Mathematics</a>
+
+    <section class="chapter">
+        <h2>1. Introduction</h2>
+
+        <p>
+            A sequence is an ordered list of numbers that follows a particular
+            rule or pattern. The numbers in a sequence are called
+            <strong>terms</strong>.
+        </p>
+
+        <div class="example">
+            <strong>Example:</strong>
+            <div class="math">
+                \(2,\ 4,\ 6,\ 8,\ 10,\ldots\)
+            </div>
+            The terms increase by 2 each time.
+        </div>
+
+        <p>
+            Sequences are important because they help us recognise patterns,
+            predict future values and develop algebraic rules.
+        </p>
+    </section>
+
+    <section class="chapter">
+        <h2>2. Learning Objectives</h2>
+
+        <p>By the end of this section, you should be able to:</p>
+
+        <ul>
+            <li>identify patterns in sequences;</li>
+            <li>find missing terms;</li>
+            <li>describe the rule of a sequence;</li>
+            <li>find the next terms of a sequence;</li>
+            <li>work with arithmetic sequences;</li>
+            <li>find the nth term of simple sequences;</li>
+            <li>solve examination-style sequence problems.</li>
+        </ul>
+    </section>
+
+    <section class="chapter">
+        <h2>3. Important Vocabulary</h2>
+
+        <table>
+            <tr>
+                <th>Term</th>
+                <th>Meaning</th>
+            </tr>
+            <tr>
+                <td>Sequence</td>
+                <td>An ordered list of numbers following a pattern.</td>
+            </tr>
+            <tr>
+                <td>Term</td>
+                <td>One number in a sequence.</td>
+            </tr>
+            <tr>
+                <td>First term</td>
+                <td>The first number in the sequence.</td>
+            </tr>
+            <tr>
+                <td>Common difference</td>
+                <td>The amount added or subtracted between consecutive terms.</td>
+            </tr>
+            <tr>
+                <td>nth term</td>
+                <td>A formula used to find any term in a sequence.</td>
+            </tr>
+        </table>
+    </section>
+
+    <section class="chapter">
+        <h2>4. Recognising Patterns</h2>
+
+        <p>
+            To identify a sequence rule, compare consecutive terms.
+        </p>
+
+        <div class="example">
+            <strong>Example 1</strong>
+
+            <div class="math">
+                \(5,\ 8,\ 11,\ 14,\ 17,\ldots\)
+            </div>
+
+            <p>
+                Each term increases by 3.
+            </p>
+
+            <div class="math">
+                \(+3,\ +3,\ +3,\ +3\)
+            </div>
+
+            <p>
+                Therefore, the rule is <strong>add 3</strong>.
+            </p>
+        </div>
+
+        <div class="example">
+            <strong>Example 2</strong>
+
+            <div class="math">
+                \(30,\ 25,\ 20,\ 15,\ 10,\ldots\)
+            </div>
+
+            <p>
+                Each term decreases by 5.
+            </p>
+
+            <div class="math">
+                \(-5,\ -5,\ -5,\ -5\)
+            </div>
+        </div>
+    </section>
+
+    <section class="chapter">
+        <h2>5. Finding Missing Terms</h2>
+
+        <p>
+            If the pattern is known, a missing term can be found by applying
+            the same rule.
+        </p>
+
+        <div class="example">
+            <strong>Example:</strong>
+
+            <div class="math">
+                \(4,\ 7,\ \square,\ 13,\ 16\)
+            </div>
+
+            <p>The difference is \(+3\).</p>
+
+            <div class="solution">
+                \[
+                7+3=10
+                \]
+
+                Therefore, the missing term is
+
+                \[
+                \boxed{10}
+                \]
+            </div>
+        </div>
+    </section>
+
+    <section class="chapter">
+        <h2>6. Arithmetic Sequences</h2>
+
+        <p>
+            An arithmetic sequence is a sequence in which the difference
+            between consecutive terms is constant.
+        </p>
+
+        <div class="important">
+            <strong>Common difference:</strong>
+
+            \[
+            d=\text{second term}-\text{first term}
+            \]
+        </div>
+
+        <p>For example:</p>
+
+        <div class="math">
+            \(3,\ 7,\ 11,\ 15,\ 19,\ldots\)
+        </div>
+
+        <p>
+            The common difference is
+        </p>
+
+        <div class="math">
+            \(d=7-3=4\)
+        </div>
+    </section>
+
+    <section class="chapter">
+        <h2>7. The nth Term of an Arithmetic Sequence</h2>
+
+        <p>
+            The nth term of an arithmetic sequence is given by:
+        </p>
+
+        <div class="math">
+            \[
+            T_n=a+(n-1)d
+            \]
+        </div>
+
+        <p>where:</p>
+
+        <ul>
+            <li>\(T_n\) is the nth term;</li>
+            <li>\(a\) is the first term;</li>
+            <li>\(n\) is the position of the term;</li>
+            <li>\(d\) is the common difference.</li>
+        </ul>
+
+        <div class="example">
+            <strong>Example:</strong>
+
+            <p>Find the 20th term of:</p>
+
+            <div class="math">
+                \(5,\ 8,\ 11,\ 14,\ldots\)
+            </div>
+
+            <div class="solution">
+
+                First term:
+
+                \[
+                a=5
+                \]
+
+                Common difference:
+
+                \[
+                d=3
+                \]
+
+                Therefore:
+
+                \[
+                T_{20}=5+(20-1)(3)
+                \]
+
+                \[
+                T_{20}=5+57
+                \]
+
+                \[
+                \boxed{T_{20}=62}
+                \]
+            </div>
+        </div>
+    </section>
+
+    <section class="chapter">
+        <h2>8. Finding the nth-Term Formula</h2>
+
+        <p>
+            For an arithmetic sequence, identify the first term and common
+            difference, then substitute them into:
+        </p>
+
+        <div class="math">
+            \[
+            T_n=a+(n-1)d
+            \]
+        </div>
+
+        <div class="example">
+            <strong>Example:</strong>
+
+            <p>Find the nth term of:</p>
+
+            <div class="math">
+                \(7,\ 12,\ 17,\ 22,\ldots\)
+            </div>
+
+            <div class="solution">
+
+                \[
+                a=7,\qquad d=5
+                \]
+
+                Therefore:
+
+                \[
+                T_n=7+(n-1)5
+                \]
+
+                \[
+                T_n=7+5n-5
+                \]
+
+                \[
+                \boxed{T_n=5n+2}
+                \]
+            </div>
+        </div>
+    </section>
+
+    <section class="chapter">
+        <h2>9. Finding a Particular Term</h2>
+
+        <div class="example">
+            <strong>Example:</strong>
+
+            <p>
+                The nth term of a sequence is
+            </p>
+
+            <div class="math">
+                \[
+                T_n=4n+3
+                \]
+            </div>
+
+            <p>Find the 15th term.</p>
+
+            <div class="solution">
+
+                \[
+                T_{15}=4(15)+3
+                \]
+
+                \[
+                =60+3
+                \]
+
+                \[
+                \boxed{63}
+                \]
+            </div>
+        </div>
+    </section>
+
+    <section class="chapter">
+        <h2>10. Finding the Position of a Term</h2>
+
+        <p>
+            Sometimes a term is given and we must find its position.
+        </p>
+
+        <div class="example">
+            <strong>Example:</strong>
+
+            <p>
+                The nth term is
+            </p>
+
+            <div class="math">
+                \[
+                T_n=3n+2
+                \]
+            </div>
+
+            <p>
+                Which term is 35?
+            </p>
+
+            <div class="solution">
+
+                \[
+                3n+2=35
+                \]
+
+                \[
+                3n=33
+                \]
+
+                \[
+                n=11
+                \]
+
+                Therefore, 35 is the
+
+                \[
+                \boxed{11^\text{th}\text{ term}}
+                \]
+            </div>
+        </div>
+    </section>
+
+    <section class="chapter">
+        <h2>11. Common Types of Simple Patterns</h2>
+
+        <h3>Adding a constant number</h3>
+
+        <div class="math">
+            \(2,\ 5,\ 8,\ 11,\ldots\)
+        </div>
+
+        <p>Rule: add 3.</p>
+
+        <h3>Subtracting a constant number</h3>
+
+        <div class="math">
+            \(40,\ 35,\ 30,\ 25,\ldots\)
+        </div>
+
+        <p>Rule: subtract 5.</p>
+
+        <h3>Multiplying by a constant number</h3>
+
+        <div class="math">
+            \(2,\ 6,\ 18,\ 54,\ldots\)
+        </div>
+
+        <p>Rule: multiply by 3.</p>
+
+        <h3>Alternating patterns</h3>
+
+        <div class="math">
+            \(2,\ 5,\ 4,\ 7,\ 6,\ 9,\ldots\)
+        </div>
+
+        <p>
+            Here, the pattern alternates between adding 3 and subtracting 1.
+        </p>
+    </section>
+
+    <section class="chapter">
+        <h2>12. MANEB Examination Focus</h2>
+
+        <p>
+            In examination questions, you should be prepared to:
+        </p>
+
+        <ul>
+            <li>continue a sequence;</li>
+            <li>identify the pattern;</li>
+            <li>find missing terms;</li>
+            <li>find the common difference;</li>
+            <li>find the nth term;</li>
+            <li>find a specified term;</li>
+            <li>determine the position of a term;</li>
+            <li>use sequences in practical situations.</li>
+        </ul>
+
+        <div class="important">
+            <strong>Exam strategy:</strong>
+            Always write the difference between consecutive terms when dealing
+            with an arithmetic sequence. This makes your method clear and
+            reduces careless errors.
+        </div>
+    </section>
+
+    <section class="chapter">
+        <h2>13. MANEB-Style Practice Questions</h2>
+
+        <div class="exercise">
+            <strong>Question 1</strong>
+            <p>Write the next three terms:</p>
+            <div class="math">
+                \(6,\ 10,\ 14,\ 18,\ldots\)
+            </div>
+        </div>
+
+        <div class="exercise">
+            <strong>Question 2</strong>
+            <p>Find the common difference of:</p>
+            <div class="math">
+                \(25,\ 21,\ 17,\ 13,\ldots\)
+            </div>
+        </div>
+
+        <div class="exercise">
+            <strong>Question 3</strong>
+            <p>Find the nth term of:</p>
+            <div class="math">
+                \(4,\ 9,\ 14,\ 19,\ldots\)
+            </div>
+        </div>
+
+        <div class="exercise">
+            <strong>Question 4</strong>
+            <p>Find the 30th term of:</p>
+            <div class="math">
+                \(2,\ 6,\ 10,\ 14,\ldots\)
+            </div>
+        </div>
+
+        <div class="exercise">
+            <strong>Question 5</strong>
+            <p>
+                The nth term of a sequence is \(5n-2\).
+                Find the 12th term.
+            </p>
+        </div>
+
+        <div class="exercise">
+            <strong>Question 6</strong>
+            <p>
+                The nth term of a sequence is \(4n+1\).
+                Which term is 49?
+            </p>
+        </div>
+    </section>
+
+    <section class="chapter">
+        <h2>14. Answers</h2>
+
+        <p class="answer">
+            <strong>1.</strong>
+            \(22,\ 26,\ 30\)
+        </p>
+
+        <p class="answer">
+            <strong>2.</strong>
+            \(d=-4\)
+        </p>
+
+        <p class="answer">
+            <strong>3.</strong>
+            \[
+            T_n=5n-1
+            \]
+        </p>
+
+        <p class="answer">
+            <strong>4.</strong>
+            \[
+            T_{30}=118
+            \]
+        </p>
+
+        <p class="answer">
+            <strong>5.</strong>
+            \[
+            T_{12}=58
+            \]
+        </p>
+
+        <p class="answer">
+            <strong>6.</strong>
+            \[
+            4n+1=49
+            \]
+            \[
+            n=12
+            \]
+
+            Therefore, 49 is the 12th term.
+        </p>
+    </section>
+
+    <section class="chapter">
+        <h2>15. Common Mistakes</h2>
+
+        <ul>
+            <li>using the wrong common difference;</li>
+            <li>forgetting that \(n-1\) appears in the arithmetic sequence formula;</li>
+            <li>confusing the term number with the value of the term;</li>
+            <li>making arithmetic mistakes when expanding brackets;</li>
+            <li>assuming every sequence has a constant difference.</li>
+        </ul>
+    </section>
+
+    <section class="chapter">
+        <h2>16. Examination Tips</h2>
+
+        <ul>
+            <li>Write at least the first few differences.</li>
+            <li>Check your formula using the first term.</li>
+            <li>Substitute the required value of \(n\) carefully.</li>
+            <li>Show your working, especially in examination questions.</li>
+            <li>Check whether your final answer actually appears in the sequence.</li>
+        </ul>
+
+        <div class="important">
+            <span class="tip">Remember:</span>
+            A sequence is about order and pattern. Do not only look at the
+            numbers; look at how one term changes into the next.
+        </div>
+    </section>
+
+    <section class="chapter">
+        <h2>17. Summary</h2>
+
+        <ul>
+            <li>A sequence is an ordered list of numbers.</li>
+            <li>The numbers are called terms.</li>
+            <li>An arithmetic sequence has a constant difference.</li>
+            <li>The common difference is represented by \(d\).</li>
+            <li>The nth term of an arithmetic sequence is
+                \(T_n=a+(n-1)d\).</li>
+            <li>The nth-term formula can be used to find any term directly.</li>
+        </ul>
+    </section>
+
+    <footer>
+        <p>MalawiHub • Mathematics Study Resources</p>
+        <p>Original learning material prepared for secondary-school study and MANEB-style examination preparation.</p>
+    </footer>
+
+</div>
+
+</body>
+</html>

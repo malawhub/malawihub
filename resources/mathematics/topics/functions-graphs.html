@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Functions & Graphs | MalawiHub</title>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']]
+  },
+  svg: {fontCache: 'global'}
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+<link rel="stylesheet" href="../../../css/style.css">
+
+<style>
+.notes-container{max-width:950px;margin:auto;padding:20px;line-height:1.75}
+.notes-header{padding:20px 0;border-bottom:1px solid #ddd;margin-bottom:25px}
+.notes-header h1{margin:0 0 5px}
+.chapter{margin:35px 0}
+.definition,.important,.example,.solution,.exam-tip{
+padding:16px 18px;margin:18px 0;border-left:4px solid #2563eb;background:#f7f9fc
+}
+.example{border-left-color:#16a34a}
+.solution{border-left-color:#9333ea}
+.exam-tip{border-left-color:#ea580c}
+.math{text-align:center;margin:20px 0;overflow-x:auto}
+.diagram{text-align:center;margin:25px auto;overflow-x:auto}
+.notes-container table{width:100%;border-collapse:collapse;margin:20px 0}
+.notes-container th,.notes-container td{border:1px solid #bbb;padding:9px}
+.notes-container th{background:#f1f5f9}
+.exercise li,.answers li{margin-bottom:10px}
+.topic-nav{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 35px}
+.topic-nav a{padding:7px 12px;border:1px solid #ddd;border-radius:6px;text-decoration:none}
+</style>
+</head>
+
+<body>
+<div class="notes-container">
+
+<header class="notes-header">
+<h1>Functions &amp; Graphs</h1>
+<p>Mathematics • Secondary School</p>
+</header>
+
+<nav class="topic-nav">
+<a href="../index.html">← Mathematics</a>
+<a href="number-arithmetic.html">Number</a>
+<a href="algebra.html">Algebra</a>
+<a href="functions-graphs.html">Functions &amp; Graphs</a>
+<a href="geometry-mensuration.html">Geometry</a>
+<a href="coordinate-geometry.html">Coordinate Geometry</a>
+<a href="trigonometry.html">Trigonometry</a>
+<a href="statistics.html">Statistics</a>
+<a href="probability.html">Probability</a>
+<a href="vectors.html">Vectors</a>
+<a href="sequences-patterns.html">Sequences</a>
+<a href="financial-mathematics.html">Financial Mathematics</a>
+<a href="revision-maneb.html">Revision</a>
+</nav>
+
+<section class="chapter">
+<h2>1. Introduction to Functions</h2>
+
+<p>
+A function is a rule that connects an input to an output. The input is
+usually represented by \(x\), while the output is represented by \(y\).
+</p>
+
+<div class="definition">
+A function can be written as \(f(x)\), which means "the value of the
+function when the input is \(x\)".
+</div>
+
+<div class="example">
+If
+\[
+f(x)=2x+3
+\]
+
+find \(f(4)\).
+
+Substitute \(x=4\):
+
+\[
+f(4)=2(4)+3
+\]
+
+\[
+=\boxed{11}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>2. Coordinates</h2>
+
+<p>
+A point on a Cartesian plane is written as \((x,y)\). The first coordinate
+is the horizontal position and the second coordinate is the vertical
+position.
+</p>
+
+<div class="diagram">
+<svg width="430" height="310" viewBox="0 0 430 310">
+<line x1="35" y1="155" x2="395" y2="155" stroke="black" stroke-width="2"/>
+<line x1="215" y1="25" x2="215" y2="285" stroke="black" stroke-width="2"/>
+
+<line x1="305" y1="150" x2="305" y2="160" stroke="black"/>
+<line x1="205" y1="85" x2="225" y2="85" stroke="black"/>
+
+<circle cx="305" cy="85" r="5" fill="black"/>
+
+<text x="315" y="80">(2,2)</text>
+<text x="380" y="145">x</text>
+<text x="225" y="35">y</text>
+<text x="220" y="170">O</text>
+</svg>
+</div>
+
+<p>
+The origin is the point \((0,0)\).
+</p>
+</section>
+
+<section class="chapter">
+<h2>3. Quadrants</h2>
+
+<table>
+<tr>
+<th>Quadrant</th>
+<th>x-coordinate</th>
+<th>y-coordinate</th>
+</tr>
+<tr>
+<td>I</td>
+<td>Positive</td>
+<td>Positive</td>
+</tr>
+<tr>
+<td>II</td>
+<td>Negative</td>
+<td>Positive</td>
+</tr>
+<tr>
+<td>III</td>
+<td>Negative</td>
+<td>Negative</td>
+</tr>
+<tr>
+<td>IV</td>
+<td>Positive</td>
+<td>Negative</td>
+</tr>
+</table>
+
+<div class="example">
+The point \((-3,5)\) lies in Quadrant II because \(x\) is negative and
+\(y\) is positive.
+</div>
+</section>
+
+<section class="chapter">
+<h2>4. Linear Functions</h2>
+
+<p>A linear function produces a straight-line graph.</p>
+
+<div class="math">\[
+y=mx+c
+\]</div>
+
+<p>where:</p>
+
+<ul>
+<li>\(m\) is the gradient;</li>
+<li>\(c\) is the \(y\)-intercept.</li>
+</ul>
+
+<div class="example">
+For
+
+\[
+y=3x+2
+\]
+
+the gradient is:
+
+\[
+\boxed{3}
+\]
+
+and the \(y\)-intercept is:
+
+\[
+\boxed{2}.
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>5. Gradient of a Straight Line</h2>
+
+<p>
+The gradient measures how steeply a line rises or falls.
+</p>
+
+<div class="math">\[
+m=\frac{y_2-y_1}{x_2-x_1}
+\]</div>
+
+<div class="example">
+Find the gradient through \((2,3)\) and \((6,11)\).
+
+\[
+m=\frac{11-3}{6-2}
+\]
+
+\[
+=\frac{8}{4}
+\]
+
+\[
+\boxed{m=2}
+\]
+</div>
+
+<div class="important">
+A positive gradient means the line rises from left to right.
+A negative gradient means the line falls from left to right.
+</div>
+</section>
+
+<section class="chapter">
+<h2>6. Drawing a Straight-Line Graph</h2>
+
+<p>To draw a graph such as:</p>
+
+<div class="math">\[
+y=2x+1
+\]</div>
+
+construct a table of values.
+
+<table>
+<tr>
+<th>\(x\)</th>
+<td>-2</td>
+<td>-1</td>
+<td>0</td>
+<td>1</td>
+<td>2</td>
+</tr>
+<tr>
+<th>\(y=2x+1\)</th>
+<td>-3</td>
+<td>-1</td>
+<td>1</td>
+<td>3</td>
+<td>5</td>
+</tr>
+</table>
+
+<p>
+Plot the coordinates and join them using a straight line.
+</p>
+</section>
+
+<section class="chapter">
+<h2>7. Intercepts</h2>
+
+<h3>y-intercept</h3>
+
+<p>
+The \(y\)-intercept occurs where the graph crosses the \(y\)-axis.
+At this point:
+\[
+x=0.
+\]
+</p>
+
+<div class="example">
+For
+\[
+y=4x-6
+\]
+
+put \(x=0\):
+
+\[
+y=4(0)-6=-6.
+\]
+
+Therefore the \(y\)-intercept is:
+
+\[
+\boxed{(0,-6)}.
+\]
+</div>
+
+<h3>x-intercept</h3>
+
+<p>
+The \(x\)-intercept occurs where:
+\[
+y=0.
+\]
+</p>
+
+<div class="example">
+For
+\[
+y=2x-8
+\]
+
+put \(y=0\):
+
+\[
+0=2x-8
+\]
+
+\[
+2x=8
+\]
+
+\[
+x=4.
+\]
+
+Therefore:
+
+\[
+\boxed{(4,0)}.
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>8. Quadratic Functions</h2>
+
+<p>A quadratic function has the form:</p>
+
+<div class="math">\[
+y=ax^2+bx+c
+\]</div>
+
+<p>
+Its graph is called a parabola.
+</p>
+
+<div class="important">
+If \(a>0\), the parabola opens upward.
+
+If \(a<0\), the parabola opens downward.
+</div>
+
+<div class="example">
+Consider:
+
+\[
+y=x^2
+\]
+
+Some values are:
+
+<table>
+<tr>
+<th>\(x\)</th>
+<td>-2</td>
+<td>-1</td>
+<td>0</td>
+<td>1</td>
+<td>2</td>
+</tr>
+<tr>
+<th>\(y\)</th>
+<td>4</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>4</td>
+</tr>
+</table>
+
+The graph is symmetrical about the \(y\)-axis.
+</div>
+</section>
+
+<section class="chapter">
+<h2>9. Real-Life Graphs</h2>
+
+<p>
+Graphs can represent real situations such as distance travelled, time,
+temperature, population and financial changes.
+</p>
+
+<p>When interpreting a real-life graph, identify:</p>
+
+<ul>
+<li>what each axis represents;</li>
+<li>the units used;</li>
+<li>the scale;</li>
+<li>increasing and decreasing sections;</li>
+<li>maximum and minimum values;</li>
+<li>the gradient where appropriate.</li>
+</ul>
+
+<div class="exam-tip">
+<strong>MANEB examination tip:</strong>
+Before answering a graph question, carefully read both axes and their
+units. Many incorrect answers result from using the wrong scale.
+</div>
+</section>
+
+<section class="chapter">
+<h2>10. Practice Exercises</h2>
+
+<ol class="exercise">
+
+<li>Find \(f(5)\) if \(f(x)=3x-2\).</li>
+
+<li>State the quadrant containing \((-4,-7)\).</li>
+
+<li>Find the gradient through \((1,2)\) and \((5,10)\).</li>
+
+<li>State the gradient and \(y\)-intercept of:
+\[
+y=4x-3.
+\]
+</li>
+
+<li>Find the \(x\)-intercept of:
+\[
+y=3x-12.
+\]
+</li>
+
+<li>Complete the table for:
+\[
+y=x+2
+\]
+when \(x=-2,-1,0,1,2\).
+</li>
+
+<li>State whether \(y=-2x+5\) has a positive or negative gradient.</li>
+
+</ol>
+
+<h3>Answers</h3>
+
+<ol class="answers">
+
+<li>
+\[
+f(5)=13
+\]
+</li>
+
+<li>Quadrant III.</li>
+
+<li>
+\[
+m=2
+\]
+</li>
+
+<li>
+Gradient \(=4\), \(y\)-intercept \(=-3\).
+</li>
+
+<li>
+\[
+x=4
+\]
+</li>
+
+<li>
+\(0,1,2,3,4\)
+</li>
+
+<li>Negative gradient.</li>
+
+</ol>
+</section>
+
+<section class="chapter">
+<h2>11. Common Mistakes</h2>
+
+<ul>
+<li>Writing coordinates as \((y,x)\) instead of \((x,y)\).</li>
+<li>Using the wrong scale on graph axes.</li>
+<li>Confusing gradient with the intercept.</li>
+<li>Forgetting that the \(x\)-intercept has \(y=0\).</li>
+<li>Forgetting that the \(y\)-intercept has \(x=0\).</li>
+<li>Plotting points inaccurately.</li>
+</ul>
+
+<div class="exam-tip">
+<strong>Final tip:</strong>
+Use a sharp pencil, clearly label axes, include units where necessary and
+show enough working to make your method understandable.
+</div>
+
+</section>
+
+<footer>
+<p>MalawiHub • Mathematics • Secondary School</p>
+</footer>
+
+</div>
+</body>
+</html>

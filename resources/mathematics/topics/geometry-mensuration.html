@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Geometry & Mensuration | MalawiHub</title>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']]
+  },
+  svg: {fontCache: 'global'}
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+<link rel="stylesheet" href="../../../css/style.css">
+
+<style>
+.notes-container{max-width:950px;margin:auto;padding:20px;line-height:1.75}
+.notes-header{padding:20px 0;border-bottom:1px solid #ddd;margin-bottom:25px}
+.notes-header h1{margin:0 0 5px}
+.chapter{margin:35px 0}
+.definition,.important,.example,.solution,.exam-tip{
+padding:16px 18px;margin:18px 0;border-left:4px solid #2563eb;background:#f7f9fc
+}
+.example{border-left-color:#16a34a}
+.solution{border-left-color:#9333ea}
+.exam-tip{border-left-color:#ea580c}
+.math{text-align:center;margin:20px 0;overflow-x:auto}
+.diagram{text-align:center;margin:25px auto;overflow-x:auto}
+.notes-container table{width:100%;border-collapse:collapse;margin:20px 0}
+.notes-container th,.notes-container td{border:1px solid #bbb;padding:9px}
+.notes-container th{background:#f1f5f9}
+.exercise li,.answers li{margin-bottom:10px}
+.topic-nav{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 35px}
+.topic-nav a{padding:7px 12px;border:1px solid #ddd;border-radius:6px;text-decoration:none}
+</style>
+</head>
+
+<body>
+<div class="notes-container">
+
+<header class="notes-header">
+<h1>Geometry &amp; Mensuration</h1>
+<p>Mathematics • Secondary School</p>
+</header>
+
+<nav class="topic-nav">
+<a href="../index.html">← Mathematics</a>
+<a href="number-arithmetic.html">Number</a>
+<a href="algebra.html">Algebra</a>
+<a href="functions-graphs.html">Functions &amp; Graphs</a>
+<a href="geometry-mensuration.html">Geometry</a>
+<a href="coordinate-geometry.html">Coordinate Geometry</a>
+<a href="trigonometry.html">Trigonometry</a>
+<a href="statistics.html">Statistics</a>
+<a href="probability.html">Probability</a>
+<a href="vectors.html">Vectors</a>
+<a href="sequences-patterns.html">Sequences</a>
+<a href="financial-mathematics.html">Financial Mathematics</a>
+<a href="revision-maneb.html">Revision</a>
+</nav>
+
+<section class="chapter">
+<h2>1. Introduction to Geometry</h2>
+
+<p>
+Geometry is the study of shapes, sizes, positions and relationships between
+figures. Mensuration is concerned with measuring lengths, areas, surface
+areas and volumes.
+</p>
+
+<h3>Learning objectives</h3>
+<ul>
+<li>Use basic angle properties.</li>
+<li>Work with triangles and quadrilaterals.</li>
+<li>Apply Pythagoras' theorem.</li>
+<li>Calculate perimeter and area.</li>
+<li>Calculate surface area and volume.</li>
+<li>Apply circle geometry.</li>
+<li>Solve practical measurement problems.</li>
+</ul>
+</section>
+
+<section class="chapter">
+<h2>2. Basic Angle Facts</h2>
+
+<ul>
+<li>Angles on a straight line add up to \(180^\circ\).</li>
+<li>Angles around a point add up to \(360^\circ\).</li>
+<li>Vertically opposite angles are equal.</li>
+<li>Angles in a triangle add up to \(180^\circ\).</li>
+<li>Angles in a quadrilateral add up to \(360^\circ\).</li>
+</ul>
+
+<div class="example">
+Two angles on a straight line are \(65^\circ\) and \(x\).
+
+\[
+x+65^\circ=180^\circ
+\]
+
+Therefore:
+
+\[
+\boxed{x=115^\circ}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>3. Parallel Lines</h2>
+
+<p>
+When a transversal crosses two parallel lines, several important angle
+relationships are formed.
+</p>
+
+<ul>
+<li>Corresponding angles are equal.</li>
+<li>Alternate angles are equal.</li>
+<li>Co-interior angles add up to \(180^\circ\).</li>
+</ul>
+
+<div class="diagram">
+<svg width="440" height="270" viewBox="0 0 440 270">
+<line x1="50" y1="80" x2="390" y2="80" stroke="black" stroke-width="3"/>
+<line x1="50" y1="190" x2="390" y2="190" stroke="black" stroke-width="3"/>
+<line x1="120" y1="30" x2="330" y2="240" stroke="black" stroke-width="3"/>
+<text x="360" y="70">Parallel line</text>
+<text x="360" y="180">Parallel line</text>
+</svg>
+</div>
+</section>
+
+<section class="chapter">
+<h2>4. Triangles</h2>
+
+<table>
+<tr>
+<th>Triangle</th>
+<th>Property</th>
+</tr>
+<tr>
+<td>Equilateral</td>
+<td>Three equal sides and three \(60^\circ\) angles</td>
+</tr>
+<tr>
+<td>Isosceles</td>
+<td>Two equal sides and two equal base angles</td>
+</tr>
+<tr>
+<td>Scalene</td>
+<td>All sides are different</td>
+</tr>
+<tr>
+<td>Right-angled</td>
+<td>One angle is \(90^\circ\)</td>
+</tr>
+</table>
+
+<div class="example">
+An isosceles triangle has two equal angles of \(50^\circ\).
+
+The third angle is:
+
+\[
+180^\circ-50^\circ-50^\circ
+\]
+
+\[
+\boxed{80^\circ}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>5. Pythagoras' Theorem</h2>
+
+<p>
+Pythagoras' theorem applies to right-angled triangles.
+</p>
+
+<div class="math">\[
+a^2+b^2=c^2
+\]</div>
+
+<p>
+Here \(c\) is the hypotenuse, which is the side opposite the right angle.
+</p>
+
+<div class="diagram">
+<svg width="420" height="300" viewBox="0 0 420 300">
+<polygon points="80,240 330,240 80,70"
+fill="none" stroke="black" stroke-width="3"/>
+<rect x="80" y="220" width="20" height="20"
+fill="none" stroke="black"/>
+<text x="190" y="260">a</text>
+<text x="55" y="160">b</text>
+<text x="190" y="145">c</text>
+</svg>
+</div>
+
+<div class="example">
+A right triangle has shorter sides of 6 cm and 8 cm.
+
+\[
+c^2=6^2+8^2
+\]
+
+\[
+c^2=36+64=100
+\]
+
+\[
+c=\sqrt{100}
+\]
+
+\[
+\boxed{c=10\text{ cm}}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>6. Perimeter</h2>
+
+<p>
+The perimeter is the total distance around a two-dimensional shape.
+</p>
+
+<h3>Rectangle</h3>
+
+<div class="math">\[
+P=2(l+w)
+\]</div>
+
+<h3>Square</h3>
+
+<div class="math">\[
+P=4s
+\]</div>
+
+<h3>Circle</h3>
+
+<div class="math">\[
+C=2\pi r
+\]</div>
+
+<div class="example">
+A rectangle has length 12 cm and width 5 cm.
+
+\[
+P=2(12+5)
+\]
+
+\[
+\boxed{P=34\text{ cm}}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>7. Area</h2>
+
+<h3>Rectangle</h3>
+
+<div class="math">\[
+A=lw
+\]</div>
+
+<h3>Square</h3>
+
+<div class="math">\[
+A=s^2
+\]</div>
+
+<h3>Triangle</h3>
+
+<div class="math">\[
+A=\frac12bh
+\]</div>
+
+<h3>Parallelogram</h3>
+
+<div class="math">\[
+A=bh
+\]</div>
+
+<h3>Trapezium</h3>
+
+<div class="math">\[
+A=\frac12(a+b)h
+\]</div>
+
+<h3>Circle</h3>
+
+<div class="math">\[
+A=\pi r^2
+\]</div>
+
+<div class="example">
+Find the area of a triangle with base 14 cm and height 8 cm.
+
+\[
+A=\frac12(14)(8)
+\]
+
+\[
+\boxed{A=56\text{ cm}^2}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>8. Circle Geometry</h2>
+
+<p>Important circle facts include:</p>
+
+<ul>
+<li>The angle in a semicircle is \(90^\circ\).</li>
+<li>Angles in the same segment are equal.</li>
+<li>The angle at the centre is twice the angle at the circumference standing on the same arc.</li>
+<li>A radius is perpendicular to a tangent at the point of contact.</li>
+<li>Opposite angles of a cyclic quadrilateral add up to \(180^\circ\).</li>
+</ul>
+
+<div class="example">
+If an angle at the circumference is \(35^\circ\), the angle at the centre
+standing on the same arc is:
+
+\[
+2(35^\circ)
+\]
+
+\[
+\boxed{70^\circ}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>9. Surface Area</h2>
+
+<p>
+Surface area is the total area of all the surfaces of a three-dimensional
+object.
+</p>
+
+<h3>Cuboid</h3>
+
+<div class="math">\[
+SA=2(lw+lh+wh)
+\]</div>
+
+<h3>Cube</h3>
+
+<div class="math">\[
+SA=6s^2
+\]</div>
+
+<h3>Cylinder</h3>
+
+<div class="math">\[
+SA=2\pi r^2+2\pi rh
+\]</div>
+</section>
+
+<section class="chapter">
+<h2>10. Volume</h2>
+
+<h3>Cuboid</h3>
+
+<div class="math">\[
+V=lwh
+\]</div>
+
+<h3>Cube</h3>
+
+<div class="math">\[
+V=s^3
+\]</div>
+
+<h3>Cylinder</h3>
+
+<div class="math">\[
+V=\pi r^2h
+\]</div>
+
+<h3>Sphere</h3>
+
+<div class="math">\[
+V=\frac43\pi r^3
+\]</div>
+
+<div class="example">
+A cuboid measures 8 cm by 5 cm by 3 cm.
+
+\[
+V=8(5)(3)
+\]
+
+\[
+\boxed{V=120\text{ cm}^3}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>11. Unit Conversions</h2>
+
+<table>
+<tr>
+<th>Measurement</th>
+<th>Relationship</th>
+</tr>
+<tr>
+<td>Length</td>
+<td>\(1\text{ m}=100\text{ cm}\)</td>
+</tr>
+<tr>
+<td>Area</td>
+<td>\(1\text{ m}^2=10\,000\text{ cm}^2\)</td>
+</tr>
+<tr>
+<td>Volume</td>
+<td>\(1\text{ m}^3=1\,000\,000\text{ cm}^3\)</td>
+</tr>
+<tr>
+<td>Capacity</td>
+<td>\(1\text{ litre}=1000\text{ cm}^3\)</td>
+</tr>
+</table>
+
+<div class="important">
+<strong>Important:</strong> When converting area or volume, the conversion
+factor must also be squared or cubed respectively.
+</div>
+</section>
+
+<section class="chapter">
+<h2>12. MANEB-style Practice</h2>
+
+<ol class="exercise">
+
+<li>Find the third angle of a triangle whose other angles are \(65^\circ\)
+and \(45^\circ\).</li>
+
+<li>A right-angled triangle has sides 9 cm and 12 cm. Find its hypotenuse.</li>
+
+<li>Find the area of a rectangle measuring 15 cm by 8 cm.</li>
+
+<li>Find the area of a circle of radius 7 cm using
+\(\pi=\frac{22}{7}\).</li>
+
+<li>Find the volume of a cuboid measuring 6 cm by 4 cm by 5 cm.</li>
+
+<li>A square has a perimeter of 36 cm. Find its side length and area.</li>
+
+<li>Two angles in a triangle are \(40^\circ\) and \(75^\circ\). Find the
+third angle.</li>
+
+<li>Find the circumference of a circle with radius 14 cm using
+\(\pi=\frac{22}{7}\).</li>
+
+</ol>
+
+<h3>Answers</h3>
+
+<ol class="answers">
+
+<li>\(70^\circ\)</li>
+
+<li>\(15\text{ cm}\)</li>
+
+<li>\(120\text{ cm}^2\)</li>
+
+<li>\(154\text{ cm}^2\)</li>
+
+<li>\(120\text{ cm}^3\)</li>
+
+<li>Side \(=9\text{ cm}\), area \(=81\text{ cm}^2\)</li>
+
+<li>\(65^\circ\)</li>
+
+<li>\(88\text{ cm}\)</li>
+
+</ol>
+</section>
+
+<section class="chapter">
+<h2>13. Common Mistakes</h2>
+
+<ul>
+<li>Using Pythagoras on a triangle that is not right-angled.</li>
+<li>Using diameter instead of radius in circle formulas.</li>
+<li>Forgetting the \(\frac12\) in the area of a triangle.</li>
+<li>Confusing perimeter with area.</li>
+<li>Writing square units as ordinary units.</li>
+<li>Writing cubic units incorrectly for volume.</li>
+<li>Forgetting to convert units before calculating.</li>
+</ul>
+
+<div class="exam-tip">
+<strong>Examination tip:</strong>
+Write the formula first, substitute the values carefully, show the
+calculation and give the final answer with the correct unit.
+</div>
+
+</section>
+
+<footer>
+<p>MalawiHub • Mathematics • Secondary School</p>
+</footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Algebra | MalawiHub</title>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']]
+  },
+  svg: {fontCache: 'global'}
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+
+<link rel="stylesheet" href="../../../css/style.css">
+
+<style>
+.notes-container{max-width:950px;margin:auto;padding:20px;line-height:1.75}
+.notes-header{padding:20px 0;border-bottom:1px solid #ddd;margin-bottom:25px}
+.notes-header h1{margin:0 0 5px}
+.chapter{margin:35px 0}
+.definition,.important,.example,.solution,.exam-tip{
+padding:16px 18px;margin:18px 0;border-left:4px solid #2563eb;background:#f7f9fc
+}
+.example{border-left-color:#16a34a}
+.solution{border-left-color:#9333ea}
+.exam-tip{border-left-color:#ea580c}
+.math{text-align:center;margin:20px 0;overflow-x:auto}
+.notes-container table{width:100%;border-collapse:collapse;margin:20px 0}
+.notes-container th,.notes-container td{border:1px solid #bbb;padding:9px}
+.notes-container th{background:#f1f5f9}
+.exercise li,.answers li{margin-bottom:10px}
+.topic-nav{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 35px}
+.topic-nav a{padding:7px 12px;border:1px solid #ddd;border-radius:6px;text-decoration:none}
+</style>
+</head>
+
+<body>
+<div class="notes-container">
+
+<header class="notes-header">
+<h1>Algebra</h1>
+<p>Mathematics • Secondary School</p>
+</header>
+
+<nav class="topic-nav">
+<a href="../index.html">← Mathematics</a>
+<a href="number-arithmetic.html">Number</a>
+<a href="algebra.html">Algebra</a>
+<a href="functions-graphs.html">Functions &amp; Graphs</a>
+<a href="geometry-mensuration.html">Geometry</a>
+<a href="coordinate-geometry.html">Coordinate Geometry</a>
+<a href="trigonometry.html">Trigonometry</a>
+<a href="statistics.html">Statistics</a>
+<a href="probability.html">Probability</a>
+<a href="vectors.html">Vectors</a>
+<a href="sequences-patterns.html">Sequences</a>
+<a href="financial-mathematics.html">Financial Mathematics</a>
+<a href="revision-maneb.html">Revision</a>
+</nav>
+
+<section class="chapter">
+<h2>1. Introduction to Algebra</h2>
+
+<p>
+Algebra is the branch of mathematics in which letters and symbols are used
+to represent numbers. It helps us describe unknown quantities and
+relationships between quantities.
+</p>
+
+<div class="definition">
+<strong>Variable:</strong> A letter used to represent a number whose value
+may be unknown or may change.
+</div>
+
+<h3>Learning objectives</h3>
+<ul>
+<li>Identify terms, coefficients and constants.</li>
+<li>Simplify algebraic expressions.</li>
+<li>Expand and factorise expressions.</li>
+<li>Solve linear equations.</li>
+<li>Solve simultaneous equations.</li>
+<li>Solve quadratic equations.</li>
+<li>Apply algebra to practical and examination problems.</li>
+</ul>
+</section>
+
+<section class="chapter">
+<h2>2. Algebraic Terms</h2>
+
+<p>Consider:</p>
+
+<div class="math">\[
+5x+3y-7
+\]</div>
+
+<p>The terms are \(5x\), \(3y\) and \(-7\).</p>
+
+<table>
+<tr>
+<th>Expression</th>
+<th>Coefficient</th>
+<th>Constant</th>
+</tr>
+<tr>
+<td>\(3x+5\)</td>
+<td>3</td>
+<td>5</td>
+</tr>
+<tr>
+<td>\(7y-4\)</td>
+<td>7</td>
+<td>-4</td>
+</tr>
+<tr>
+<td>\(2x^2+3x-8\)</td>
+<td>2 and 3</td>
+<td>-8</td>
+</tr>
+</table>
+
+<div class="important">
+<strong>Like terms:</strong> Terms containing the same variables raised to
+the same powers can be combined.
+</div>
+
+<div class="example">
+Simplify:
+\[
+3x+5x-2
+\]
+
+Collect like terms:
+
+\[
+3x+5x=8x
+\]
+
+Therefore:
+
+\[
+\boxed{8x-2}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>3. Expansion of Brackets</h2>
+
+<p>Expansion removes brackets by multiplying each term inside the bracket.</p>
+
+<div class="math">\[
+a(b+c)=ab+ac
+\]</div>
+
+<div class="example">
+Expand:
+
+\[
+3(x+4)
+\]
+
+Multiply 3 by both terms:
+
+\[
+3(x)+3(4)
+\]
+
+Therefore:
+
+\[
+\boxed{3x+12}
+\]
+</div>
+
+<h3>Expansion of two brackets</h3>
+
+<div class="math">\[
+(a+b)(c+d)=ac+ad+bc+bd
+\]</div>
+
+<div class="example">
+Expand:
+
+\[
+(x+3)(x+2)
+\]
+
+\[
+=x^2+2x+3x+6
+\]
+
+\[
+=\boxed{x^2+5x+6}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>4. Factorisation</h2>
+
+<p>
+Factorisation is the reverse process of expansion. It involves writing an
+expression as a product of factors.
+</p>
+
+<h3>Common factor</h3>
+
+<div class="example">
+Factorise:
+
+\[
+6x+12
+\]
+
+The highest common factor is 6.
+
+\[
+6x+12=\boxed{6(x+2)}
+\]
+</div>
+
+<h3>Difference of two squares</h3>
+
+<div class="math">\[
+a^2-b^2=(a-b)(a+b)
+\]</div>
+
+<div class="example">
+Factorise:
+
+\[
+x^2-25
+\]
+
+Since \(25=5^2\):
+
+\[
+x^2-5^2=(x-5)(x+5)
+\]
+
+Therefore:
+
+\[
+\boxed{(x-5)(x+5)}
+\]
+</div>
+
+<h3>Quadratic factorisation</h3>
+
+<div class="example">
+Factorise:
+
+\[
+x^2+7x+12
+\]
+
+Find two numbers whose product is 12 and whose sum is 7:
+
+\[
+3\times4=12,\qquad3+4=7.
+\]
+
+Therefore:
+
+\[
+\boxed{(x+3)(x+4)}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>5. Linear Equations</h2>
+
+<p>A linear equation contains the unknown to the first power.</p>
+
+<div class="example">
+Solve:
+
+\[
+3x+5=20
+\]
+
+Subtract 5 from both sides:
+
+\[
+3x=15
+\]
+
+Divide by 3:
+
+\[
+\boxed{x=5}
+\]
+</div>
+
+<div class="important">
+<strong>Rule:</strong> Whatever operation is performed on one side of an
+equation must also be performed on the other side.
+</div>
+</section>
+
+<section class="chapter">
+<h2>6. Simultaneous Equations</h2>
+
+<p>
+Simultaneous equations are equations involving two or more unknowns that
+must be satisfied at the same time.
+</p>
+
+<div class="example">
+Solve:
+
+\[
+x+y=9
+\]
+
+\[
+x-y=3
+\]
+
+Add the equations:
+
+\[
+2x=12
+\]
+
+Therefore:
+
+\[
+x=6
+\]
+
+Substitute into \(x+y=9\):
+
+\[
+6+y=9
+\]
+
+\[
+\boxed{y=3}
+\]
+
+Hence:
+
+\[
+\boxed{x=6,\quad y=3}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>7. Quadratic Equations</h2>
+
+<p>A quadratic equation has the form:</p>
+
+<div class="math">\[
+ax^2+bx+c=0,\qquad a\ne0
+\]</div>
+
+<h3>Solving by factorisation</h3>
+
+<div class="example">
+Solve:
+
+\[
+x^2-5x+6=0
+\]
+
+Factorise:
+
+\[
+(x-2)(x-3)=0
+\]
+
+Therefore:
+
+\[
+x-2=0\quad\text{or}\quad x-3=0
+\]
+
+Hence:
+
+\[
+\boxed{x=2\quad\text{or}\quad x=3}
+\]
+</div>
+
+<h3>Quadratic formula</h3>
+
+<div class="math">\[
+x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}
+\]</div>
+
+<p>
+The quadratic formula is useful when a quadratic cannot easily be
+factorised.
+</p>
+</section>
+
+<section class="chapter">
+<h2>8. Indices</h2>
+
+<p>Important laws of indices include:</p>
+
+<div class="math">\[
+a^m\times a^n=a^{m+n}
+\]</div>
+
+<div class="math">\[
+\frac{a^m}{a^n}=a^{m-n}
+\]</div>
+
+<div class="math">\[
+(a^m)^n=a^{mn}
+\]</div>
+
+<div class="math">\[
+a^0=1
+\]</div>
+
+<div class="math">\[
+a^{-n}=\frac{1}{a^n}
+\]</div>
+
+<div class="example">
+Simplify:
+
+\[
+2^3\times2^4
+\]
+
+\[
+=2^{3+4}
+\]
+
+\[
+=2^7
+\]
+
+\[
+\boxed{128}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>9. MANEB-style Practice Questions</h2>
+
+<ol class="exercise">
+<li>Simplify \(7x+3x-5\).</li>
+<li>Expand \((x+4)(x+2)\).</li>
+<li>Factorise \(x^2+7x+12\).</li>
+<li>Solve \(5x-7=18\).</li>
+<li>Solve \(x+y=12,\;x-y=4\).</li>
+<li>Solve \(x^2-9x+20=0\).</li>
+<li>Simplify \(3^2\times3^4\).</li>
+<li>Factorise \(9x^2-25\).</li>
+</ol>
+
+<h3>Answers</h3>
+
+<ol class="answers">
+<li>\(10x-5\)</li>
+<li>\(x^2+6x+8\)</li>
+<li>\((x+3)(x+4)\)</li>
+<li>\(x=5\)</li>
+<li>\(x=8,\;y=4\)</li>
+<li>\(x=4,\;5\)</li>
+<li>\(729\)</li>
+<li>\((3x-5)(3x+5)\)</li>
+</ol>
+
+<div class="exam-tip">
+<strong>Examination tip:</strong>
+Always show your working. Pay particular attention to negative signs,
+brackets and the laws of indices. Check your answer by substituting it
+back into the original equation whenever possible.
+</div>
+</section>
+
+<section class="chapter">
+<h2>10. Common Mistakes</h2>
+
+<ul>
+<li>Combining unlike terms, such as \(3x+4y=7xy\).</li>
+<li>Forgetting to multiply every term when expanding brackets.</li>
+<li>Changing a sign incorrectly when removing brackets.</li>
+<li>Using the wrong quadratic formula values for \(a,b,c\).</li>
+<li>Adding indices when dividing powers instead of subtracting them.</li>
+</ul>
+</section>
+
+</div>
+</body>
+</html>

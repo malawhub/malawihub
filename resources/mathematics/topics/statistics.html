@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistics | MalawiHub</title>
+
+<script>
+window.MathJax = {
+  tex: {
+    inlineMath: [['\\(','\\)']],
+    displayMath: [['\\[','\\]']]
+  },
+  svg: {fontCache: 'global'}
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+<link rel="stylesheet" href="../../../css/style.css">
+
+<style>
+.notes-container{max-width:950px;margin:auto;padding:20px;line-height:1.75}
+.notes-header{padding:20px 0;border-bottom:1px solid #ddd;margin-bottom:25px}
+.notes-header h1{margin:0 0 5px}
+.chapter{margin:35px 0}
+.definition,.important,.example,.solution,.exam-tip{
+padding:16px 18px;margin:18px 0;border-left:4px solid #2563eb;background:#f7f9fc
+}
+.example{border-left-color:#16a34a}
+.solution{border-left-color:#9333ea}
+.exam-tip{border-left-color:#ea580c}
+.math{text-align:center;margin:20px 0;overflow-x:auto}
+.diagram{text-align:center;margin:25px auto;overflow-x:auto}
+.notes-container table{width:100%;border-collapse:collapse;margin:20px 0}
+.notes-container th,.notes-container td{border:1px solid #bbb;padding:9px}
+.notes-container th{background:#f1f5f9}
+.exercise li,.answers li{margin-bottom:10px}
+.topic-nav{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0 35px}
+.topic-nav a{padding:7px 12px;border:1px solid #ddd;border-radius:6px;text-decoration:none}
+</style>
+</head>
+
+<body>
+<div class="notes-container">
+
+<header class="notes-header">
+<h1>Statistics</h1>
+<p>Mathematics • Secondary School</p>
+</header>
+
+<nav class="topic-nav">
+<a href="../index.html">← Mathematics</a>
+<a href="number-arithmetic.html">Number</a>
+<a href="algebra.html">Algebra</a>
+<a href="functions-graphs.html">Functions &amp; Graphs</a>
+<a href="geometry-mensuration.html">Geometry</a>
+<a href="coordinate-geometry.html">Coordinate Geometry</a>
+<a href="trigonometry.html">Trigonometry</a>
+<a href="statistics.html">Statistics</a>
+<a href="probability.html">Probability</a>
+<a href="vectors.html">Vectors</a>
+<a href="sequences-patterns.html">Sequences</a>
+<a href="financial-mathematics.html">Financial Mathematics</a>
+<a href="revision-maneb.html">Revision</a>
+</nav>
+
+<section class="chapter">
+<h2>1. Introduction</h2>
+
+<p>
+Statistics is the branch of mathematics concerned with collecting,
+organising, presenting, analysing and interpreting data.
+</p>
+
+<h3>Learning objectives</h3>
+<ul>
+<li>Understand different types of data.</li>
+<li>Organise data in tables.</li>
+<li>Calculate mean, median and mode.</li>
+<li>Use frequency tables.</li>
+<li>Calculate range and understand measures of spread.</li>
+<li>Interpret statistical diagrams.</li>
+<li>Construct and interpret bar charts, histograms and pie charts.</li>
+<li>Use cumulative frequency.</li>
+<li>Answer examination questions involving statistics.</li>
+</ul>
+</section>
+
+<section class="chapter">
+<h2>2. Data</h2>
+
+<p>
+<strong>Data</strong> means information collected for analysis.
+</p>
+
+<h3>Primary data</h3>
+<p>
+Information collected directly by the researcher, for example through
+questionnaires, interviews or measurements.
+</p>
+
+<h3>Secondary data</h3>
+<p>
+Information obtained from an existing source such as a report, book,
+website or government publication.
+</p>
+
+<h3>Discrete data</h3>
+<p>
+Data that can be counted and normally takes separate values.
+For example, the number of students in a class.
+</p>
+
+<h3>Continuous data</h3>
+<p>
+Data that can take any value within a range, such as height, mass or time.
+</p>
+</section>
+
+<section class="chapter">
+<h2>3. Frequency Tables</h2>
+
+<p>
+A frequency tells us how many times a particular value occurs.
+</p>
+
+<table>
+<tr>
+<th>Number of books</th>
+<th>Frequency</th>
+</tr>
+<tr><td>1</td><td>2</td></tr>
+<tr><td>2</td><td>5</td></tr>
+<tr><td>3</td><td>4</td></tr>
+<tr><td>4</td><td>3</td></tr>
+</table>
+
+<p>
+The total frequency is:
+</p>
+
+<div class="math">
+\[
+2+5+4+3=14
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>4. Mean</h2>
+
+<p>
+The mean is obtained by adding all values and dividing by the number of
+values.
+</p>
+
+<div class="math">
+\[
+\text{Mean}=
+\frac{\text{sum of values}}{\text{number of values}}
+\]
+</div>
+
+<div class="example">
+Find the mean of:
+
+\[
+4,\ 6,\ 8,\ 10,\ 12
+\]
+
+\[
+\text{Mean}=
+\frac{4+6+8+10+12}{5}
+\]
+
+\[
+=\frac{40}{5}
+\]
+
+\[
+\boxed{8}
+\]
+</div>
+
+<h3>Mean from a frequency table</h3>
+
+<div class="math">
+\[
+\bar{x}=\frac{\sum fx}{\sum f}
+\]
+</div>
+
+<div class="example">
+For the following data:
+
+<table>
+<tr><th>x</th><th>f</th><th>fx</th></tr>
+<tr><td>1</td><td>2</td><td>2</td></tr>
+<tr><td>2</td><td>3</td><td>6</td></tr>
+<tr><td>3</td><td>5</td><td>15</td></tr>
+</table>
+
+\[
+\sum f=10
+\]
+
+\[
+\sum fx=23
+\]
+
+Therefore:
+
+\[
+\bar{x}=\frac{23}{10}
+\]
+
+\[
+\boxed{2.3}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>5. Median</h2>
+
+<p>
+The median is the middle value when the data is arranged in order.
+</p>
+
+<div class="example">
+Find the median of:
+
+\[
+3,\ 7,\ 2,\ 9,\ 5
+\]
+
+Arrange in ascending order:
+
+\[
+2,\ 3,\ 5,\ 7,\ 9
+\]
+
+The middle value is:
+
+\[
+\boxed{5}
+\]
+</div>
+
+<div class="important">
+If there is an even number of observations, the median is the mean of the
+two middle values.
+</div>
+
+<div class="example">
+Find the median of:
+
+\[
+2,\ 4,\ 6,\ 8
+\]
+
+The two middle values are 4 and 6.
+
+\[
+\text{Median}=\frac{4+6}{2}
+\]
+
+\[
+\boxed{5}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>6. Mode</h2>
+
+<p>
+The mode is the value that occurs most frequently.
+</p>
+
+<div class="example">
+Find the mode:
+
+\[
+2,\ 4,\ 4,\ 5,\ 6,\ 4,\ 7
+\]
+
+The number 4 occurs three times.
+
+\[
+\boxed{\text{Mode}=4}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>7. Range</h2>
+
+<p>
+The range measures the difference between the largest and smallest values.
+</p>
+
+<div class="math">
+\[
+\text{Range}=\text{largest value}-\text{smallest value}
+\]
+</div>
+
+<div class="example">
+For:
+
+\[
+5,\ 8,\ 12,\ 14,\ 20
+\]
+
+\[
+\text{Range}=20-5
+\]
+
+\[
+\boxed{15}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>8. Bar Charts</h2>
+
+<p>
+A bar chart is useful for displaying discrete or categorical data.
+Bars are separated by spaces.
+</p>
+
+<div class="diagram">
+<svg width="440" height="300" viewBox="0 0 440 300">
+<line x1="55" y1="250" x2="410" y2="250" stroke="black" stroke-width="2"/>
+<line x1="55" y1="250" x2="55" y2="30" stroke="black" stroke-width="2"/>
+
+<rect x="90" y="170" width="45" height="80" fill="#999"/>
+<rect x="165" y="110" width="45" height="140" fill="#999"/>
+<rect x="240" y="140" width="45" height="110" fill="#999"/>
+<rect x="315" y="70" width="45" height="180" fill="#999"/>
+
+<text x="96" y="270">A</text>
+<text x="171" y="270">B</text>
+<text x="246" y="270">C</text>
+<text x="321" y="270">D</text>
+</svg>
+</div>
+</section>
+
+<section class="chapter">
+<h2>9. Pie Charts</h2>
+
+<p>
+A pie chart represents data as sectors of a circle.
+</p>
+
+<div class="math">
+\[
+\text{Sector angle}
+=
+\frac{\text{frequency}}{\text{total frequency}}
+\times360^\circ
+\]
+</div>
+
+<div class="example">
+A school survey records:
+
+<table>
+<tr><th>Sport</th><th>Students</th></tr>
+<tr><td>Football</td><td>20</td></tr>
+<tr><td>Netball</td><td>10</td></tr>
+<tr><td>Athletics</td><td>5</td></tr>
+</table>
+
+Total:
+
+\[
+20+10+5=35
+\]
+
+Football sector:
+
+\[
+\frac{20}{35}\times360^\circ
+\]
+
+\[
+\boxed{205.7^\circ}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>10. Histograms</h2>
+
+<p>
+A histogram is used for continuous grouped data. Unlike a bar chart, the
+bars touch each other.
+</p>
+
+<div class="important">
+For unequal class intervals, frequency density is used.
+</div>
+
+<div class="math">
+\[
+\text{Frequency density}
+=
+\frac{\text{frequency}}{\text{class width}}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>11. Cumulative Frequency</h2>
+
+<p>
+Cumulative frequency is the running total of frequencies.
+</p>
+
+<table>
+<tr>
+<th>Class</th>
+<th>Frequency</th>
+<th>Cumulative frequency</th>
+</tr>
+<tr><td>0–10</td><td>4</td><td>4</td></tr>
+<tr><td>10–20</td><td>6</td><td>10</td></tr>
+<tr><td>20–30</td><td>8</td><td>18</td></tr>
+<tr><td>30–40</td><td>5</td><td>23</td></tr>
+</table>
+
+<p>
+Cumulative frequency curves can be used to estimate the median, quartiles
+and percentiles.
+</p>
+</section>
+
+<section class="chapter">
+<h2>12. Grouped Data</h2>
+
+<p>
+When data contains many observations, values can be grouped into class
+intervals.
+</p>
+
+<p>
+For grouped data, the midpoint of each class is often used to estimate the
+mean.
+</p>
+
+<div class="math">
+\[
+\text{Estimated mean}
+=
+\frac{\sum fx}{\sum f}
+\]
+</div>
+
+<div class="important">
+The midpoint of a class interval is:
+\[
+\frac{\text{lower boundary}+\text{upper boundary}}{2}
+\]
+</div>
+</section>
+
+<section class="chapter">
+<h2>13. MANEB-style Practice</h2>
+
+<ol class="exercise">
+
+<li>Find the mean of \(6,8,10,12,14\).</li>
+
+<li>Find the median of \(3,9,5,7,11\).</li>
+
+<li>Find the mode of \(2,3,3,4,5,3,6\).</li>
+
+<li>Find the range of \(8,12,15,21,25\).</li>
+
+<li>A class has 40 students. 16 prefer football. Find the angle
+representing football on a pie chart.</li>
+
+<li>Explain one difference between a bar chart and a histogram.</li>
+
+<li>Calculate the frequency density for a class of width 5 having frequency
+20.</li>
+
+<li>Find the cumulative frequencies for frequencies
+\(3,7,4,6\).</li>
+
+</ol>
+
+<h3>Answers</h3>
+
+<ol class="answers">
+
+<li>\(10\)</li>
+
+<li>\(7\)</li>
+
+<li>\(3\)</li>
+
+<li>\(17\)</li>
+
+<li>
+\[
+\frac{16}{40}\times360^\circ=\boxed{144^\circ}
+\]
+</li>
+
+<li>Bars in a bar chart are separated; histogram bars touch.</li>
+
+<li>
+\[
+\frac{20}{5}=\boxed{4}
+\]
+</li>
+
+<li>\(3,10,14,20\)</li>
+
+</ol>
+</section>
+
+<section class="chapter">
+<h2>14. Common Mistakes</h2>
+
+<ul>
+<li>Forgetting to arrange values before finding the median.</li>
+<li>Confusing the mean with the median.</li>
+<li>Using the wrong total frequency in pie-chart calculations.</li>
+<li>Leaving gaps between histogram bars.</li>
+<li>Forgetting class width when calculating frequency density.</li>
+<li>Adding frequencies incorrectly when constructing cumulative frequency.</li>
+</ul>
+
+<div class="exam-tip">
+<strong>Examination tip:</strong>
+Always show your working. When interpreting a graph or table, quote the
+values you used before giving your conclusion.
+</div>
+</section>
+
+<footer>
+<p>MalawiHub • Mathematics • Secondary School</p>
+</footer>
+
+</div>
+</body>
+</html>
