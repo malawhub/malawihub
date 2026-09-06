@@ -9,82 +9,596 @@
 <script src="../js/supabase.js"></script>
 
 <style>
-* { box-sizing: border-box; }
-body { 
-    margin:0; 
-    font-family: Arial, sans-serif; 
-    background:#f5f7fb; 
-    padding:20px;
+* {
+    box-sizing: border-box;
 }
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f5f7fb;
+    padding: 20px;
+    color: #333;
+}
+
 .header {
-    background:white;
-    padding:20px;
-    border-radius:12px;
-    margin-bottom:20px;
-    box-shadow:0 2px 10px rgba(0,0,0,.05);
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
 }
-.header h1 { margin:0; color:#087f5b; }
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.header h1 {
+    margin: 0;
+    color: #087f5b;
+}
+
+.header p {
+    margin: 8px 0 0;
+    color: #666;
+}
+
+.logout-btn {
+    border: none;
+    background: #dc3545;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.logout-btn:hover {
+    background: #b02a37;
+}
+
 .stats {
-    display:grid;
+    display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap:15px;
-    margin-bottom:20px;
+    gap: 15px;
+    margin-bottom: 20px;
 }
+
 .stat-card {
-    background:white;
-    padding:20px;
-    border-radius:12px;
-    box-shadow:0 2px 10px rgba(0,0,0,.05);
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
 }
-.stat-card h3 { margin:0 0 10px; color:#666; font-size:14px; }
-.stat-card p { margin:0; font-size:32px; font-weight:800; color:#087f5b; }
+
+.stat-card h3 {
+    margin: 0 0 10px;
+    color: #666;
+    font-size: 14px;
+}
+
+.stat-card p {
+    margin: 0;
+    font-size: 32px;
+    font-weight: 800;
+    color: #087f5b;
+}
+
 .menu {
-    display:grid;
+    display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap:15px;
+    gap: 15px;
 }
+
 .menu a {
-    display:block;
-    background:white;
-    padding:20px;
-    border-radius:12px;
-    text-decoration:none;
-    color:#333;
-    box-shadow:0 2px 10px rgba(0,0,0,.05);
-    font-weight:600;
+    display: block;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #333;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    font-weight: 600;
+    transition: .2s;
 }
-.menu a:hover { background:#087f5b; color:white; }
+
+.menu a:hover {
+    background: #087f5b;
+    color: white;
+    transform: translateY(-2px);
+}
+
 .loading {
-    text-align:center;
-    padding:50px;
-    font-size:18px;
-    color:#666;
+    text-align: center;
+    padding: 50px 20px;
+    font-size: 18px;
+    color: #666;
+}
+
+.error {
+    max-width: 600px;
+    margin: 50px auto;
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,.05);
+    text-align: center;
+}
+
+.error h2 {
+    color: #dc3545;
+    margin-top: 0;
+}
+
+.error button {
+    border: none;
+    background: #087f5b;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
 }
 </style>
 </head>
+
 <body>
 
-<div id="loading" class="loading">Checking access...</div>
+<div id="loading" class="loading">
+    Checking access...
+</div>
+
+<div id="error" class="error" style="display:none;">
+    <h2>Access Denied</h2>
+    <p id="error-message">
+        You do not have permission to access the MalawiHub Admin Dashboard.
+    </p>
+    <button type="button" onclick="window.location.href='login.html'">
+        Go to Admin Login
+    </button>
+</div>
 
 <div id="admin-content" style="display:none;">
+
     <div class="header">
-        <h1>MalawiHub Admin</h1>
-        <p id="admin-email"></p>
+
+        <div class="header-top">
+
+            <div>
+                <h1>MalawiHub Admin</h1>
+                <p id="admin-email"></p>
+            </div>
+
+            <button
+                type="button"
+                class="logout-btn"
+                id="logout-btn">
+                Logout
+            </button>
+
+        </div>
+
     </div>
 
-    <div class="stats" id="stats">
-        <div class="stat-card"><h3>Total Resources</h3><p id="total-resources">0</p></div>
-        <div class="stat-card"><h3>Chemistry</h3><p id="chem-resources">0</p></div>
-        <div class="stat-card"><h3>Mathematics</h3><p id="math-resources">0</p></div>
-        <div class="stat-card"><h3>Past Papers</h3><p id="total-papers">0</p></div>
+    <div class="stats">
+
+        <div class="stat-card">
+            <h3>Total Resources</h3>
+            <p id="total-resources">0</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Chemistry</h3>
+            <p id="chem-resources">0</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Mathematics</h3>
+            <p id="math-resources">0</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Biology</h3>
+            <p id="bio-resources">0</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Education</h3>
+            <p id="education-resources">0</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Past Papers</h3>
+            <p id="total-papers">0</p>
+        </div>
+
+        <div class="stat-card">
+            <h3>Subject Resources</h3>
+            <p id="subject-resources">0</p>
+        </div>
+
     </div>
 
     <div class="menu">
-        <a href="/admin/add-resource/">+ Add Resource</a>
-        <a href="/admin/manage-resources/">Manage Resources</a>
-        <a href="/admin/add-paper/">+ Add Past Paper</a>
-        <a href="/admin/manage-papers/">Manage Past Papers</a>
+
+        <a href="/admin/add-resource/">
+            + Add Resource
+        </a>
+
+        <a href="/admin/manage-resources/">
+            Manage Resources
+        </a>
+
+        <a href="/admin/add-paper/">
+            + Add Past Paper
+        </a>
+
+        <a href="/admin/manage-papers/">
+            Manage Past Papers
+        </a>
+
+        <a href="/admin/subject-resources/">
+            Subject Resources
+        </a>
+
+        <a href="/admin/">
+            Refresh Dashboard
+        </a>
+
     </div>
+
 </div>
 
-<script type="
+<script>
+/*
+ * MalawiHub Admin Dashboard
+ *
+ * IMPORTANT:
+ * The UUID below must match the administrator UUID
+ * already used by the existing subject_resources RLS policies.
+ */
+
+const ADMIN_UUID = "759a11e5-6166-4fc0-8979-352ba589e88f";
+
+const loading = document.getElementById("loading");
+const adminContent = document.getElementById("admin-content");
+const errorBox = document.getElementById("error");
+const errorMessage = document.getElementById("error-message");
+const adminEmail = document.getElementById("admin-email");
+
+function showError(message) {
+    loading.style.display = "none";
+    adminContent.style.display = "none";
+    errorBox.style.display = "block";
+    errorMessage.textContent = message;
+}
+
+function showAdminDashboard() {
+    loading.style.display = "none";
+    errorBox.style.display = "none";
+    adminContent.style.display = "block";
+}
+
+async function checkAdminAccess() {
+
+    try {
+
+        /*
+         * Get the current authenticated session.
+         */
+        const {
+            data: sessionData,
+            error: sessionError
+        } = await supabaseClient.auth.getSession();
+
+        if (sessionError) {
+            console.error("Session error:", sessionError);
+            showError("Unable to verify your login session.");
+            return false;
+        }
+
+        const session = sessionData?.session;
+
+        if (!session || !session.user) {
+
+            window.location.href = "login.html";
+            return false;
+        }
+
+        const user = session.user;
+
+        /*
+         * Check the user's UUID.
+         *
+         * This is important because being logged into Supabase
+         * does NOT automatically make somebody an administrator.
+         */
+        if (user.id !== ADMIN_UUID) {
+
+            console.warn(
+                "Unauthorized admin access attempt:",
+                user.id
+            );
+
+            showError(
+                "Your account is authenticated, but it is not authorized as a MalawiHub administrator."
+            );
+
+            return false;
+        }
+
+        /*
+         * Display administrator email.
+         */
+        adminEmail.textContent =
+            user.email
+                ? `Administrator: ${user.email}`
+                : "Administrator";
+
+        showAdminDashboard();
+
+        await loadStatistics();
+
+        return true;
+
+    } catch (error) {
+
+        console.error("Admin access error:", error);
+
+        showError(
+            "Something went wrong while checking administrator access."
+        );
+
+        return false;
+    }
+}
+
+
+/*
+ * Load dashboard statistics.
+ */
+async function loadStatistics() {
+
+    try {
+
+        /*
+         * Total resources
+         */
+        const {
+            count: totalResources,
+            error: totalError
+        } = await supabaseClient
+            .from("resources")
+            .select("*", {
+                count: "exact",
+                head: true
+            });
+
+        if (totalError) {
+            console.error("Total resources error:", totalError);
+        } else {
+            document.getElementById("total-resources").textContent =
+                totalResources ?? 0;
+        }
+
+
+        /*
+         * Chemistry resources
+         */
+        const {
+            count: chemistryCount,
+            error: chemistryError
+        } = await supabaseClient
+            .from("resources")
+            .select("*", {
+                count: "exact",
+                head: true
+            })
+            .eq("subject", "Chemistry");
+
+        if (chemistryError) {
+            console.error(
+                "Chemistry resources error:",
+                chemistryError
+            );
+        } else {
+            document.getElementById("chem-resources").textContent =
+                chemistryCount ?? 0;
+        }
+
+
+        /*
+         * Mathematics resources
+         */
+        const {
+            count: mathematicsCount,
+            error: mathematicsError
+        } = await supabaseClient
+            .from("resources")
+            .select("*", {
+                count: "exact",
+                head: true
+            })
+            .eq("subject", "Mathematics");
+
+        if (mathematicsError) {
+            console.error(
+                "Mathematics resources error:",
+                mathematicsError
+            );
+        } else {
+            document.getElementById("math-resources").textContent =
+                mathematicsCount ?? 0;
+        }
+
+
+        /*
+         * Biology resources
+         */
+        const {
+            count: biologyCount,
+            error: biologyError
+        } = await supabaseClient
+            .from("resources")
+            .select("*", {
+                count: "exact",
+                head: true
+            })
+            .eq("subject", "Biology");
+
+        if (biologyError) {
+            console.error(
+                "Biology resources error:",
+                biologyError
+            );
+        } else {
+            document.getElementById("bio-resources").textContent =
+                biologyCount ?? 0;
+        }
+
+
+        /*
+         * Education resources
+         */
+        const {
+            count: educationCount,
+            error: educationError
+        } = await supabaseClient
+            .from("resources")
+            .select("*", {
+                count: "exact",
+                head: true
+            })
+            .eq("subject", "Education");
+
+        if (educationError) {
+            console.error(
+                "Education resources error:",
+                educationError
+            );
+        } else {
+            document.getElementById("education-resources").textContent =
+                educationCount ?? 0;
+        }
+
+
+        /*
+         * Past papers
+         */
+        const {
+            count: papersCount,
+            error: papersError
+        } = await supabaseClient
+            .from("past_papers")
+            .select("*", {
+                count: "exact",
+                head: true
+            });
+
+        if (papersError) {
+            console.error(
+                "Past papers error:",
+                papersError
+            );
+        } else {
+            document.getElementById("total-papers").textContent =
+                papersCount ?? 0;
+        }
+
+
+        /*
+         * Subject resources
+         */
+        const {
+            count: subjectResourcesCount,
+            error: subjectResourcesError
+        } = await supabaseClient
+            .from("subject_resources")
+            .select("*", {
+                count: "exact",
+                head: true
+            });
+
+        if (subjectResourcesError) {
+            console.error(
+                "Subject resources error:",
+                subjectResourcesError
+            );
+        } else {
+            document.getElementById("subject-resources").textContent =
+                subjectResourcesCount ?? 0;
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Statistics loading error:",
+            error
+        );
+
+    }
+}
+
+
+/*
+ * Logout
+ */
+document
+    .getElementById("logout-btn")
+    .addEventListener("click", async () => {
+
+        const {
+            error
+        } = await supabaseClient.auth.signOut();
+
+        if (error) {
+
+            console.error(
+                "Logout error:",
+                error
+            );
+
+            alert(
+                "Unable to sign out. Please try again."
+            );
+
+            return;
+        }
+
+        window.location.href = "login.html";
+    });
+
+
+/*
+ * Detect login/logout changes.
+ */
+supabaseClient.auth.onAuthStateChange(
+    async (event, session) => {
+
+        if (event === "SIGNED_OUT") {
+
+            window.location.href = "login.html";
+
+            return;
+        }
+
+        if (event === "SIGNED_IN" && session?.user) {
+
+            await checkAdminAccess();
+        }
+    }
+);
+
+
+/*
+ * Start dashboard.
+ */
+checkAdminAccess();
+</script>
+
+</body>
+</html>
