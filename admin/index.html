@@ -1,11 +1,10 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>MalawiHub Admin Dashboard</title>
+<title>MalawiHub Admin</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase.js"></script>
@@ -15,141 +14,180 @@
     box-sizing: border-box;
 }
 
+html,
+body {
+    min-height: 100%;
+}
+
 body {
     margin: 0;
-    padding: 20px;
     font-family: Arial, sans-serif;
-    background: #f5f7fb;
-    color: #333;
+    background:
+        linear-gradient(
+            180deg,
+            #eaf8f3 0%,
+            #f5f7fb 42%,
+            #ffffff 100%
+        );
+    color: #222;
 }
 
-.header {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 10px rgba(0,0,0,.05);
-}
-
-.header-top {
+.page {
+    min-height: 100vh;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    flex-wrap: wrap;
+    flex-direction: column;
 }
 
-.header h1 {
+.topbar {
+    background: #087f5b;
+    color: white;
+    padding: 18px 20px;
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.12);
+}
+
+.topbar-inner {
+    max-width: 620px;
+    margin: 0 auto;
+}
+
+.brand {
     margin: 0;
-    color: #087f5b;
+    font-size: 22px;
+    font-weight: 800;
 }
 
-.header p {
+.main {
+    width: 100%;
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 28px 18px 18px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-card {
+    background: white;
+    border-radius: 20px;
+    padding: 28px 22px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e7ece9;
+}
+
+.avatar {
+    width: 78px;
+    height: 78px;
+    margin: 0 auto 18px;
+    border-radius: 50%;
+    background: #087f5b;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 27px;
+    font-weight: 800;
+}
+
+
+.avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.profile-card h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #17352b;
+}
+
+.role {
     margin: 8px 0 0;
-    color: #666;
+    color: #087f5b;
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.welcome {
+    margin: 12px 0 0;
+    color: #6b7280;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.manage-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 26px;
+    padding: 16px 20px;
+    border-radius: 13px;
+    background: #087f5b;
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 800;
+    box-shadow: 0 6px 18px rgba(8, 127, 91, 0.25);
+    transition: 0.2s ease;
+}
+
+.manage-btn:hover {
+    background: #066b4d;
+    transform: translateY(-1px);
+}
+
+.logout-area {
+    margin-top: auto;
+    padding-top: 35px;
 }
 
 .logout-btn {
-    border: none;
-    background: #dc3545;
-    color: white;
-    padding: 10px 16px;
-    border-radius: 8px;
+    width: 100%;
+    border: 1px solid #f0c5ca;
+    background: white;
+    color: #c92a3a;
+    padding: 14px 18px;
+    border-radius: 12px;
     cursor: pointer;
-    font-weight: 600;
+    font-size: 15px;
+    font-weight: 700;
 }
 
 .logout-btn:hover {
-    background: #bb2d3b;
+    background: #fff5f5;
 }
 
-.stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 15px;
-    margin-bottom: 25px;
-}
-
-.stat-card {
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,.05);
-}
-
-.stat-card h3 {
-    margin: 0 0 10px;
-    color: #666;
-    font-size: 14px;
-}
-
-.stat-card p {
-    margin: 0;
-    font-size: 32px;
-    font-weight: 800;
-    color: #087f5b;
-}
-
-.section-title {
-    margin: 25px 0 12px;
-    color: #333;
-}
-
-.menu {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 15px;
-}
-
-.menu a {
-    display: block;
-    background: white;
-    padding: 20px;
-    border-radius: 12px;
-    text-decoration: none;
-    color: #333;
-    box-shadow: 0 2px 10px rgba(0,0,0,.05);
-    font-weight: 600;
-    transition: .2s;
-}
-
-.menu a:hover {
-    background: #087f5b;
-    color: white;
-    transform: translateY(-2px);
-}
-
-.menu a span {
-    display: block;
-    font-size: 13px;
-    font-weight: normal;
-    margin-top: 6px;
-    color: #777;
-}
-
-.menu a:hover span {
-    color: #e8fff7;
+.footer {
+    text-align: center;
+    padding: 18px;
+    color: #8a9290;
+    font-size: 12px;
 }
 
 .loading {
-    text-align: center;
-    padding: 50px 20px;
-    font-size: 18px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
     color: #666;
 }
 
 .error-box {
-    max-width: 600px;
-    margin: 50px auto;
+    max-width: 500px;
+    margin: 70px auto;
     background: white;
-    padding: 25px;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,.08);
+    padding: 28px 22px;
+    border-radius: 16px;
     text-align: center;
+    box-shadow: 0 5px 25px rgba(0, 0, 0, 0.08);
 }
 
 .error-box h2 {
-    color: #dc3545;
+    color: #c92a3a;
     margin-top: 0;
 }
 
@@ -162,39 +200,34 @@ body {
     border: none;
     background: #087f5b;
     color: white;
-    padding: 10px 18px;
-    border-radius: 8px;
+    padding: 11px 20px;
+    border-radius: 9px;
     cursor: pointer;
-    font-weight: 600;
+    font-weight: 700;
 }
 
-.footer {
-    text-align: center;
-    margin-top: 30px;
-    padding: 20px;
-    color: #777;
-    font-size: 13px;
-}
-
-@media (max-width: 600px) {
-    body {
-        padding: 12px;
-    }
-
-    .header {
+@media (max-width: 480px) {
+    .topbar {
         padding: 16px;
     }
 
-    .stat-card {
-        padding: 16px;
+    .brand {
+        font-size: 20px;
     }
 
-    .stat-card p {
-        font-size: 28px;
+    .main {
+        padding: 22px 14px 14px;
     }
 
-    .menu a {
-        padding: 16px;
+    .profile-card {
+        padding: 25px 18px;
+        border-radius: 18px;
+    }
+
+
+
+.profile-card h1 {
+        font-size: 21px;
     }
 }
 </style>
@@ -208,122 +241,55 @@ body {
 
 <div id="error" style="display:none;"></div>
 
-<div id="admin-content" style="display:none;">
+<div id="admin-content" class="page" style="display:none;">
 
-    <div class="header">
+    <header class="topbar">
+        <div class="topbar-inner">
+            <h2 class="brand">🇲🇼 MalawiHub Admin</h2>
+        </div>
+    </header>
 
-        <div class="header-top">
+    <main class="main">
 
-            <div>
-                <h1>MalawiHub Admin</h1>
-                <p id="admin-email">Loading account...</p>
+        <section class="profile-card">
+
+            <div class="avatar">
+                <img src="assets/admin-profile.png" alt="AMON ALICK ASSAM">
             </div>
+
+            <h1>AMON ALICK ASSAM</h1>
+
+            <p class="role">
+                Administrator
+            </p>
+
+            <p class="welcome">
+                Welcome to your MalawiHub administration area.
+            </p>
+
+            <a
+                href="resource-management.html"
+                class="manage-btn">
+                📚 Manage Resources
+            </a>
+
+        </section>
+
+        <div class="logout-area">
 
             <button
                 type="button"
                 class="logout-btn"
                 id="logoutBtn">
-                Logout
+                🚪 Logout
             </button>
 
         </div>
 
-    </div>
-
-    <div class="stats">
-
-        <div class="stat-card">
-            <h3>Total Resources</h3>
-            <p id="total-resources">0</p>
-        </div>
-
-        <div class="stat-card">
-            <h3>Chemistry</h3>
-            <p id="chem-resources">0</p>
-        </div>
-
-        <div class="stat-card">
-            <h3>Mathematics</h3>
-            <p id="math-resources">0</p>
-        </div>
-
-        <div class="stat-card">
-            <h3>Biology</h3>
-            <p id="biology-resources">0</p>
-        </div>
-
-        <div class="stat-card">
-            <h3>Education</h3>
-            <p id="education-resources">0</p>
-        </div>
-
-        <div class="stat-card">
-            <h3>Subject Resources</h3>
-            <p id="subject-resources">0</p>
-        </div>
-
-        <div class="stat-card">
-            <h3>Past Papers</h3>
-            <p id="total-papers">0</p>
-        </div>
-
-    </div>
-
-    <h2 class="section-title">Resources</h2>
-
-    <div class="menu">
-
-        <a href="/admin/add-resource/">
-            + Add Resource
-            <span>Add a general MalawiHub resource</span>
-        </a>
-
-        <a href="/admin/manage-resources/">
-            Manage Resources
-            <span>View and manage existing resources</span>
-        </a>
-
-        <a href="/admin/subject-resources/add.html">
-            + Add Subject Resource
-            <span>Upload a PDF and assign it to a subject/topic</span>
-        </a>
-
-        <a href="/admin/subject-resources/">
-            Manage Subject Resources
-            <span>Manage subject learning materials</span>
-        </a>
-
-    </div>
-
-    <h2 class="section-title">Past Papers</h2>
-
-    <div class="menu">
-
-        <a href="/admin/add-paper/">
-            + Add Past Paper
-            <span>Upload a new past paper</span>
-        </a>
-
-        <a href="/admin/manage-papers/">
-            Manage Past Papers
-            <span>View, edit and delete past papers</span>
-        </a>
-
-    </div>
-
-    <h2 class="section-title">Resource Discovery</h2>
-
-    <div class="menu">
-
-        <a href="/admin/resource-discovery/">
-            🔎 Resource Discovery
-            <span>Discover and classify educational resources</span>
-        </a>
-
-    </div>
+    </main>
 
     <div class="footer">
-        MalawiHub Admin Dashboard
+        MalawiHub Administration
     </div>
 
 </div>
@@ -343,9 +309,6 @@ const adminContent =
 const errorBox =
     document.getElementById("error");
 
-const adminEmail =
-    document.getElementById("admin-email");
-
 
 function showError(title, message) {
 
@@ -358,7 +321,6 @@ function showError(title, message) {
     errorBox.innerHTML = `
         <div class="error-box">
             <h2>${title}</h2>
-
             <p>${message}</p>
 
             <button
@@ -369,125 +331,6 @@ function showError(title, message) {
             </button>
         </div>
     `;
-}
-
-
-async function getCount(table, subject = null) {
-
-    let query =
-        supabaseClient
-            .from(table)
-            .select("*", {
-                count: "exact",
-                head: true
-            });
-
-    if (subject !== null) {
-
-        query =
-            query.eq("subject", subject);
-
-    }
-
-    const {
-        count,
-        error
-    } = await query;
-
-    if (error) {
-
-        console.error(
-            `Error loading ${table}:`,
-            error
-        );
-
-        return 0;
-    }
-
-    return count || 0;
-}
-
-
-async function loadStats() {
-
-    const totalResources =
-        await getCount("resources");
-
-    const chemistryResources =
-        await getCount(
-            "resources",
-            "Chemistry"
-        );
-
-    const mathResources =
-        await getCount(
-            "resources",
-            "Mathematics"
-        );
-
-    const biologyResources =
-        await getCount(
-            "resources",
-            "Biology"
-        );
-
-    const educationResources =
-        await getCount(
-            "resources",
-            "Education"
-        );
-
-    const subjectResources =
-        await getCount(
-            "subject_resources"
-        );
-
-    const totalPapers =
-        await getCount(
-            "past_papers"
-        );
-
-
-    document.getElementById(
-        "total-resources"
-    ).textContent =
-        totalResources;
-
-
-    document.getElementById(
-        "chem-resources"
-    ).textContent =
-        chemistryResources;
-
-
-    document.getElementById(
-        "math-resources"
-    ).textContent =
-        mathResources;
-
-
-    document.getElementById(
-        "biology-resources"
-    ).textContent =
-        biologyResources;
-
-
-    document.getElementById(
-        "education-resources"
-    ).textContent =
-        educationResources;
-
-
-    document.getElementById(
-        "subject-resources"
-    ).textContent =
-        subjectResources;
-
-
-    document.getElementById(
-        "total-papers"
-    ).textContent =
-        totalPapers;
 }
 
 
@@ -565,19 +408,11 @@ async function checkAdminAccess() {
         }
 
 
-        adminEmail.textContent =
-            user.email ||
-            "Administrator";
-
-
         loading.style.display =
             "none";
 
         adminContent.style.display =
-            "block";
-
-
-        await loadStats();
+            "flex";
 
 
     } catch (error) {
@@ -589,7 +424,7 @@ async function checkAdminAccess() {
 
         showError(
             "Something went wrong",
-            "Unable to load the administrator dashboard."
+            "Unable to load the administrator page."
         );
     }
 }

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resource Statistics — MalawiHub Admin</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f7f6;
+            color: #17221d;
+        }
+
+        .topbar {
+            background: #087f5b;
+            color: white;
+            padding: 18px 20px;
+            text-align: center;
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .container {
+            width: min(720px, calc(100% - 28px));
+            margin: 24px auto 40px;
+        }
+
+        .back {
+            display: inline-block;
+            margin-bottom: 18px;
+            color: #087f5b;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            font-size: 27px;
+        }
+
+        .intro {
+            margin: 0 0 24px;
+            color: #66736d;
+            line-height: 1.5;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e5ebe8;
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 3px 12px rgba(0,0,0,.06);
+        }
+
+        .icon {
+            font-size: 25px;
+            margin-bottom: 8px;
+        }
+
+        .number {
+            font-size: 30px;
+            font-weight: 800;
+            color: #087f5b;
+            margin-bottom: 5px;
+        }
+
+        .label {
+            color: #66736d;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .loading,
+        .error {
+            text-align: center;
+            padding: 45px 20px;
+        }
+
+        .error {
+            color: #b42318;
+        }
+
+        .logout {
+            width: 100%;
+            margin-top: 28px;
+            padding: 15px;
+            border: 1px solid #f0d8d5;
+            border-radius: 12px;
+            background: white;
+            color: #b42318;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        @media (max-width: 430px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="loading" class="loading">
+    Loading resource statistics...
+</div>
+
+<div id="error" class="error" style="display:none;"></div>
+
+<div id="page" style="display:none;">
+
+    <div class="topbar">
+        🇲🇼 MalawiHub Admin
+    </div>
+
+    <main class="container">
+
+        <a href="resource-management.html" class="back">
+            ← Back to Resource Management
+        </a>
+
+        <h1>📊 Resource Statistics</h1>
+
+        <p class="intro">
+            Overview of resources currently available in the MalawiHub system.
+        </p>
+
+        <section class="stats">
+
+            <div class="card">
+                <div class="icon">📚</div>
+                <div class="number" id="totalResources">0</div>
+                <div class="label">Total Resources</div>
+            </div>
+
+            <div class="card">
+                <div class="icon">🧪</div>
+                <div class="number" id="chemistry">0</div>
+                <div class="label">Chemistry</div>
+            </div>
+
+            <div class="card">
+                <div class="icon">📐</div>
+                <div class="number" id="mathematics">0</div>
+                <div class="label">Mathematics</div>
+            </div>
+
+            <div class="card">
+                <div class="icon">🧬</div>
+                <div class="number" id="biology">0</div>
+                <div class="label">Biology</div>
+            </div>
+
+            <div class="card">
+                <div class="icon">🎓</div>
+                <div class="number" id="education">0</div>
+                <div class="label">Education</div>
+            </div>
+
+            <div class="card">
+                <div class="icon">📄</div>
+                <div class="number" id="subjectResources">0</div>
+                <div class="label">Subject Resources</div>
+            </div>
+
+            <div class="card">
+                <div class="icon">📝</div>
+                <div class="number" id="pastPapers">0</div>
+                <div class="label">Past Papers</div>
+            </div>
+
+        </section>
+
+        <button type="button" class="logout" id="logoutBtn">
+            🚪 Logout
+        </button>
+
+    </main>
+</div>
+
+<script>
+const ADMIN_UUID =
+    "759a11e5-6166-4fc0-8979-352ba589e88f";
+
+const loading = document.getElementById("loading");
+const errorBox = document.getElementById("error");
+const page = document.getElementById("page");
+
+function showError(message) {
+    loading.style.display = "none";
+    errorBox.textContent = message;
+    errorBox.style.display = "block";
+}
+
+async function countRows(table) {
+    const { count, error } = await supabaseClient
+        .from(table)
+        .select("*", { count: "exact", head: true });
+
+    if (error) {
+        throw error;
+    }
+
+    return count || 0;
+}
+
+async function loadStatistics() {
+
+    const totalResources = await countRows("resources");
+    const subjectResources = await countRows("subject_resources");
+
+    const pastPapers = await countRows("past_papers");
+
+    document.getElementById("totalResources").textContent =
+        totalResources + subjectResources + pastPapers;
+
+    document.getElementById("subjectResources").textContent =
+        subjectResources;
+
+    document.getElementById("pastPapers").textContent =
+        pastPapers;
+
+    const { data: resources, error } = await supabaseClient
+        .from("resources")
+        .select("category, subject");
+
+    if (error) {
+        throw error;
+    }
+
+    const counts = {
+        chemistry: 0,
+        mathematics: 0,
+        biology: 0,
+        education: 0
+    };
+
+    (resources || []).forEach(resource => {
+
+        const value = (
+            resource.subject ||
+            resource.category ||
+            ""
+        ).toLowerCase();
+
+        if (value.includes("chemistry")) {
+            counts.chemistry++;
+        }
+
+        if (
+            value.includes("mathematics") ||
+            value.includes("math")
+        ) {
+            counts.mathematics++;
+        }
+
+        if (value.includes("biology")) {
+            counts.biology++;
+        }
+
+        if (value.includes("education")) {
+            counts.education++;
+        }
+    });
+
+    document.getElementById("chemistry").textContent =
+        counts.chemistry;
+
+    document.getElementById("mathematics").textContent =
+        counts.mathematics;
+
+    document.getElementById("biology").textContent =
+        counts.biology;
+
+    document.getElementById("education").textContent =
+        counts.education;
+}
+
+async function checkAdminAccess() {
+
+    try {
+
+        if (typeof supabaseClient === "undefined") {
+            showError("Configuration Error: Supabase could not be loaded.");
+            return;
+        }
+
+        const { data, error } =
+            await supabaseClient.auth.getSession();
+
+        if (error) {
+            showError("Unable to verify your session.");
+            return;
+        }
+
+        const session = data?.session;
+
+        if (!session || !session.user) {
+            window.location.href = "login.html";
+            return;
+        }
+
+        if (session.user.id !== ADMIN_UUID) {
+            showError(
+                "Access Denied: Your account does not have administrator access."
+            );
+            return;
+        }
+
+        await loadStatistics();
+
+        loading.style.display = "none";
+        page.style.display = "block";
+
+    } catch (error) {
+
+        console.error(error);
+
+        showError(
+            "Unable to load resource statistics. Please try again."
+        );
+    }
+}
+
+document.getElementById("logoutBtn").addEventListener(
+    "click",
+    async function () {
+
+        const { error } =
+            await supabaseClient.auth.signOut();
+
+        if (error) {
+            alert("Unable to log out. Please try again.");
+            return;
+        }
+
+        window.location.href = "login.html";
+    }
+);
+
+supabaseClient.auth.onAuthStateChange((event) => {
+
+    if (event === "SIGNED_OUT") {
+        window.location.href = "login.html";
+    }
+
+});
+
+checkAdminAccess();
+</script>
+
+</body>
+</html>
