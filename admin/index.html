@@ -457,10 +457,24 @@ async function checkAdminAccess() {
         // Load MalawiHub user statistics
         try {
             const {
+                data: { session: currentSession }
+            } = await supabaseClient.auth.getSession();
+
+            if (!currentSession?.access_token) {
+                throw new Error("Admin session JWT is missing.");
+            }
+
+            const {
                 data: functionData,
                 error: functionError
             } = await supabaseClient.functions.invoke(
-                "admin-user-stats"
+                "admin-user-stats",
+                {
+                    headers: {
+                        Authorization:
+                            `Bearer ${currentSession.access_token}`
+                    }
+                }
             );
 
             if (functionError) throw functionError;
