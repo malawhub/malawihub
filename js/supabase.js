@@ -42,16 +42,19 @@ async function updateMalawiHubLastSeen() {
 }
 
 function fillOnlineClassCode() {
-    if (!location.pathname.endsWith("/online-class/index.html")) return;
+    /* Run on both /online-class/ and /online-class/index.html. */
+    const teacherButton = document.getElementById("teacherBtn");
+    const input = document.getElementById("code");
+    if (!teacherButton && !input) return;
+
     const params = new URLSearchParams(location.search);
     const code = params.get("code");
-    const input = document.getElementById("code");
     if (code && input) input.value = code.trim().toUpperCase();
 
     /* Teacher must authenticate through the dedicated Teacher Login page.
-       Do not auto-enter teacher mode or treat an administrator as a teacher. */
-    const teacherButton = document.getElementById("teacherBtn");
+       Never enter teacher mode directly from the class-code form. */
     if (teacherButton) {
+        teacherButton.textContent = "Teacher Login";
         teacherButton.onclick = () => {
             const next = params.get("code");
             location.href = next
