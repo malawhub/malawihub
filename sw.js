@@ -1,9 +1,10 @@
-const CACHE_NAME = "malawihub-v2";
+const CACHE_NAME = "malawihub-v3";
 
 const APP_FILES = [
   "/",
   "/index.html",
   "/tutorial/index.html",
+  "/online-class/index.html",
   "/css/style.css",
   "/js/app.js",
   "/js/supabase.js",
@@ -38,11 +39,7 @@ self.addEventListener("fetch", event => {
     fetch(event.request)
       .then(response => {
         const copy = response.clone();
-
-        caches.open(CACHE_NAME).then(cache => {
-          cache.put(event.request, copy);
-        });
-
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
         return response;
       })
       .catch(() => caches.match(event.request))
