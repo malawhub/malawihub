@@ -1,19 +1,16 @@
 {
-  "name": "MalawiHub",
+  "name": "MalawiHub — Official Learning App",
   "short_name": "MalawiHub",
-  "description": "MalawiHub — Student resources, tools and learning materials.",
-  "start_url": "/",
+  "description": "The official MalawiHub learning app for student tools, study resources, calculators and live classes.",
+  "id": "/",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#0d6efd",
-  "icons": [
-    {
-      "src": "/icons/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+  "background_color": "#f7faf8",
+  "theme_color": "#087f3f",
+  "lang": "en-MW",
+  "categories": ["education", "productivity"],
+  "icons": [{"src":"/icons/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
 }
