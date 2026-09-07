@@ -43,9 +43,19 @@ async function updateMalawiHubLastSeen() {
 
 function fillOnlineClassCode() {
     if (!location.pathname.endsWith("/online-class/index.html")) return;
-    const code = new URLSearchParams(location.search).get("code");
+    const params = new URLSearchParams(location.search);
+    const code = params.get("code");
     const input = document.getElementById("code");
     if (code && input) input.value = code.trim().toUpperCase();
+
+    /* Teacher dashboard links already include teacher=1. Previously the
+       live-class page only filled the code and still waited for the teacher
+       to press the Teacher button. Auto-enter teacher mode for those trusted
+       teacher links so a teacher can open their class directly. */
+    if (params.get("teacher") === "1") {
+        const teacherButton = document.getElementById("teacherBtn");
+        if (teacherButton) teacherButton.click();
+    }
 }
 
 window.updateMalawiHubLastSeen = updateMalawiHubLastSeen;
