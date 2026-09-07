@@ -6,7 +6,7 @@
 <title>MalawiHub Live Class</title>
 <link rel="stylesheet" href="../css/style.css">
 <style>
-body{background:#f5f7fb}.class-wrap{max-width:1100px;margin:auto;padding:16px}.top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.brand{font-size:22px;font-weight:800}.panel{background:#fff;border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 4px 18px #00000012}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.input{padding:11px;border:1px solid #ccd3df;border-radius:10px;min-width:150px;flex:1}.btn{border:0;border-radius:10px;padding:11px 15px;cursor:pointer;font-weight:700}.primary{background:#0d6efd;color:white}.danger{background:#dc3545;color:white}.muted{color:#667085}.timer{font-size:25px;font-weight:800}.live{display:inline-flex;align-items:center;gap:6px}.dot{width:10px;height:10px;border-radius:50%;background:#dc3545}.stage{background:#101828;border-radius:14px;min-height:300px;display:grid;place-items:center;overflow:hidden}.stage video{width:100%;max-height:62vh;object-fit:contain}.notes{min-height:330px;width:100%;resize:vertical;border:1px solid #ccd3df;border-radius:12px;padding:14px;font:16px/1.6 system-ui}.student-list{display:flex;gap:7px;flex-wrap:wrap}.student{background:#eef4ff;padding:7px 10px;border-radius:999px}.hidden{display:none!important}.notice{padding:10px;border-radius:10px;background:#fff8e1}.small{font-size:13px}.grid2{display:grid;grid-template-columns:2fr 1fr;gap:14px}@media(max-width:800px){.grid2{grid-template-columns:1fr}.stage{min-height:220px}}
+body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.top{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}.brand{font-size:22px;font-weight:800}.panel{background:#fff;border-radius:16px;padding:16px;margin:14px 0;box-shadow:0 4px 18px #00000012}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.input{padding:11px;border:1px solid #ccd3df;border-radius:10px;min-width:150px;flex:1}.btn{border:0;border-radius:10px;padding:11px 15px;cursor:pointer;font-weight:700}.primary{background:#0d6efd;color:white}.danger{background:#dc3545;color:white}.muted{color:#667085}.timer{font-size:25px;font-weight:800}.live{display:inline-flex;align-items:center;gap:6px}.dot{width:10px;height:10px;border-radius:50%;background:#dc3545}.stage{background:#101828;border-radius:14px;min-height:300px;display:grid;place-items:center;overflow:hidden}.stage video{width:100%;max-height:62vh;object-fit:contain}.notes{min-height:330px;width:100%;resize:vertical;border:1px solid #ccd3df;border-radius:12px;padding:14px;font:16px/1.6 system-ui}.student-list{display:flex;gap:7px;flex-wrap:wrap}.student{background:#eef4ff;padding:7px 10px;border-radius:999px}.hidden{display:none!important}.notice{padding:10px;border-radius:10px;background:#fff8e1}.small{font-size:13px}.grid2{display:grid;grid-template-columns:2fr 1fr;gap:14px}.video-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}.video-card{border:1px solid #e4e7ec;border-radius:14px;padding:10px}.video-card iframe,.video-card video{width:100%;aspect-ratio:16/9;border:0;border-radius:10px;background:#111}.video-card h4{margin:8px 0 3px}.tag{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef4ff;color:#1769aa;font-size:12px;font-weight:700}.resource-empty{padding:12px;background:#f8fafc;border-radius:10px}@media(max-width:800px){.grid2{grid-template-columns:1fr}.stage{min-height:220px}}
 </style>
 </head>
 <body>
@@ -20,125 +20,80 @@ body{background:#f5f7fb}.class-wrap{max-width:1100px;margin:auto;padding:16px}.t
 <button class="btn primary" id="studentBtn">Join as Student</button>
 <button class="btn" id="teacherBtn">Teacher</button>
 </div>
-<p class="muted small">Students only need the class code. The teacher controls the lesson, microphone, screen and timer.</p>
+<p class="muted small">Students need the class code and their name. The teacher controls the lesson, microphone, screen and timer.</p>
 <div id="loginNotice" class="notice small hidden">Teacher mode requires a signed-in MalawiHub account.</div>
 </div>
 <div id="room" class="hidden">
-<div class="panel">
-<div class="row"><div><b id="classTitle">Live class</b><div class="muted small" id="roleText"></div></div><div class="timer" id="timer">00:00</div><div class="live"><span class="dot"></span><b id="status">Waiting</b></div></div>
-</div>
+<div class="panel"><div class="row"><div><b id="classTitle">Live class</b><div class="muted small" id="roleText"></div></div><div class="timer" id="timer">00:00</div><div class="live"><span class="dot"></span><b id="status">Waiting</b></div></div></div>
 <div class="grid2">
 <div>
-<div class="panel"><div class="row"><button class="btn primary" id="startBtn">▶ Start Class</button><button class="btn" id="screenBtn">🖥 Share Notes/Screen</button><button class="btn" id="micBtn">🎙 Microphone</button><button class="btn danger" id="endBtn">End Class</button></div><div class="stage"><video id="remoteVideo" autoplay playsinline></video><div id="waiting" style="color:white">Waiting for the teacher…</div></div></div>
+<div class="panel"><div class="row"><button class="btn primary" id="startBtn">▶ Start Class</button><button class="btn" id="screenBtn">🖥 Share Screen</button><button class="btn" id="micBtn">🎙 Microphone</button><button class="btn danger" id="endBtn">End Class</button></div><div class="stage"><video id="remoteVideo" autoplay playsinline></video><div id="waiting" style="color:white">Waiting for the teacher…</div></div></div>
 <div class="panel"><h3>📝 Live Notes</h3><textarea id="notes" class="notes" placeholder="Teacher's notes will appear here…"></textarea><div class="row" style="margin-top:10px"><button class="btn" id="downloadNotes">⬇ Download Notes</button><button class="btn" id="printNotes">🖨 Print / Save PDF</button><span class="muted small" id="saveState">Not connected</span></div></div>
+<div class="panel"><h3>🎥 Class Video Resources</h3><p class="muted small">Teacher-provided videos for this lesson appear here while you are in class.</p><div id="videoResources" class="video-grid"><div class="resource-empty muted">No video resources yet.</div></div><p style="margin-top:10px"><a id="allVideosLink" href="#" target="_blank" rel="noopener">Open all class videos ↗</a></p></div>
 </div>
 <div>
 <div class="panel"><h3>👥 Students</h3><div id="students" class="student-list"><span class="muted">No students yet</span></div></div>
 <div class="panel"><h3>💬 Class chat</h3><div id="chat" style="height:220px;overflow:auto;border:1px solid #e4e7ec;border-radius:10px;padding:10px"></div><div class="row" style="margin-top:8px"><input id="chatInput" class="input" placeholder="Write a message"><button class="btn primary" id="sendChat">Send</button></div></div>
-<div class="panel"><h3>Class features</h3><ul><li>Fixed class duration and automatic end</li><li>Teacher microphone + screen/whiteboard sharing</li><li>Live synchronized notes with database saving</li><li>Download notes as text or save/print as PDF</li><li>Student presence and chat</li><li>Works on phones and computers over HTTPS</li></ul></div>
+<div class="panel"><h3>Class features</h3><ul><li>Fixed class duration and automatic end</li><li>Teacher microphone and screen sharing</li><li>Live synchronized notes with database saving</li><li>Download notes as text or save/print as PDF</li><li>Video resources inside the classroom</li><li>Student presence and chat</li></ul></div>
 </div></div>
-</div>
-</div>
+</div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase.js"></script>
 <script>
 const $=id=>document.getElementById(id);
-let channel,roomCode='',userName='',role='',localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null;
-const peers=new Map();
-const state={students:new Map()};
+let channel,resourceChannel,roomCode='',userName='',role='',localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null;
+const peers=new Map();const state={students:new Map()};let myId='';
 function cleanCode(v){return v.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,32)}
 function msg(text){$('status').textContent=text}
-function addChat(name,text){const d=document.createElement('div');d.innerHTML='<b>'+escapeHtml(name)+'</b>: '+escapeHtml(text);$('chat').appendChild(d);$('chat').scrollTop=$('chat').scrollHeight}
-function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
-function renderStudents(){const el=$('students');el.innerHTML='';if(!state.students.size){el.innerHTML='<span class="muted">No students yet</span>';return}state.students.forEach((n,id)=>{const x=document.createElement('span');x.className='student';x.textContent='👤 '+n;el.appendChild(x)})}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function addChat(name,text){const d=document.createElement('div');d.innerHTML='<b>'+esc(name)+'</b>: '+esc(text);$('chat').appendChild(d);$('chat').scrollTop=$('chat').scrollHeight}
+function renderStudents(){const el=$('students');el.innerHTML='';if(!state.students.size){el.innerHTML='<span class="muted">No students yet</span>';return}state.students.forEach(n=>{const x=document.createElement('span');x.className='student';x.textContent='👤 '+n;el.appendChild(x)})}
+function getMyId(){if(!myId)myId=crypto.randomUUID();return myId}
 async function getAuthUser(){try{const {data}=await supabaseClient.auth.getUser();return data?.user||null}catch(e){return null}}
+function youtubeEmbed(u){try{const x=new URL(u);if(x.hostname.includes('youtu.be'))return 'https://www.youtube.com/embed/'+x.pathname.slice(1).split('?')[0];if(x.hostname.includes('youtube.com')){const id=x.searchParams.get('v');if(id)return 'https://www.youtube.com/embed/'+id;const m=x.pathname.match(/\/shorts\/([^/]+)/);if(m)return 'https://www.youtube.com/embed/'+m[1]}}catch(e){}return null}
+function renderResources(rows){const el=$('videoResources');el.innerHTML='';if(!rows?.length){el.innerHTML='<div class="resource-empty muted">No video resources yet.</div>';return}rows.forEach(r=>{const card=document.createElement('article');card.className='video-card';const embed=youtubeEmbed(r.video_url);if(embed){card.innerHTML='<iframe src="'+esc(embed)+'" title="'+esc(r.title)+'" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>'}else{const v=document.createElement('video');v.controls=true;v.playsInline=true;v.src=r.video_url;card.appendChild(v)}card.innerHTML+='<span class="tag">Video resource</span><h4>'+esc(r.title)+'</h4><p class="muted small">'+esc(r.description||'')+'</p><a href="'+esc(r.video_url)+'" target="_blank" rel="noopener">Open video ↗</a>';el.appendChild(card)})}
+async function loadResources(){if(!classId)return;const {data,error}=await supabaseClient.from('class_video_resources').select('id,title,video_url,description,created_at').eq('class_id',classId).order('created_at',{ascending:true});if(error){console.warn('resources',error);return}renderResources(data);$('allVideosLink').href='./resources.html?code='+encodeURIComponent(roomCode);if(resourceChannel)return;resourceChannel=supabaseClient.channel('malawihub-resources-'+roomCode).on('postgres_changes',{event:'*',schema:'public',table:'class_video_resources',filter:'class_id=eq.'+classId},()=>loadResources()).subscribe()}
 async function setupRoom(){
  roomCode=cleanCode($('code').value);userName=$('name').value.trim()||(role==='teacher'?'Teacher':'Student');
- if(!roomCode){alert('Enter a class code.');return}
- if(!window.supabaseClient){alert('Supabase is not available.');return}
+ if(!roomCode){alert('Enter a class code.');return}if(!window.supabaseClient){alert('Supabase is not available.');return}
  if(role==='teacher'){authUser=await getAuthUser();if(!authUser){$('loginNotice').classList.remove('hidden');alert('Please sign in to MalawiHub before starting a teacher class.');return}}
- $('room').classList.remove('hidden');$('roleText').textContent=role==='teacher'?'Teacher mode':'Student mode';$('classTitle').textContent='Class: '+roomCode;
+ const {data,error}=await supabaseClient.from('online_classes').select('*').eq('join_code',roomCode).maybeSingle();
+ if(error||!data){alert('Class not found. Check the class code.');return}classData=data;classId=data.id;duration=data.duration_minutes||60;
+ $('room').classList.remove('hidden');$('roleText').textContent=role==='teacher'?'Teacher mode':'Student mode';$('classTitle').textContent=data.title||('Class: '+roomCode);$('allVideosLink').href='./resources.html?code='+encodeURIComponent(roomCode);await loadNotes();await loadResources();
  channel=supabaseClient.channel('malawihub-class-'+roomCode,{config:{broadcast:{self:false}}});
  channel.on('broadcast',{event:'class'},async({payload})=>{if(payload.code!==roomCode)return;if(!payload.to||payload.to==='*'||payload.to===getMyId())await handleSignal(payload)})
- .on('broadcast',{event:'notes'},({payload})=>{if(role!=='teacher'&&payload.code===roomCode){ $('notes').value=payload.notes; $('saveState').textContent='Live'; }})
+ .on('broadcast',{event:'notes'},({payload})=>{if(role!=='teacher'&&payload.code===roomCode){ $('notes').value=payload.notes;$('saveState').textContent='Live'; }})
  .on('broadcast',{event:'chat'},({payload})=>{if(payload.code===roomCode)addChat(payload.name,payload.text)})
  .on('broadcast',{event:'presence'},({payload})=>{if(payload.code!==roomCode)return;if(payload.action==='join'){state.students.set(payload.id,payload.name);renderStudents()}if(payload.action==='leave'){state.students.delete(payload.id);removePeer(payload.id);renderStudents()}});
  await channel.subscribe();msg('Connected');
- if(role==='student'){
-   $('startBtn').classList.add('hidden');$('screenBtn').classList.add('hidden');$('micBtn').classList.add('hidden');$('endBtn').classList.add('hidden');$('notes').readOnly=true;
-   await loadClass();
-   await send({type:'join',from:getMyId(),name:userName,to:'teacher'});
- } else {
-   duration=60;await loadClass();$('startBtn').classList.remove('hidden');$('notes').readOnly=false;
- }
+ if(role==='student'){$('startBtn').classList.add('hidden');$('screenBtn').classList.add('hidden');$('micBtn').classList.add('hidden');$('endBtn').classList.add('hidden');$('notes').readOnly=true;if(data.status==='ended'){msg('Class ended');return}await send({type:'join',from:getMyId(),name:userName,to:'teacher'})}
+ else {$('startBtn').classList.remove('hidden');$('notes').readOnly=false;if(data.status==='live'&&data.starts_at){startedAt=data.starts_at;startTimer();msg('LIVE');await loadNotes()}}
 }
-let myId='';
-function getMyId(){if(!myId)myId=crypto.randomUUID();return myId}
 async function send(payload){payload.code=roomCode;await channel.send({type:'broadcast',event:'class',payload})}
 async function handleSignal(p){
- if(role==='teacher'&&p.type==='join'){
-   state.students.set(p.from,p.name);renderStudents();
-   await channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'join',id:p.from,name:p.name}});
-   const pc=makePeer(p.from);
-   if(localStream){localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});}
-   if(startedAt){const offer=await pc.createOffer();await pc.setLocalDescription(offer);await send({type:'offer',to:p.from,from:getMyId(),sdp:pc.localDescription})}
- }else if(role==='student'&&p.type==='offer'){
-   const pc=makePeer('teacher');await pc.setRemoteDescription(p.sdp);const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:'answer',to:p.from,from:getMyId(),sdp:pc.localDescription});
- }else if(role==='teacher'&&p.type==='answer'){
-   const pc=peers.get(p.from);if(pc)await pc.setRemoteDescription(p.sdp);
- }else if(p.type==='ice'){
-   const peerId=role==='teacher'?p.from:'teacher';const pc=peers.get(peerId);if(pc&&p.candidate)try{await pc.addIceCandidate(p.candidate)}catch(e){console.warn('ICE',e)}
- }else if(p.type==='start'){
-   startedAt=p.startedAt;duration=Number(p.duration)||60;startTimer();$('waiting').classList.add('hidden');msg('LIVE');
- }else if(p.type==='end'){await endRoom(false)}
+ if(role==='teacher'&&p.type==='join'){state.students.set(p.from,p.name);renderStudents();await channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'join',id:p.from,name:p.name}});const pc=makePeer(p.from);if(localStream)localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});if(startedAt){const offer=await pc.createOffer();await pc.setLocalDescription(offer);await send({type:'offer',to:p.from,from:getMyId(),sdp:pc.localDescription})}}
+ else if(role==='student'&&p.type==='offer'){const pc=makePeer('teacher');await pc.setRemoteDescription(p.sdp);const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:'answer',to:p.from,from:getMyId(),sdp:pc.localDescription})}
+ else if(role==='teacher'&&p.type==='answer'){const pc=peers.get(p.from);if(pc)await pc.setRemoteDescription(p.sdp)}
+ else if(p.type==='ice'){const peerId=role==='teacher'?p.from:'teacher';const pc=peers.get(peerId);if(pc&&p.candidate)try{await pc.addIceCandidate(p.candidate)}catch(e){console.warn('ICE',e)}}
+ else if(p.type==='start'){startedAt=p.startedAt;duration=Number(p.duration)||60;startTimer();$('waiting').classList.add('hidden');msg('LIVE');await loadNotes()}
+ else if(p.type==='end'){await endRoom(false)}
 }
-function makePeer(id){
- if(peers.has(id))return peers.get(id);
- const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});peers.set(id,pc);
- pc.onicecandidate=e=>{if(e.candidate)send({type:'ice',to:role==='teacher'?id:'teacher',from:getMyId(),candidate:e.candidate})};
- pc.ontrack=e=>{$('remoteVideo').srcObject=e.streams[0];$('waiting').classList.add('hidden')};
- pc.onconnectionstatechange=()=>{if(['failed','closed','disconnected'].includes(pc.connectionState)&&role==='teacher')removePeer(id)};
- if(role==='teacher'&&localStream)localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));
- return pc;
-}
+function makePeer(id){if(peers.has(id))return peers.get(id);const pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'}]});peers.set(id,pc);pc.onicecandidate=e=>{if(e.candidate)send({type:'ice',to:role==='teacher'?id:'teacher',from:getMyId(),candidate:e.candidate})};pc.ontrack=e=>{$('remoteVideo').srcObject=e.streams[0];$('waiting').classList.add('hidden')};pc.onconnectionstatechange=()=>{if(['failed','closed','disconnected'].includes(pc.connectionState)&&role==='teacher')removePeer(id)};if(role==='teacher'&&localStream)localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));return pc}
 function removePeer(id){const pc=peers.get(id);if(pc){pc.close();peers.delete(id)}}
-async function loadClass(){
- try{
-  const {data,error}=await supabaseClient.from('online_classes').select('*').eq('join_code',roomCode).maybeSingle();
-  if(error)throw error;
-  if(data){classId=data.id;duration=data.duration_minutes||60;$('classTitle').textContent=data.title||('Class: '+roomCode);if(data.status==='live'&&data.starts_at){startedAt=data.starts_at;startTimer();msg('LIVE');loadNotes() }else if(data.status==='ended'){msg('Class ended');$('startBtn').disabled=true}}
- }catch(e){console.warn('loadClass',e)}
-}
-async function loadNotes(){if(!classId)return;try{const {data}=await supabaseClient.from('class_notes').select('content').eq('class_id',classId).maybeSingle();if(data){$('notes').value=data.content||'';$('saveState').textContent='Loaded'}}catch(e){console.warn('loadNotes',e)}}
+async function loadNotes(){if(!classId)return;try{const {data,error}=await supabaseClient.from('class_notes').select('content').eq('class_id',classId).maybeSingle();if(error)throw error;if(data){$('notes').value=data.content||'';$('saveState').textContent='Loaded'}}catch(e){console.warn('loadNotes',e)}}
 async function saveNotes(){if(!classId||role!=='teacher')return;try{const {error}=await supabaseClient.from('class_notes').upsert({class_id:classId,content:$('notes').value,updated_at:new Date().toISOString()});if(error)throw error;$('saveState').textContent='Saved'}catch(e){console.warn('saveNotes',e);$('saveState').textContent='Live only'}}
-async function startClass(){
- if(role!=='teacher')return;
- authUser=authUser||await getAuthUser();if(!authUser){alert('Please sign in first.');return}
- try{
-  if(!localStream){try{localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:true})}catch(e){localStream=await navigator.mediaDevices.getUserMedia({audio:true})}}
- }catch(e){alert('Microphone permission is required for the teacher.');return}
- duration=Number(prompt('Class duration in minutes:',duration))||60;if(duration<5)duration=5;if(duration>240)duration=240;
- startedAt=new Date().toISOString();startTimer();msg('LIVE');$('startBtn').disabled=true;
- try{
-  const {data,error}=await supabaseClient.from('online_classes').upsert({join_code:roomCode,title:'MalawiHub Live Class',duration_minutes:duration,status:'live',starts_at:startedAt,teacher_id:authUser.id},{onConflict:'join_code'}).select().single();
-  if(error)throw error;classId=data.id;
-  await supabaseClient.from('class_notes').upsert({class_id:classId,content:$('notes').value||'',updated_at:new Date().toISOString()});
- }catch(e){console.error(e);alert('Could not save the class. Check that you are signed in.');$('startBtn').disabled=false;return}
- for(const [id,pc] of peers){localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});const offer=await pc.createOffer();await pc.setLocalDescription(offer);await send({type:'offer',to:id,from:getMyId(),sdp:pc.localDescription})}
- await send({type:'start',from:getMyId(),to:'*',startedAt,duration});
-}
-function startTimer(){clearInterval(timerInt);timerInt=setInterval(()=>{if(!startedAt)return;const elapsed=Math.floor((Date.now()-new Date(startedAt).getTime())/1000),left=Math.max(0,duration*60-elapsed);$('timer').textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');if(left<=0)endRoom(true)},1000)}
-async function endRoom(broadcast=true){clearInterval(timerInt);if(broadcast&&role==='teacher'&&channel)await send({type:'end',from:getMyId(),to:'*'});msg('Class ended');$('startBtn').disabled=true;localStream?.getTracks().forEach(t=>t.stop());screenStream?.getTracks().forEach(t=>t.stop());peers.forEach(p=>p.close());peers.clear();if(role==='teacher'&&roomCode)try{await supabaseClient.from('online_classes').update({status:'ended'}).eq('join_code',roomCode).eq('teacher_id',authUser?.id)}catch(e){console.warn(e)}}
-async function shareScreen(){if(role!=='teacher'||!startedAt)return;try{screenStream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});const track=screenStream.getVideoTracks()[0];for(const pc of peers.values()){const sender=pc.getSenders().find(s=>s.track?.kind==='video');if(sender)await sender.replaceTrack(track)}track.onended=()=>restoreCamera()}catch(e){console.warn(e)}}
+async function startClass(){if(role!=='teacher')return;authUser=authUser||await getAuthUser();if(!authUser){alert('Please sign in first.');return}try{if(!localStream){try{localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:true})}catch(e){localStream=await navigator.mediaDevices.getUserMedia({audio:true})}}}catch(e){alert('Microphone permission is required for the teacher.');return}duration=Number(prompt('Class duration in minutes:',duration))||60;if(duration<5)duration=5;if(duration>240)duration=240;startedAt=new Date().toISOString();$('startBtn').disabled=true;try{const {data,error}=await supabaseClient.from('online_classes').update({duration_minutes:duration,status:'live',starts_at:startedAt}).eq('id',classId).eq('teacher_id',authUser.id).select().single();if(error)throw error;classData=data;await saveNotes()}catch(e){console.error(e);alert('Could not start the class: '+(e.message||'database error'));$('startBtn').disabled=false;return}startTimer();msg('LIVE');for(const [id,pc] of peers){localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});const offer=await pc.createOffer();await pc.setLocalDescription(offer);await send({type:'offer',to:id,from:getMyId(),sdp:pc.localDescription})}await send({type:'start',from:getMyId(),to:'*',startedAt,duration})}
+function startTimer(){clearInterval(timerInt);timerInt=setInterval(()=>{if(!startedAt)return;const elapsed=Math.floor((Date.now()-new Date(startedAt).getTime())/1000),left=Math.max(0,duration*60-elapsed);$('timer').textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');if(left<=0){clearInterval(timerInt);if(role==='teacher')endRoom(true);else endRoom(false)}},1000)}
+async function endRoom(broadcast=true){clearInterval(timerInt);if(broadcast&&role==='teacher'&&channel)await send({type:'end',from:getMyId(),to:'*'});msg('Class ended');$('startBtn').disabled=true;localStream?.getTracks().forEach(t=>t.stop());screenStream?.getTracks().forEach(t=>t.stop());peers.forEach(p=>p.close());peers.clear();if(role==='teacher'&&classId)try{await supabaseClient.from('online_classes').update({status:'ended'}).eq('id',classId).eq('teacher_id',authUser?.id)}catch(e){console.warn(e)}}
+async function shareScreen(){if(role!=='teacher'||!startedAt)return;try{screenStream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});const track=screenStream.getVideoTracks()[0];for(const pc of peers.values()){const sender=pc.getSenders().find(s=>s.track?.kind==='video');if(sender)await sender.replaceTrack(track)}track.onended=restoreCamera}catch(e){console.warn(e);alert('Screen sharing was cancelled or is not supported on this device.')}}
 async function restoreCamera(){if(!localStream)return;const track=localStream.getVideoTracks()[0];if(!track)return;for(const pc of peers.values()){const sender=pc.getSenders().find(s=>s.track?.kind==='video');if(sender)await sender.replaceTrack(track)}}
 async function toggleMic(){if(!localStream)return;const t=localStream.getAudioTracks()[0];if(t){t.enabled=!t.enabled;$('micBtn').textContent=t.enabled?'🎙 Microphone':'🔇 Muted'}}
 $('studentBtn').onclick=()=>{role='student';setupRoom()};$('teacherBtn').onclick=()=>{role='teacher';setupRoom()};$('startBtn').onclick=startClass;$('screenBtn').onclick=shareScreen;$('micBtn').onclick=toggleMic;$('endBtn').onclick=()=>endRoom(true);
-$('sendChat').onclick=async()=>{const text=$('chatInput').value.trim();if(!text)return;addChat('You',text);$('chatInput').value='';await channel.send({type:'broadcast',event:'chat',payload:{code:roomCode,name:userName,text}})};
-$('chatInput').onkeydown=e=>{if(e.key==='Enter')$('sendChat').click()};
+$('sendChat').onclick=async()=>{const text=$('chatInput').value.trim();if(!text||!channel)return;addChat('You',text);$('chatInput').value='';await channel.send({type:'broadcast',event:'chat',payload:{code:roomCode,name:userName,text}})};$('chatInput').onkeydown=e=>{if(e.key==='Enter')$('sendChat').click()};
 $('notes').oninput=()=>{if(role!=='teacher')return;clearTimeout(notesTimer);notesTimer=setTimeout(async()=>{await channel.send({type:'broadcast',event:'notes',payload:{code:roomCode,notes:$('notes').value}});await saveNotes()},300)};
 $('downloadNotes').onclick=()=>{const blob=new Blob([$('notes').value],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(roomCode||'malawihub-class')+'-notes.txt';a.click();URL.revokeObjectURL(a.href)};
-$('printNotes').onclick=()=>{const w=window.open('','_blank');if(!w)return;w.document.write('<pre style="white-space:pre-wrap;font:16px/1.6 Arial">'+escapeHtml($('notes').value)+'</pre>');w.document.close();w.print()};
-window.addEventListener('beforeunload',()=>{if(channel&&roomCode)channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'leave',id:getMyId(),name:userName}})});
+$('printNotes').onclick=()=>{const w=window.open('','_blank');if(!w)return;w.document.write('<pre style="white-space:pre-wrap;font:16px/1.6 Arial">'+esc($('notes').value)+'</pre>');w.document.close();w.print()};
+window.addEventListener('beforeunload',()=>{if(channel&&roomCode)channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'leave',id:getMyId(),name:userName}});if(resourceChannel)supabaseClient.removeChannel(resourceChannel)});
 </script>
 </body>
 </html>
