@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /online-class/admin.html
+Disallow: /supabase/
 
 Sitemap: https://malawihub.pages.dev/sitemap.xml
