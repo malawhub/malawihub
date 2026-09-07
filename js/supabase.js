@@ -7,6 +7,24 @@ const supabaseClient = window.supabase.createClient(
 
 window.supabaseClient = supabaseClient;
 
+/* MalawiHub Business invite-link compatibility.
+   Business originally used #invite=TOKEN. Normalize that fragment to
+   ?invite=TOKEN before business/index.html reads the URL, so invite links
+   work reliably across browsers and sharing apps. */
+(function normalizeBusinessInviteUrl() {
+    if (!location.pathname.includes("/business")) return;
+    const hash = location.hash || "";
+    if (!hash.startsWith("#invite=")) return;
+
+    const token = hash.slice("#invite=".length);
+    if (!token) return;
+
+    const url = new URL(location.href);
+    url.hash = "";
+    url.searchParams.set("invite", token);
+    history.replaceState(null, document.title, url.pathname + url.search);
+})();
+
 /* MalawiHub user activity heartbeat */
 async function updateMalawiHubLastSeen() {
     try {
