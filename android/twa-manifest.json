@@ -1,0 +1,19 @@
+{
+  "packageId": "mw.malawihub.app",
+  "host": "malawihub.pages.dev",
+  "name": "MalawiHub",
+  "launcherName": "MalawiHub",
+  "display": "standalone",
+  "themeColor": "#0d6efd",
+  "navigationColor": "#ffffff",
+  "navigationColorDark": "#111827",
+  "navigationDividerColor": "#e5e7eb",
+  "navigationDividerColorDark": "#374151",
+  "backgroundColor": "#ffffff",
+  "startUrl": "/",
+  "iconUrl": "https://malawihub.pages.dev/icons/icon.svg",
+  "maskableIconUrl": "https://malawihub.pages.dev/icons/icon.svg",
+  "fallbackType": "customtabs",
+  "enableNotifications": false,
+  "webManifestUrl": "https://malawihub.pages.dev/manifest.json"
+}
