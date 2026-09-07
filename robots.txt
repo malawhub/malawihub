@@ -1,6 +1,4 @@
 User-agent: *
 Allow: /
 
-Disallow: /admin/
-
-Sitemap: https://rad-fairy-902d74.netlify.app/sitemap.xml
+Sitemap: https://malawihub.pages.dev/sitemap.xml
