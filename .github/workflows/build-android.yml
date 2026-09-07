@@ -1,0 +1,56 @@
+name: Build MalawiHub Android App
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' && secrets.ANDROID_KEY_PASSWORD != '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Install Bubblewrap
+        run: npm install -g @bubblewrap/cli
+
+      - name: Initialise Android project
+        run: bubblewrap init --manifest https://malawihub.pages.dev/manifest.json --directory android-app --skipPwaValidation
+
+      - name: Restore signing key
+        run: echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android-app/malawihub-release.keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+
+      - name: Build signed Android App Bundle
+        working-directory: android-app
+        env:
+          BUBBLEWRAP_KEYSTORE: malawihub-release.keystore
+          BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          BUBBLEWRAP_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          bubblewrap build --signingKey "$BUBBLEWRAP_KEYSTORE" --signingKeyPassword "$BUBBLEWRAP_KEYSTORE_PASSWORD" --signingKeyAlias "$BUBBLEWRAP_KEY_ALIAS" --signingKeyAliasPassword "$BUBBLEWRAP_KEY_PASSWORD"
+
+      - name: Upload Android App Bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: malawihub-android-release
+          path: android-app/app-release-bundle.aab
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: malawihub-android-apk
+          path: android-app/app-release-signed.apk
