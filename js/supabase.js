@@ -48,13 +48,16 @@ function fillOnlineClassCode() {
     const input = document.getElementById("code");
     if (code && input) input.value = code.trim().toUpperCase();
 
-    /* Teacher dashboard links already include teacher=1. Previously the
-       live-class page only filled the code and still waited for the teacher
-       to press the Teacher button. Auto-enter teacher mode for those trusted
-       teacher links so a teacher can open their class directly. */
-    if (params.get("teacher") === "1") {
-        const teacherButton = document.getElementById("teacherBtn");
-        if (teacherButton) teacherButton.click();
+    /* Teacher must authenticate through the dedicated Teacher Login page.
+       Do not auto-enter teacher mode or treat an administrator as a teacher. */
+    const teacherButton = document.getElementById("teacherBtn");
+    if (teacherButton) {
+        teacherButton.onclick = () => {
+            const next = params.get("code");
+            location.href = next
+                ? "./login.html?role=teacher&code=" + encodeURIComponent(next)
+                : "./login.html?role=teacher";
+        };
     }
 }
 
