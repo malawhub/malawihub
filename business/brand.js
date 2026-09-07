@@ -11,7 +11,12 @@
     .mh-invite-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
     .mh-invite-actions button{margin:0}
     .mh-invite-status{font-size:12px;color:#667085;margin-top:8px}
-    @media(max-width:520px){.mh-invite-actions{grid-template-columns:1fr}.mh-invite-actions button{width:100%}}
+    .mh-malipo-box{margin-top:12px;padding:14px;border:1px solid #cfe5da;background:#f7fbf9;border-radius:14px}
+    .mh-malipo-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+    .mh-malipo-status{font-size:13px;padding:10px;border-radius:10px;background:#fff;border:1px solid #e2e8e5}
+    .mh-malipo-status.ok{background:#effaf4;border-color:#cce8d8}.mh-malipo-status.bad{background:#fff7ed;border-color:#fed7aa}
+    .mh-malipo-result{margin-top:10px;white-space:pre-wrap;word-break:break-word;font-size:12px}
+    @media(max-width:520px){.mh-invite-actions,.mh-malipo-row{grid-template-columns:1fr}.mh-invite-actions button{width:100%}}
   `;
   document.head.appendChild(style);
 
@@ -83,9 +88,50 @@
     return true;
   }
 
+  async function callMalipo(action,extra={}){
+    const client=await waitForClient();
+    if(!client)throw new Error('MalawiHub connection is unavailable.');
+    const {data:{session}}=await client.auth.getSession();
+    if(!session?.access_token)throw new Error('Please sign in first.');
+    const workspaceId=await getEmployerWorkspace(client);
+    const r=await fetch('https://cdqrdovgdidzxmyygoee.supabase.co/functions/v1/malipo-business',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+session.access_token,'apikey':'sb_publishable_XHAK368Bg4dirFmtl229bQ_xzjCyqbv'},
+      body:JSON.stringify({workspace_id:workspaceId,action,...extra})
+    });
+    const data=await r.json().catch(()=>({error:'Invalid server response'}));
+    if(!r.ok)throw new Error(data.error||'Malipo request failed.');
+    return data;
+  }
+
+  async function refreshMalipo(){
+    const box=document.getElementById('mhMalipoBox');if(!box)return;
+    try{
+      const s=await callMalipo('status');
+      const configured=s.configured;
+      box.querySelector('#mhMalipoState').className='mh-malipo-status '+(configured?'ok':'bad');
+      box.querySelector('#mhMalipoState').textContent=configured?'✓ Malipo API is configured':'⚠ Malipo API credentials still need to be added';
+      const rows=(s.integrations||[]).map(x=>`${x.provider==='airtel_money'?'Airtel Money':'TNM Mpamba'}: ${x.status}`).join('\n');
+      box.querySelector('#mhMalipoDetails').textContent=rows||'No provider records found.';
+    }catch(e){box.querySelector('#mhMalipoState').className='mh-malipo-status bad';box.querySelector('#mhMalipoState').textContent='⚠ '+e.message;}
+  }
+
+  function addMalipoPanel(){
+    const panel=document.getElementById('employerPanel');if(!panel||document.getElementById('mhMalipoBox'))return;
+    const box=document.createElement('div');box.id='mhMalipoBox';box.className='card';
+    box.innerHTML=`<h2>💳 Malipo payment hub</h2><div class="notice guide"><b>Airtel Money + TNM Mpamba through one connection</b><br>Malipo is used as the payment gateway. API credentials stay on the Supabase server and are never placed in this page.</div><div id="mhMalipoState" class="mh-malipo-status">Checking connection…</div><div id="mhMalipoDetails" class="small" style="white-space:pre-wrap;margin-top:8px">—</div><div class="mh-malipo-row"><div><select id="mhMalipoProvider"><option value="airtel_money">Airtel Money</option><option value="mpamba">TNM Mpamba</option></select><input id="mhMalipoPhone" inputmode="numeric" placeholder="Customer phone: 265XXXXXXXXX"><input id="mhMalipoAmount" type="number" min="1" placeholder="Amount (MWK)"><button type="button" id="mhMalipoPay">Request payment</button></div><div><button type="button" id="mhMalipoBalance">Refresh Malipo balance</button><input id="mhMalipoRef" placeholder="Merchant transaction ID"><button type="button" id="mhMalipoEnquire">Check transaction</button></div></div><div id="mhMalipoResult" class="mh-malipo-result"></div>`;
+    const anchor=[...panel.querySelectorAll('.card')].find(c=>c.textContent.includes('Integration setup'));
+    (anchor?.parentNode||panel).insertBefore(box,anchor||null);
+    box.querySelector('#mhMalipoPay').onclick=async()=>{const result=box.querySelector('#mhMalipoResult');try{result.textContent='Sending payment request…';const d=await callMalipo('request_payment',{provider:box.querySelector('#mhMalipoProvider').value,customer_phone:box.querySelector('#mhMalipoPhone').value.trim(),amount:Number(box.querySelector('#mhMalipoAmount').value)});result.textContent=JSON.stringify(d,null,2)}catch(e){result.textContent='Error: '+e.message}};
+    box.querySelector('#mhMalipoBalance').onclick=async()=>{const result=box.querySelector('#mhMalipoResult');try{result.textContent='Checking balance…';const d=await callMalipo('balance');result.textContent=JSON.stringify(d,null,2);refreshMalipo()}catch(e){result.textContent='Error: '+e.message}};
+    box.querySelector('#mhMalipoEnquire').onclick=async()=>{const result=box.querySelector('#mhMalipoResult');try{const ref=box.querySelector('#mhMalipoRef').value.trim();if(!ref)throw new Error('Enter the merchant transaction ID.');result.textContent='Checking transaction…';const d=await callMalipo('enquire',{merchant_trx_id:ref});result.textContent=JSON.stringify(d,null,2)}catch(e){result.textContent='Error: '+e.message}};
+    refreshMalipo();
+  }
+
   function start(){
     addOfficialBar();
     if(!wireInviteButton())setTimeout(wireInviteButton,500);
+    addMalipoPanel();
+    setTimeout(addMalipoPanel,700);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start);else start();
 })();
