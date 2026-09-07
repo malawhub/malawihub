@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://malawihub.pages.dev/</loc></url>
-  <url><loc>https://malawihub.pages.dev/tutorial/</loc></url>
-  <url><loc>https://malawihub.pages.dev/online-class/</loc></url>
-  <url><loc>https://malawihub.pages.dev/online-class/resources.html</loc></url>
-  <url><loc>https://malawihub.pages.dev/papers/</loc></url>
-  <url><loc>https://malawihub.pages.dev/resources/</loc></url>
+  <url><loc>https://malawihub.pages.dev/</loc><lastmod>2026-09-07</lastmod></url>
+  <url><loc>https://malawihub.pages.dev/tutorial/</loc><lastmod>2026-09-07</lastmod></url>
+  <url><loc>https://malawihub.pages.dev/online-class/</loc><lastmod>2026-09-07</lastmod></url>
+  <url><loc>https://malawihub.pages.dev/online-class/resources.html</loc><lastmod>2026-09-07</lastmod></url>
+  <url><loc>https://malawihub.pages.dev/papers/</loc><lastmod>2026-09-07</lastmod></url>
+  <url><loc>https://malawihub.pages.dev/resources/</loc><lastmod>2026-09-07</lastmod></url>
   <url><loc>https://malawihub.pages.dev/resources/biology/</loc></url>
   <url><loc>https://malawihub.pages.dev/resources/chemistry/</loc></url>
   <url><loc>https://malawihub.pages.dev/resources/education/</loc></url>
@@ -22,7 +22,6 @@
   <url><loc>https://malawihub.pages.dev/resources/study-guides/revision-planning/</loc></url>
   <url><loc>https://malawihub.pages.dev/resources/study-guides/student-success-tips/</loc></url>
   <url><loc>https://malawihub.pages.dev/resources/study-guides/time-management/</loc></url>
-  <url><loc>https://malawihub.pages.dev/resources/topic/</loc></url>
   <url><loc>https://malawihub.pages.dev/tools/assignment/</loc></url>
   <url><loc>https://malawihub.pages.dev/tools/chemistry/</loc></url>
   <url><loc>https://malawihub.pages.dev/tools/currency/</loc></url>
