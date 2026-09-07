@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bulk Past Papers | MalawiHub</title>
+<link rel="stylesheet" href="../../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../js/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
+</head>
+
+<body>
+
+<header>
+<div class="logo">🇲🇼 MalawiHub</div>
+<nav>
+<a href="../index.html">Dashboard</a>
+<a href="../manage-papers/index.html">Manage Papers</a>
+</nav>
+</header>
+
+<section class="hero">
+<h1>📚 Bulk Past Paper Upload</h1>
+<p>Select multiple secondary-school PDF papers and upload them to MalawiHub.</p>
+</section>
+
+<main class="tools-section">
+<section class="card">
+
+<label>Select PDF papers</label>
+<input id="files" type="file" accept=".pdf,application/pdf" multiple>
+
+<p>
+<small>
+Maximum file size: 50 MB per PDF.
+</small>
+</p>
+
+<button id="uploadButton" onclick="startUpload()">
+Upload Selected Papers
+</button>
+
+<div id="progress"></div>
+
+</section>
+</main>
+
+<script>
+
+const BUCKET = "past-papers";
+const PROJECT_ID = "cdqrdovgdidzxmyygoee";
+
+function detectCategory(name) {
+
+    const n = name.toUpperCase();
+
+    if (n.includes("JCE")) return "JCE";
+    if (n.includes("MSCE")) return "MSCE";
+    if (n.includes("MANEB")) return "MANEB";
+
+    return "Secondary";
+}
+
+function detectYear(name) {
+
+    const match = name.match(/20\d{2}/);
+
+    return match ? Number(match[0]) : new Date().getFullYear();
+}
+
+function detectSubject(name) {
+
+    const n = name.toUpperCase();
+
+    const subjects = [
+        ["CHEMISTRY", "Chemistry"],
+        ["PHYSICS", "Physics"],
+        ["MATHEMATICS", "Mathematics"],
+        ["MATHS", "Mathematics"],
+        ["BIOLOGY", "Biology"],
+        ["GEOGRAPHY", "Geography"],
+        ["HISTORY", "History"],
+        ["ENGLISH", "English"],
+        ["CHICHEWA", "Chichewa"],
+        ["AGRICULTURE", "Agriculture"],
+        ["COMPUTER", "Computer Studies"],
+        ["BUSINESS", "Business Studies"],
+        ["BIBLE", "Bible Knowledge"],
+        ["SOCIAL", "Social and Life Skills"]
+    ];
+
+    for (const item of subjects) {
+
+        if (n.includes(item[0])) {
+            return item[1];
+        }
+
+    }
+
+    return "Other";
+}
+
+function cleanTitle(name) {
+
+    return name
+        .replace(/\.pdf$/i, "")
+        .replace(/[_]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+}
+
+async function uploadResumable(file, path, onProgress) {
+
+    const {
+        data: { session },
+        error
+    } = await supabaseClient.auth.getSession();
+
+    if (error || !session) {
+        throw new Error("Admin session expired. Please log in again.");
+    }
+
+    return new Promise((resolve, reject) => {
+
+        const upload = new tus.Upload(file, {
+
+            endpoint:
+                `https://${PROJECT_ID}.storage.supabase.co/storage/v1/upload/resumable`,
+
+            retryDelays: [
+                0,
+                3000,
+                5000,
+                10000,
+                20000
+            ],
+
+            headers: {
+                authorization:
+                    `Bearer ${session.access_token}`,
+
+                "x-upsert": "false"
+            },
+
+            uploadDataDuringCreation: true,
+
+            removeFingerprintOnSuccess: true,
+
+            metadata: {
+
+                bucketName: BUCKET,
+
+                objectName: path,
+
+                contentType: "application/pdf",
+
+                cacheControl: "3600"
+
+            },
+
+            chunkSize:
+                6 * 1024 * 1024,
+
+            onError(error) {
+
+                reject(error);
+
+            },
+
+            onProgress(bytesUploaded, bytesTotal) {
+
+                const percent =
+                    Math.round(
+                        bytesUploaded / bytesTotal * 100
+                    );
+
+                onProgress(percent);
+
+            },
+
+            onSuccess() {
+
+                resolve();
+
+            }
+
+        });
+
+        upload.findPreviousUploads()
+            .then(previousUploads => {
+
+                if (previousUploads.length) {
+
+                    upload.resumeFromPreviousUpload(
+                        previousUploads[0]
+                    );
+
+                }
+
+                upload.start();
+
+            })
+            .catch(reject);
+
+    });
+
+}
+
+async function startUpload() {
+
+    const input =
+        document.getElementById("files");
+
+    const button =
+        document.getElementById("uploadButton");
+
+    const progress =
+        document.getElementById("progress");
+
+    const files =
+        Array.from(input.files);
+
+    if (!files.length) {
+
+        progress.innerHTML =
+            "<p>❌ Select at least one PDF.</p>";
+
+        return;
+
+    }
+
+    button.disabled = true;
+
+    let completed = 0;
+
+    for (const file of files) {
+
+        progress.innerHTML +=
+            `<p>⏳ ${file.name}<br>Starting...</p>`;
+
+        if (
+            file.type !== "application/pdf" &&
+            !file.name.toLowerCase().endsWith(".pdf")
+        ) {
+
+            progress.innerHTML +=
+                `<p>❌ Skipped: ${file.name} is not a PDF.</p>`;
+
+            continue;
+
+        }
+
+        if (file.size > 50 * 1024 * 1024) {
+
+            progress.innerHTML +=
+                `<p>❌ Skipped: ${file.name} is larger than 50 MB.</p>`;
+
+            continue;
+
+        }
+
+        try {
+
+            const category =
+                detectCategory(file.name);
+
+            const subject =
+                detectSubject(file.name);
+
+            const year =
+                detectYear(file.name);
+
+            const title =
+                cleanTitle(file.name);
+
+            const safeName =
+                file.name
+                    .toLowerCase()
+                    .replace(/[^a-z0-9.]+/g, "-")
+                    .replace(/-+/g, "-");
+
+            const path =
+                `${category}/${year}/${Date.now()}-${safeName}`;
+
+            let currentPercent = 0;
+
+            await uploadResumable(
+                file,
+                path,
+                percent => {
+
+                    currentPercent = percent;
+
+                    const paragraphs =
+                        progress.querySelectorAll("p");
+
+                    const last =
+                        paragraphs[
+                            paragraphs.length - 1
+                        ];
+
+                    if (last) {
+
+                        last.innerHTML =
+                            `⏳ ${file.name}<br>Uploading: ${currentPercent}%`;
+
+                    }
+
+                }
+            );
+
+            const {
+                data: publicUrlData
+            } =
+                supabaseClient.storage
+                    .from(BUCKET)
+                    .getPublicUrl(path);
+
+            const publicUrl =
+                publicUrlData.publicUrl;
+
+            const {
+                error: databaseError
+            } =
+                await supabaseClient
+                    .from("past_papers")
+                    .insert([{
+
+                        title,
+
+                        category,
+
+                        subject,
+
+                        year,
+
+                        description:
+                            `${category} ${year} ${subject} examination paper.`,
+
+                        link: publicUrl
+
+                    }]);
+
+            if (databaseError) {
+
+                throw databaseError;
+
+            }
+
+            completed++;
+
+            const paragraphs =
+                progress.querySelectorAll("p");
+
+            const last =
+                paragraphs[
+                    paragraphs.length - 1
+                ];
+
+            if (last) {
+
+                last.innerHTML =
+                    `✅ ${file.name}<br>Uploaded successfully.`;
+
+            }
+
+        } catch (error) {
+
+            console.error(error);
+
+            const paragraphs =
+                progress.querySelectorAll("p");
+
+            const last =
+                paragraphs[
+                    paragraphs.length - 1
+                ];
+
+            if (last) {
+
+                last.innerHTML =
+                    `❌ ${file.name}<br>${error.message || error}`;
+
+            }
+
+        }
+
+    }
+
+    progress.innerHTML +=
+        `<hr><strong>Finished: ${completed} of ${files.length} uploaded.</strong>`;
+
+    button.disabled = false;
+
+}
+
+</script>
+
+</body>
+</html>
