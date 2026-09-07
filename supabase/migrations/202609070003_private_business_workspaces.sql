@@ -70,19 +70,13 @@ alter table public.business_integrations enable row level security;
 create or replace function public.is_business_member(target_workspace uuid)
 returns boolean language sql stable security definer set search_path = public
 as $$
-  select exists (
-    select 1 from public.business_members
-    where workspace_id = target_workspace and user_id = auth.uid()
-  );
+  select exists (select 1 from public.business_members where workspace_id = target_workspace and user_id = auth.uid());
 $$;
 
 create or replace function public.is_business_employer(target_workspace uuid)
 returns boolean language sql stable security definer set search_path = public
 as $$
-  select exists (
-    select 1 from public.business_members
-    where workspace_id = target_workspace and user_id = auth.uid() and role = 'employer'
-  );
+  select exists (select 1 from public.business_members where workspace_id = target_workspace and user_id = auth.uid() and role = 'employer');
 $$;
 
 revoke all on function public.is_business_member(uuid) from public;
@@ -92,57 +86,54 @@ grant execute on function public.is_business_employer(uuid) to authenticated;
 
 create policy business_workspace_owner on public.business_workspaces
   for all to authenticated using (owner_id = auth.uid()) with check (owner_id = auth.uid());
-
 create policy business_workspace_member_read on public.business_workspaces
   for select to authenticated using (public.is_business_member(id));
 
 create policy business_members_private on public.business_members
   for select to authenticated using (public.is_business_member(workspace_id));
-
 create policy business_member_insert_employer on public.business_members
-  for insert to authenticated
-  with check (public.is_business_employer(workspace_id));
+  for insert to authenticated with check (public.is_business_employer(workspace_id));
 
 create policy business_transaction_private on public.business_transactions
   for select to authenticated using (public.is_business_member(workspace_id));
-
 create policy business_transaction_employee_insert on public.business_transactions
-  for insert to authenticated
-  with check (
+  for insert to authenticated with check (
     public.is_business_member(workspace_id)
-    and exists (
-      select 1 from public.business_members m
-      where m.id = employee_id and m.user_id = auth.uid() and m.role = 'employee'
-    )
+    and exists (select 1 from public.business_members m where m.id = employee_id and m.user_id = auth.uid() and m.role = 'employee')
   );
 
 create policy business_notification_private on public.business_notifications
   for select to authenticated using (
-    exists (
-      select 1 from public.business_members m
-      where m.id = recipient_id and m.user_id = auth.uid()
-    )
+    exists (select 1 from public.business_members m where m.id = recipient_id and m.user_id = auth.uid())
   );
-
 create policy business_notification_mark_read on public.business_notifications
   for update to authenticated using (
-    exists (
-      select 1 from public.business_members m
-      where m.id = recipient_id and m.user_id = auth.uid()
-    )
+    exists (select 1 from public.business_members m where m.id = recipient_id and m.user_id = auth.uid())
   ) with check (is_read = true);
 
 create policy business_integration_owner on public.business_integrations
   for select to authenticated using (public.is_business_employer(workspace_id));
-
 create policy business_integration_create on public.business_integrations
   for insert to authenticated with check (public.is_business_employer(workspace_id));
-
 create policy business_integration_update on public.business_integrations
   for update to authenticated using (public.is_business_employer(workspace_id))
   with check (public.is_business_employer(workspace_id));
 
--- Never expose encrypted business data to the platform's normal admin role through RLS.
--- Service-side integrations should write only through the dedicated webhook function.
+create or replace function public.notify_business_employers()
+returns trigger language plpgsql security definer set search_path = public
+as $$
+begin
+  insert into public.business_notifications (workspace_id, transaction_id, recipient_id, encrypted_message)
+  select NEW.workspace_id, NEW.id, m.id, NEW.payload_encrypted
+  from public.business_members m
+  where m.workspace_id = NEW.workspace_id and m.role = 'employer';
+  return NEW;
+end;
+$$;
+
+drop trigger if exists business_transaction_notification on public.business_transactions;
+create trigger business_transaction_notification
+after insert on public.business_transactions
+for each row execute function public.notify_business_employers();
 
 alter publication supabase_realtime add table public.business_notifications;
