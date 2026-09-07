@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MalawiHub Class Administration</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+body{background:#f5f7fb}.wrap{max-width:1050px;margin:auto;padding:18px}.card{background:#fff;border-radius:16px;padding:18px;margin:14px 0;box-shadow:0 4px 18px #0001}.row{display:flex;gap:10px;flex-wrap:wrap}.input{padding:11px;border:1px solid #ccd3df;border-radius:10px;flex:1;min-width:160px}.btn{border:0;border-radius:10px;padding:11px 15px;font-weight:700;cursor:pointer}.primary{background:#0d6efd;color:#fff}.danger{background:#dc3545;color:#fff}.muted{color:#667085}.code{font-size:24px;font-weight:900;letter-spacing:2px}.item{border:1px solid #e4e7ec;border-radius:12px;padding:12px;margin:8px 0}
+</style>
+</head><body><div class="wrap">
+<div class="card"><b>🇲🇼 MalawiHub Class Administration</b><p id="who" class="muted">Checking account…</p><p id="error" class="danger" style="padding:8px;border-radius:8px;display:none"></p></div>
+<div class="card"><h2>Create a Class</h2><div class="row"><input id="title" class="input" placeholder="Class title"><input id="subject" class="input" placeholder="Subject"><input id="duration" class="input" type="number" min="5" max="240" value="60" placeholder="Minutes"><button id="create" class="btn primary">Generate Class Code</button></div><div id="created" style="margin-top:14px"></div></div>
+<div class="card"><h2>Your Classes</h2><div id="classes"><span class="muted">Loading…</span></div></div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../js/supabase.js"></script>
+<script>
+const $=id=>document.getElementById(id);let user=null;
+function showError(x){$('error').textContent=x;$('error').style.display='block'}
+function makeCode(){return 'MH-'+Math.random().toString(36).slice(2,8).toUpperCase()}
+async function init(){const r=await supabaseClient.auth.getUser();user=r.data?.user;if(!user){showError('Sign in to MalawiHub first.');return} $('who').textContent='Signed in as '+(user.email||user.id);await load()}
+async function load(){const {data,error}=await supabaseClient.from('online_classes').select('id,join_code,title,subject,duration_minutes,status,starts_at,created_at').eq('teacher_id',user.id).order('created_at',{ascending:false});if(error){showError(error.message);return}const el=$('classes');el.innerHTML='';if(!data?.length){el.innerHTML='<span class="muted">No classes yet.</span>';return}data.forEach(c=>{const d=document.createElement('div');d.className='item';d.innerHTML='<div class="code">'+c.join_code+'</div><b>'+esc(c.title||'MalawiHub Live Class')+'</b> · '+esc(c.subject||'')+'<br><span class="muted">'+c.duration_minutes+' minutes · '+c.status+'</span> <a href="./index.html?code='+encodeURIComponent(c.join_code)+'">Open class</a>';el.appendChild(d)})}
+$('create').onclick=async()=>{if(!user){showError('Sign in first.');return}const title=$('title').value.trim()||'MalawiHub Live Class',subject=$('subject').value.trim(),duration=Math.min(240,Math.max(5,Number($('duration').value)||60));let code=makeCode();for(let i=0;i<5;i++){const {error}=await supabaseClient.from('online_classes').insert({join_code:code,title,subject,duration_minutes:duration,teacher_id:user.id,status:'scheduled'});if(!error){$('created').innerHTML='<p>Class created. Give students this code:</p><div class="code">'+code+'</div><a href="./index.html?code='+encodeURIComponent(code)+'">Open Class</a>';await load();return}if(error.code!=='23505'){showError(error.message);return}code=makeCode()}showError('Could not generate a unique class code. Try again.')};
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}init();
+</script></body></html>
