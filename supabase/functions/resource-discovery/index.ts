@@ -71,7 +71,29 @@ Deno.serve(async (req: Request) => {
     url.searchParams.set("per_page", "20");
     url.searchParams.set("sort", "-relevance_score");
 
-    const response = await fetch(url);
+    let response = await fetch(url, {
+      headers: {
+        "User-Agent": "MalawiHub/1.0 (resource discovery)"
+      }
+    });
+
+    if (response.status === 429) {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      response = await fetch(url, {
+        headers: {
+          "User-Agent": "MalawiHub/1.0 (resource discovery)"
+        }
+      });
+    }
+
+    if (response.status === 429) {
+      return json({
+        success: false,
+        error: "OpenAlex rate limit reached. Please try again shortly.",
+        results: []
+      }, 429);
+    }
 
     if (!response.ok) {
       throw new Error(`OpenAlex returned HTTP ${response.status}`);
