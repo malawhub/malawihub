@@ -1,8 +1,9 @@
-const CACHE_NAME = "malawihub-v1";
+const CACHE_NAME = "malawihub-v2";
 
 const APP_FILES = [
   "/",
   "/index.html",
+  "/tutorial/index.html",
   "/css/style.css",
   "/js/app.js",
   "/js/supabase.js",
