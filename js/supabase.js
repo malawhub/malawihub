@@ -25,4 +25,17 @@ async function updateMalawiHubLastSeen() {
     }
 }
 
+/* Online Class: automatically fill a class code supplied by an admin link. */
+function fillOnlineClassCode() {
+    if (!location.pathname.endsWith("/online-class/index.html")) return;
+    const code = new URLSearchParams(location.search).get("code");
+    const input = document.getElementById("code");
+    if (code && input) input.value = code.trim().toUpperCase();
+}
+
 window.updateMalawiHubLastSeen = updateMalawiHubLastSeen;
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", fillOnlineClassCode);
+} else {
+    fillOnlineClassCode();
+}
