@@ -236,6 +236,14 @@ body {
 <body>
 <div id="notificationBell" style="position:fixed;top:16px;right:16px;z-index:9999;font-size:26px;cursor:pointer;">🔔<span id="notificationCount" style="position:absolute;top:-6px;right:-8px;background:red;color:white;font-size:11px;border-radius:50%;padding:3px 6px;display:none;">0</span></div>
 <div id="notificationStatus" style="position:fixed;top:55px;right:16px;z-index:9999;background:#eee;color:#333;padding:5px 9px;border-radius:8px;font-size:11px;">Notifications connecting...</div>
+<div id="notificationPanel" style="display:none;position:fixed;top:58px;right:16px;width:320px;max-width:90vw;background:white;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.18);z-index:9998;padding:16px;">
+<h3 style="margin:0 0 12px;">🔔 Notifications</h3>
+<div id="notificationList">Loading notifications...</div>
+</div>
+<div id="notificationPanel" style="display:none;position:fixed;top:58px;right:16px;width:320px;max-width:90vw;background:white;border-radius:14px;box-shadow:0 8px 30px rgba(0,0,0,.18);z-index:9998;padding:16px;">
+<h3 style="margin:0 0 12px;">🔔 Notifications</h3>
+<div id="notificationList">Loading notifications...</div>
+</div>
 
 <div id="loading" class="loading">
     Checking admin access...
@@ -669,4 +677,60 @@ supabaseClient
     .subscribe(function(status) {
         console.log("Notification realtime status:", status);
     });
+</script>
+<script>
+const notificationBell = document.getElementById("notificationBell");
+const notificationPanel = document.getElementById("notificationPanel");
+const notificationList = document.getElementById("notificationList");
+
+async function showAdminNotifications() {
+
+    notificationPanel.style.display =
+        notificationPanel.style.display === "none"
+        ? "block"
+        : "none";
+
+    if (notificationPanel.style.display === "block") {
+
+        const { data, error } = await supabaseClient
+            .from("admin_notifications")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+        if (error) {
+            notificationList.textContent =
+                "Unable to load notifications.";
+            console.error(error);
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            notificationList.textContent =
+                "No notifications.";
+            return;
+        }
+
+        notificationList.innerHTML = data.map(notification => `
+            <div style="
+                padding:12px;
+                margin-bottom:8px;
+                background:#f5f7f8;
+                border-radius:10px;
+            ">
+                <strong>${notification.title}</strong>
+                <div style="font-size:13px;margin-top:4px;">
+                    ${notification.message}
+                </div>
+                <small style="color:#777;">
+                    ${new Date(notification.created_at).toLocaleString()}
+                </small>
+            </div>
+        `).join("");
+    }
+}
+
+notificationBell.addEventListener(
+    "click",
+    showAdminNotifications
+);
 </script>
