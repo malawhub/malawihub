@@ -5,27 +5,24 @@ const supabaseClient = window.supabase.createClient(
     SUPABASE_KEY
 );
 
+window.supabaseClient = supabaseClient;
+
 /* MalawiHub user activity heartbeat */
 async function updateMalawiHubLastSeen() {
     try {
         const { data: { user } } = await supabaseClient.auth.getUser();
-
         if (!user) return;
-
-        await supabaseClient
-            .from("profiles")
-            .upsert({
-                id: user.id,
-                email: user.email,
-                last_seen: new Date().toISOString(),
-                is_online: true
-            });
+        await supabaseClient.from("profiles").upsert({
+            id: user.id,
+            email: user.email,
+            last_seen: new Date().toISOString(),
+            is_online: true
+        });
     } catch (error) {
         console.error("MalawiHub activity tracking error:", error);
     }
 }
 
-/* Online Class: automatically fill a class code supplied by an admin link. */
 function fillOnlineClassCode() {
     if (!location.pathname.endsWith("/online-class/index.html")) return;
     const code = new URLSearchParams(location.search).get("code");
