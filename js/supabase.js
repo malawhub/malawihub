@@ -52,6 +52,22 @@ window.supabaseClient = supabaseClient;
         return;
       }
 
+      if(isBusinessPrivate){
+        if(!session){location.replace("/business/index.html");return}
+        const profile=await getProfile(session.user.id);
+        if(profile?.role==="admin"){
+          await supabaseClient.auth.signOut();
+          location.replace("/business/index.html?error=business_only");
+          return;
+        }
+        const {data:members,error}=await supabaseClient.from("business_members").select("role").eq("user_id",session.user.id).in("role",["employee","employer"]).limit(1);
+        if(error || !members?.length){
+          await supabaseClient.auth.signOut();
+          location.replace("/business/index.html?error=business_only");
+        }
+        return;
+      }
+
       if(!isOnlineClass) return;
       if(isOnlineLanding || isStudentLogin || isTeacherPortal) return;
 
@@ -72,30 +88,14 @@ window.supabaseClient = supabaseClient;
           await supabaseClient.auth.signOut();
           location.replace("/online-class/login.html?error=student_only");
         }
-        return;
-      }
-
-      if(isBusinessPrivate){
-        if(!session){location.replace("/business/index.html");return}
-        const profile=await getProfile(session.user.id);
-        if(profile?.role==="admin"){
-          await supabaseClient.auth.signOut();
-          location.replace("/business/index.html?error=business_only");
-          return;
-        }
-        const {data:members,error}=await supabaseClient.from("business_members").select("role").eq("user_id",session.user.id).in("role",["employee","employer"]).limit(1);
-        if(error || !members?.length){
-          await supabaseClient.auth.signOut();
-          location.replace("/business/index.html?error=business_only");
-        }
       }
     }catch(error){
       console.error("MalawiHub area access verification failed:",error);
       if(isAdminPage && !isAdminLogin) location.replace("/admin/login.html?error=verification");
       else if(isOnlineAdmin) location.replace("/admin/login.html?error=verification");
+      else if(isBusinessPrivate) location.replace("/business/index.html?error=verification");
       else if(isTeacherPrivate) location.replace("/online-class/teacher-portal.html?error=verification");
       else if(isStudentLive) location.replace("/online-class/login.html?error=verification");
-      else if(isBusinessPrivate) location.replace("/business/index.html?error=verification");
     }
   }
 
