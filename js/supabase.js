@@ -13,16 +13,14 @@ window.supabaseClient = supabaseClient;
   const path = (location.pathname || "").toLowerCase();
   const isAdminPage = path.includes("/admin/");
   const isOnlineClass = path.includes("/online-class/");
-  const isBusiness = path.includes("/business/");
+  const isOnlineAdmin = path.endsWith("/online-class/admin.html") || path.endsWith("/online-class/admin");
+  const isBusinessPrivate = /\/business\/(employee|employer)(\.html)?$/.test(path);
   const isAdminLogin = path.endsWith("/admin/login.html") || path.endsWith("/admin/login");
   const isOnlineLanding = path.endsWith("/online-class/landing.html") || path.endsWith("/online-class/landing");
   const isStudentLogin = path.endsWith("/online-class/login.html") || path.endsWith("/online-class/login");
   const isTeacherPortal = path.endsWith("/online-class/teacher-portal.html") || path.endsWith("/online-class/teacher-portal");
-  const isOnlineAdmin = path.endsWith("/online-class/admin.html") || path.endsWith("/online-class/admin");
   const isTeacherPrivate = /\/online-class\/(teacher|teacher-workspace)(\.html)?$/.test(path);
   const isStudentLive = path.endsWith("/online-class/index.html") || path.endsWith("/online-class/");
-  const isBusinessLogin = path.endsWith("/business/index.html") || path.endsWith("/business/");
-  const isBusinessPrivate = /\/business\/(employee|employer)(\.html)?$/.test(path);
 
   async function getProfile(userId){
     const {data,error}=await supabaseClient.from("profiles").select("role").eq("id",userId).maybeSingle();
@@ -44,8 +42,18 @@ window.supabaseClient = supabaseClient;
         return;
       }
 
+      if(isOnlineAdmin){
+        if(!session){location.replace("/admin/login.html?area=online-class");return}
+        const profile=await getProfile(session.user.id);
+        if(profile?.role!=="admin"){
+          await supabaseClient.auth.signOut();
+          location.replace("/admin/login.html?error=unauthorized&area=online-class");
+        }
+        return;
+      }
+
       if(!isOnlineClass) return;
-      if(isOnlineLanding || isStudentLogin || isTeacherPortal || isOnlineAdmin) return;
+      if(isOnlineLanding || isStudentLogin || isTeacherPortal) return;
 
       if(isTeacherPrivate){
         if(!session){location.replace("/online-class/teacher-portal.html");return}
@@ -84,6 +92,7 @@ window.supabaseClient = supabaseClient;
     }catch(error){
       console.error("MalawiHub area access verification failed:",error);
       if(isAdminPage && !isAdminLogin) location.replace("/admin/login.html?error=verification");
+      else if(isOnlineAdmin) location.replace("/admin/login.html?error=verification");
       else if(isTeacherPrivate) location.replace("/online-class/teacher-portal.html?error=verification");
       else if(isStudentLive) location.replace("/online-class/login.html?error=verification");
       else if(isBusinessPrivate) location.replace("/business/index.html?error=verification");
