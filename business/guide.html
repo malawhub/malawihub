@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MALZORA Business Guide</title>
+<style>
+body{font-family:system-ui,sans-serif;background:#f4f7fb;margin:0;color:#17251f;line-height:1.6}
+.wrap{max-width:1000px;margin:auto;padding:18px}
+.card{background:#fff;border-radius:16px;padding:20px;margin:14px 0;box-shadow:0 5px 24px #0001}
+h1,h2,h3{line-height:1.25}h1{margin-bottom:6px}.muted{color:#66756e;font-size:14px}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#e8f5ef;font-size:12px;font-weight:800}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.box{border:1px solid #dbe5df;border-radius:12px;padding:14px;background:#fbfdfc}
+ol,ul{padding-left:22px}li{margin:7px 0}
+.notice{padding:14px;border-radius:12px;background:#fff8e6;border:1px solid #f4d58b}
+.security{padding:14px;border-radius:12px;background:#eef6ff;border:1px solid #b9d5f7}
+a{color:#075e54;font-weight:700}code{background:#f1f3f5;padding:2px 5px;border-radius:5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<p><a href="users/">← Business User Login</a> · <a href="../admin/business-users.html">Admin Business Users</a></p>
+<h1>💼 MALZORA Business Guide</h1>
+<p class="muted">Detailed operating guide for MalawiHub/MALZORA Business administrators, employers and employees.</p>
+
+<div class="card">
+<h2>1. How MALZORA Business works</h2>
+<p>MALZORA Business uses one user entry point for registered employees and employers. The administrator creates the Business account first. The registered user's username and temporary password are sent to the user's real email address. The user then signs in, changes the temporary password, and is taken to the correct dashboard based on their Business role.</p>
+<div class="grid">
+<div class="box"><span class="badge">ADMIN</span><h3>Administrator</h3><p>Creates businesses, registers Business users, assigns employee/employer roles, and manages the wider platform.</p></div>
+<div class="box"><span class="badge">EMPLOYER</span><h3>Employer</h3><p>Uses the same Business login link to view the business, employees, authorized wallet information and wallet messages available to the employer.</p></div>
+<div class="box"><span class="badge">EMPLOYEE</span><h3>Employee / Agent</h3><p>Uses the same Business login link to view their own Business information and link their own Airtel Money and/or TNM Mpamba agent wallet number.</p></div>
+</div>
+</div>
+
+<div class="card">
+<h2>2. Administrator: complete workflow</h2>
+<ol>
+<li>Open the administrator portal and sign in with the administrator account.</li>
+<li>Open <b>MALZORA Business Users</b>.</li>
+<li>Create the Business workspace by entering the business name and a unique link/slug name.</li>
+<li>Select the newly created Business workspace.</li>
+<li>Enter the user's full legal/display name.</li>
+<li>Enter the user's real email address. This is important because the credentials are delivered there.</li>
+<li>Create a unique username for the Business login.</li>
+<li>Select the role: <b>Employee / agent</b> or <b>Employer / read-only oversight</b>.</li>
+<li>Press <b>Register and email credentials</b>.</li>
+<li>The system generates a secure temporary password. The administrator does not see or manually choose that password.</li>
+<li>The user receives an email containing the Business login link, username and temporary password.</li>
+<li>Tell the user to check Inbox, Spam/Junk and Promotions if the email is not immediately visible.</li>
+<li>The user signs in and must create a new private password on the first login.</li>
+</ol>
+<div class="security"><b>Security rule:</b> Administrators should never ask users to send their passwords through WhatsApp or display passwords publicly. The temporary password is intended for the registered user's email only.</div>
+</div>
+
+<div class="card">
+<h2>3. Administrator: registering an employee</h2>
+<ol>
+<li>Create/select the correct Business workspace.</li>
+<li>Enter the employee's name and real email.</li>
+<li>Choose a username that is easy for the employee to remember but is not already used.</li>
+<li>Select <b>Employee / agent</b>.</li>
+<li>Register the account.</li>
+<li>The employee receives credentials by email.</li>
+<li>After first login, the employee changes the temporary password.</li>
+<li>The employee can then link their own Airtel Money and/or TNM Mpamba agent wallet number.</li>
+</ol>
+<p class="muted">An employee should only link a wallet number that belongs to them and that they are authorized to use.</p>
+</div>
+
+<div class="card">
+<h2>4. Administrator: registering an employer</h2>
+<ol>
+<li>Select the correct Business workspace.</li>
+<li>Enter the employer's name, real email and unique username.</li>
+<li>Select <b>Employer / read-only oversight</b>.</li>
+<li>Register and email the credentials.</li>
+<li>The employer signs in through the same Business user link.</li>
+<li>The system identifies the employer role and opens the employer dashboard.</li>
+</ol>
+<p>The employer does not need a separate registration link.</p>
+</div>
+
+<div class="card">
+<h2>5. Business user: first login</h2>
+<ol>
+<li>Open <a href="users/">https://malawihub.pages.dev/business/users/</a>.</li>
+<li>Enter the <b>username</b> from the registration email.</li>
+<li>Enter the <b>temporary password</b> from the same email.</li>
+<li>Press <b>Sign in</b>.</li>
+<li>On the first login, create a new private password.</li>
+<li>After the password is changed, the system opens the correct dashboard automatically.</li>
+</ol>
+<p class="muted">Employees and employers use the same login page. The Business role determines which dashboard they receive.</p>
+</div>
+
+<div class="card">
+<h2>6. Employee / agent: daily work</h2>
+<ol>
+<li>Sign in through the Business user link.</li>
+<li>Confirm that the displayed Business name and your name are correct.</li>
+<li>Open <b>Link your agent wallets</b>.</li>
+<li>For Airtel Money, enter your authorized agent phone number and press <b>Link Airtel Money</b>.</li>
+<li>For TNM Mpamba, enter your authorized agent phone number and press <b>Link TNM Mpamba</b>.</li>
+<li>Wait for the provider connection/synchronization process. A newly linked wallet can initially show <b>Pending connection</b>.</li>
+<li>When a provider feed is available and connected, your authorized wallet balance can appear in the wallet section.</li>
+<li>Wallet messages received through an authorized provider feed can appear under <b>Wallet messages</b>.</li>
+<li>Use <b>Sign out</b> when you finish on a shared or public device.</li>
+</ol>
+<div class="notice"><b>Important:</b> Linking a phone number by itself does not give MALZORA legal or technical access to private Airtel Money or TNM Mpamba data. Live balances/messages require an authorized provider feed/API connection.</div>
+</div>
+
+<div class="card">
+<h2>7. Employer: daily work</h2>
+<ol>
+<li>Open the same Business user link.</li>
+<li>Sign in with the employer username and password.</li>
+<li>The system identifies the employer role automatically.</li>
+<li>Review the Business name and employee list.</li>
+<li>Review wallet balance records that are authorized for employer viewing.</li>
+<li>Review wallet messages available to the employer.</li>
+<li>Use the information for business oversight and reconciliation.</li>
+<li>Sign out after finishing.</li>
+</ol>
+<p class="muted">The employer dashboard is intended to be read-only. Employees, transactions, balances and provider data should not be manually edited from the user-facing dashboard.</p>
+</div>
+
+<div class="card">
+<h2>8. Malipo: what it is used for</h2>
+<p><b>Malipo is the payment-processing part of the Business system.</b> It is different from the direct Airtel Money/TNM Mpamba wallet feed.</p>
+<div class="grid">
+<div class="box"><h3>Payment request</h3><p>MALZORA can create a payment request through the Malipo integration for a supported provider.</p></div>
+<div class="box"><h3>Transaction status</h3><p>A payment can be tracked using its merchant transaction reference and Malipo transaction information.</p></div>
+<div class="box"><h3>Callback</h3><p>Malipo can notify the MALZORA backend when a supported transaction reaches a final status.</p></div>
+<div class="box"><h3>Reconciliation</h3><p>Administrators/employers can use confirmed Malipo records to reconcile business payments.</p></div>
+</div>
+<div class="notice"><b>Do not confuse them:</b> Malipo payment transactions are not the same thing as an employee's private agent-wallet balance or SMS/message feed.</div>
+</div>
+
+<div class="card">
+<h2>9. Handling a Malipo payment</h2>
+<ol>
+<li>Start the payment from the authorized Business payment workflow.</li>
+<li>Select the supported provider, such as Airtel Money or TNM Mpamba.</li>
+<li>Enter the required customer/payment details and amount.</li>
+<li>Submit the payment request.</li>
+<li>Keep the generated merchant transaction reference.</li>
+<li>Check the transaction status through the Malipo enquiry/callback workflow.</li>
+<li>If the status is <b>Incomplete</b> or another non-final state, do not manually mark it as completed.</li>
+<li>Only a confirmed final successful status should be treated as completed by the system.</li>
+<li>If money appears to have been deducted but the payment is still incomplete, keep the transaction reference and investigate through the official provider/Malipo support process rather than editing the database manually.</li>
+</ol>
+</div>
+
+<div class="card">
+<h2>10. What administrators should NOT do</h2>
+<ul>
+<li>Do not share secret API keys in the browser, GitHub files or WhatsApp.</li>
+<li>Do not manually change a user's password in the database.</li>
+<li>Do not manually mark an incomplete Malipo payment as completed.</li>
+<li>Do not invent wallet balances or transaction records.</li>
+<li>Do not ask employees for private wallet passwords/PINs.</li>
+<li>Do not register a person using someone else's email address without authorization.</li>
+<li>Do not give employees administrator credentials.</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>11. What users should NOT do</h2>
+<ul>
+<li>Do not share your Business username and password with another person.</li>
+<li>Do not share your Airtel Money/TNM Mpamba PIN with MALZORA administrators.</li>
+<li>Do not link another person's wallet number to your account.</li>
+<li>Do not use a temporary password after you have completed the first-login password change.</li>
+<li>Do not leave your Business account signed in on a shared phone.</li>
+<li>Report suspicious access or an incorrect Business assignment to the administrator.</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>12. If something does not work</h2>
+<ul>
+<li><b>Credentials email not received:</b> check Spam/Junk/Promotions and confirm the administrator used the correct email address. Production email delivery also requires a configured email service.</li>
+<li><b>Username/password rejected:</b> confirm that the username is exactly the one in the email and that the temporary password has not already been replaced.</li>
+<li><b>Password change fails:</b> make sure the new password meets the minimum requirements and both password fields match.</li>
+<li><b>Business access denied:</b> ask the administrator to confirm that your account is registered as an employee or employer.</li>
+<li><b>Wallet says Pending connection:</b> the wallet link has been recorded, but the authorized provider feed has not yet supplied live data.</li>
+<li><b>Malipo says Incomplete:</b> do not manually edit it. Keep the merchant transaction reference and use the Malipo enquiry/support workflow.</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>13. If you are both Admin and Business user</h2>
+<p>You can have both platform administrator access and a Business membership. Use the correct entry point for the task:</p>
+<div class="grid">
+<div class="box"><h3>Platform work</h3><p>Use the <b>Admin Hub</b> for user registration, platform administration and Business management.</p></div>
+<div class="box"><h3>Business work</h3><p>Use <a href="users/">Business User Access</a> to work as your registered employee/employer role.</p></div>
+</div>
+<p>This keeps administrator functions separate from normal Business operations while allowing the same person to hold both authorized roles.</p>
+</div>
+
+<div class="card">
+<h2>14. Quick daily checklist</h2>
+<ul>
+<li>☐ Sign in using your own credentials.</li>
+<li>☐ Confirm the correct Business and role.</li>
+<li>☐ Check wallet/provider status where applicable.</li>
+<li>☐ Review Malipo payments through official transaction status.</li>
+<li>☐ Never manually fake a balance or completed payment.</li>
+<li>☐ Protect passwords and wallet PINs.</li>
+<li>☐ Sign out when using a shared device.</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>15. Security note</h2>
+<p>MALZORA uses authenticated sessions and role-based access so that authentication and authorization are separate controls. Supabase recommends password-based authentication, secure password handling and Row Level Security for restricting data access. citeturn0search1turn0search6</p>
+<p class="muted">For production email delivery, a proper SMTP/email provider should be configured rather than relying on the default development-oriented email service. citeturn0search0</p>
+</div>
+</div>
+</body>
+</html>
