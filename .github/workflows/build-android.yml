@@ -10,35 +10,57 @@ on:
 
 jobs:
   build:
-    if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' && secrets.ANDROID_KEYSTORE_PASSWORD != '' && secrets.ANDROID_KEY_ALIAS != '' && secrets.ANDROID_KEY_PASSWORD != '' }}
     runs-on: ubuntu-latest
     steps:
+      - name: Check Android signing secrets
+        id: signing
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [[ -n "$ANDROID_KEYSTORE_BASE64" && -n "$ANDROID_KEYSTORE_PASSWORD" && -n "$ANDROID_KEY_ALIAS" && -n "$ANDROID_KEY_PASSWORD" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Android signing secrets are not configured; skipping signed Android build."
+          fi
+
       - name: Checkout
+        if: steps.signing.outputs.enabled == 'true'
         uses: actions/checkout@v4
 
       - name: Setup Node.js
+        if: steps.signing.outputs.enabled == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
       - name: Setup Java
+        if: steps.signing.outputs.enabled == 'true'
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
       - name: Install Bubblewrap
+        if: steps.signing.outputs.enabled == 'true'
         run: npm install -g @bubblewrap/cli
 
       - name: Initialise Android project
+        if: steps.signing.outputs.enabled == 'true'
         run: bubblewrap init --manifest https://malawihub.pages.dev/manifest.json --directory android-app --skipPwaValidation
 
       - name: Restore signing key
-        run: echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android-app/malawihub-release.keystore
+        if: steps.signing.outputs.enabled == 'true'
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android-app/malawihub-release.keystore
 
       - name: Build signed Android App Bundle
+        if: steps.signing.outputs.enabled == 'true'
         working-directory: android-app
         env:
           BUBBLEWRAP_KEYSTORE: malawihub-release.keystore
@@ -49,12 +71,14 @@ jobs:
           bubblewrap build --signingKey "$BUBBLEWRAP_KEYSTORE" --signingKeyPassword "$BUBBLEWRAP_KEYSTORE_PASSWORD" --signingKeyAlias "$BUBBLEWRAP_KEY_ALIAS" --signingKeyAliasPassword "$BUBBLEWRAP_KEY_PASSWORD"
 
       - name: Upload Android App Bundle
+        if: steps.signing.outputs.enabled == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: malawihub-android-release
           path: android-app/app-release-bundle.aab
 
       - name: Upload APK
+        if: steps.signing.outputs.enabled == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: malawihub-android-apk
