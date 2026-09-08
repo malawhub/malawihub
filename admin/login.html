@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - MalawiHub</title>
     <link rel="stylesheet" href="../css/style.css">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/supabase.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
 </head>
-
 <body>
-
 <header>
     <div class="logo">🇲🇼 MalawiHub</div>
     <nav>
@@ -18,64 +16,46 @@
         <a href="../resources/index.html">Resources</a>
     </nav>
 </header>
-
 <section class="hero">
     <h1>🔐 Admin Login</h1>
-    <p>Sign in to manage MalawiHub resources.</p>
+    <p>Only authorized MalawiHub administrators can enter this area.</p>
 </section>
-
 <main class="container">
-
     <section class="card">
-
         <label for="email">Email</label>
-        <input id="email" type="email" placeholder="Enter email">
-
+        <input id="email" type="email" placeholder="Enter administrator email" autocomplete="username">
         <label for="password">Password</label>
-        <input id="password" type="password" placeholder="Enter password">
-
-        <button onclick="login()">Login</button>
-
+        <input id="password" type="password" placeholder="Enter password" autocomplete="current-password">
+        <button id="loginBtn" onclick="login()">Login</button>
         <p id="message"></p>
-
     </section>
-
 </main>
-
 <script>
 async function login() {
-
-    const email =
-        document.getElementById("email").value.trim();
-
-    const password =
-        document.getElementById("password").value;
-
-    const message =
-        document.getElementById("message");
-
-    if (!email || !password) {
-        message.textContent =
-            "Please enter your email and password.";
-        return;
-    }
-
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password
-    });
-
-    if (error) {
-        console.error("Login failed:", error);
-        message.textContent =
-            "❌ Incorrect email or password.";
-        return;
-    }
-
-
-    window.location.href = "index.html";
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const message = document.getElementById('message');
+    const button = document.getElementById('loginBtn');
+    if (!email || !password) { message.textContent = 'Please enter your email and password.'; return; }
+    button.disabled = true;
+    message.textContent = 'Signing in…';
+    try {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        const { data: profile, error: profileError } = await supabaseClient
+            .from('profiles').select('role').eq('id', data.user.id).maybeSingle();
+        if (profileError) throw profileError;
+        if (profile?.role !== 'admin') {
+            await supabaseClient.auth.signOut();
+            message.textContent = '❌ This account is not authorized as an administrator.';
+            return;
+        }
+        window.location.replace('index.html');
+    } catch (error) {
+        console.error('Admin login failed:', error);
+        message.textContent = '❌ Incorrect email/password or administrator access is not authorized.';
+    } finally { button.disabled = false; }
 }
 </script>
-
 </body>
 </html>
