@@ -1,5 +1,81 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MalawiHub Student Login</title><link rel="stylesheet" href="../css/style.css"><style>body{background:#f5f7fb}.wrap{max-width:650px;margin:auto;padding:18px}.card{background:#fff;border-radius:18px;padding:20px;margin:14px 0;box-shadow:0 5px 20px #0000000d}.input{width:100%;padding:12px;border:1px solid #ccd3df;border-radius:10px;margin:6px 0;box-sizing:border-box}.btn{width:100%;padding:12px;border:0;border-radius:10px;font-weight:800;cursor:pointer;margin-top:8px}.primary{background:#0d6efd;color:#fff}.secondary{background:#eef2f7;color:#172033}.muted{color:#667085;font-size:13px}.msg{margin-top:10px;padding:10px;border-radius:10px;background:#f8fafc}</style></head><body><div class="wrap"><div class="card"><h1>🇲🇼 MalawiHub Student Portal</h1><p class="muted">Log in with your student account, or create a free student account to use MalawiHub learning services.</p><input id="email" class="input" type="email" placeholder="Student email" autocomplete="username"><input id="password" class="input" type="password" placeholder="Password" autocomplete="current-password"><button id="login" class="btn primary">Log in as Student</button><button id="register" class="btn secondary">Create Student Account</button><p id="msg" class="msg"></p><p><a href="./index.html">Continue to Live Class</a> · <a href="../index.html">MalawiHub</a></p></div></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../js/supabase.js"></script><script>
 const $=id=>document.getElementById(id);const msg=$('msg');
-$('login').onclick=async()=>{msg.textContent='Signing in…';try{const {data,error}=await supabaseClient.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)throw error;const {data:p,error:pe}=await supabaseClient.from('profiles').select('role').eq('id',data.user.id).maybeSingle();if(pe)throw pe;if(p?.role!=='student'){await supabaseClient.auth.signOut();throw Error('This account is not registered as a student.')}location.href='./index.html'}catch(e){msg.textContent=e.message||'Student login failed.'}};
-$('register').onclick=async()=>{const email=$('email').value.trim();const password=$('password').value;if(!email||!password){msg.textContent='Enter an email and password first.';return}if(password.length<6){msg.textContent='Password must be at least 6 characters.';return}$('register').disabled=true;msg.textContent='Creating student account…';try{const {data,error}=await supabaseClient.auth.signUp({email,password});if(error)throw error;if(data.user){const {error:profileError}=await supabaseClient.from('profiles').upsert({id:data.user.id,email,role:'student'});if(profileError)throw profileError;try{await fetch('https://cdqrdovgdidzxmyygoee.supabase.co/functions/v1/send-student-welcome-email',{method:'POST',headers:{'Content-Type':'application/json','apikey':supabaseClient.supabaseKey},body:JSON.stringify({user_id:data.user.id})})}catch(_){}}if(data.session){msg.textContent='✅ Student account created. Opening the Live Class portal…';location.href='./index.html'}else{msg.textContent='✅ Account created. Check your email to confirm your account, then log in here.'}}catch(e){msg.textContent=e.message||'Could not create the student account.'}finally{$('register').disabled=false}};
+
+$('login').onclick=async()=>{
+msg.textContent='Signing in…';
+try{
+const {data,error}=await supabaseClient.auth.signInWithPassword({
+email:$('email').value.trim(),
+password:$('password').value
+});
+if(error)throw error;
+const {data:p,error:pe}=await supabaseClient.from('profiles').select('role').eq('id',data.user.id).maybeSingle();
+if(pe)throw pe;
+if(p?.role!=='student'){
+await supabaseClient.auth.signOut();
+throw Error('This account is not registered as a student.')
+}
+location.href='./index.html'
+}catch(e){
+msg.textContent=e.message||'Student login failed.'
+}
+};
+
+$('register').onclick=async()=>{
+const email=$('email').value.trim();
+const password=$('password').value;
+
+if(!email||!password){
+msg.textContent='Enter an email and password first.';
+return
+}
+
+if(password.length<6){
+msg.textContent='Password must be at least 6 characters.';
+return
+}
+
+$('register').disabled=true;
+msg.textContent='Creating student account…';
+
+try{
+const {data,error}=await supabaseClient.auth.signUp({email,password});
+if(error)throw error;
+
+if(data.user){
+const {error:profileError}=await supabaseClient.from('profiles').upsert({
+id:data.user.id,
+email,
+role:'student'
+});
+
+if(profileError)throw profileError;
+
+try{
+await fetch('https://cdqrdovgdidzxmyygoee.supabase.co/functions/v1/send-student-welcome-email',{
+method:'POST',
+headers:{
+'Content-Type':'application/json',
+'apikey':MH_SUPABASE_KEY
+},
+body:JSON.stringify({
+user_id:data.user.id
+})
+});
+}catch(_){}
+}
+
+if(data.session){
+msg.textContent='✅ Student account created. Opening the Live Class portal…';
+location.href='./index.html'
+}else{
+msg.textContent='✅ Account created. Check your email to confirm your account, then log in here.'
+}
+
+}catch(e){
+msg.textContent=e.message||'Could not create the student account.'
+}finally{
+$('register').disabled=false
+}
+};
 </script></body></html>
