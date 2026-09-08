@@ -2,6 +2,36 @@ const MH_SUPABASE_URL = "https://cdqrdovgdidzxmyygoee.supabase.co";
 const MH_SUPABASE_KEY = "sb_publishable_XHAK368Bg4dirFmtl229bQ_xzjCyqbv";
 const supabaseClient = window.supabase.createClient(MH_SUPABASE_URL, MH_SUPABASE_KEY);
 window.supabaseClient = supabaseClient;
+
+// Protect every administrator page. Authentication alone is NOT enough;
+// the signed-in account must have role=admin in the profiles table.
+(function enforceAdminRoute(){
+  const path = (location.pathname || "").toLowerCase();
+  if (!path.includes("/admin/")) return;
+  if (path.endsWith("/admin/login.html") || path.endsWith("/admin/login")) return;
+  (async function(){
+    try {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (!session) {
+        location.replace("../login.html");
+        return;
+      }
+      const { data: profile, error } = await supabaseClient
+        .from("profiles")
+        .select("role")
+        .eq("id", session.user.id)
+        .maybeSingle();
+      if (error || profile?.role !== "admin") {
+        await supabaseClient.auth.signOut();
+        location.replace("../login.html?error=unauthorized");
+      }
+    } catch (error) {
+      console.error("Administrator access verification failed:", error);
+      location.replace("../login.html?error=verification");
+    }
+  })();
+})();
+
 (function normalizeBusinessInviteUrl(){if(!location.pathname.includes("/business"))return;const hash=location.hash||"";if(!hash.startsWith("#invite="))return;const token=hash.slice("#invite=".length);if(!token)return;const url=new URL(location.href);url.hash="";url.searchParams.set("invite",token);history.replaceState(null,document.title,url.pathname+url.search)})();
 (function loadBusinessBranding(){if(!location.pathname.includes("/business"))return;const s=document.createElement("script");s.src="../business/brand.js?v=1";s.defer=true;document.head.appendChild(s);const p=document.createElement("script");p.src="../business/app-polish.js?v=1";p.defer=true;document.head.appendChild(p)})();
 async function updateMalawiHubLastSeen(){try{const {data:{user}}=await supabaseClient.auth.getUser();if(!user)return;await supabaseClient.from("profiles").upsert({id:user.id,email:user.email,last_seen:new Date().toISOString(),is_online:true})}catch(error){console.error("MalawiHub activity tracking error:",error)}}
