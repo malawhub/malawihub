@@ -2,6 +2,11 @@ name: Build MalawiHub Android App
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - 'android/**'
+      - 'manifest.json'
+      - 'icons/**'
 
 jobs:
   build:
