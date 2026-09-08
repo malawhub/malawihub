@@ -1,6 +1,6 @@
-const CACHE_NAME = "malawihub-v6";
+const CACHE_NAME = "malawihub-v7";
 const APP_FILES = [
-  "/","/index.html","/tutorial/index.html","/online-class/index.html","/online-class/admin.html","/online-class/resources.html","/css/style.css","/js/app.js","/js/supabase.js","/js/notes-visuals.js","/manifest.json","/icons/icon.svg"
+  "/","/index.html","/tutorial/index.html","/online-class/index.html","/online-class/admin.html","/online-class/resources.html","/css/style.css","/js/app.js","/js/supabase.js","/js/notes-visuals.js","/js/official-app.js","/manifest.json","/icons/icon.svg"
 ];
 
 self.addEventListener("install", event => {
