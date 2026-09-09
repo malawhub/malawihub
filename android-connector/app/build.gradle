@@ -15,12 +15,15 @@ android {
     signingConfigs {
         release {
             def storeFilePath = System.getenv('ANDROID_KEYSTORE_PATH')
+            def storePasswordValue = System.getenv('ANDROID_KEYSTORE_PASSWORD')
             if (storeFilePath != null && !storeFilePath.isBlank()) {
                 storeFile file(storeFilePath)
             }
-            storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+            storePassword storePasswordValue
             keyAlias System.getenv('ANDROID_KEY_ALIAS')
-            keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+            // The production keystore is PKCS12. PKCS12 uses the store password
+            // for the private key; a separate key-password secret is ignored.
+            keyPassword storePasswordValue
         }
     }
 
