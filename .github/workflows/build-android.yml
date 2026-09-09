@@ -1,4 +1,5 @@
 name: Build MalawiHub Android App
+
 on:
   workflow_dispatch:
   push:
@@ -52,11 +53,14 @@ jobs:
       - name: Setup Node.js
         if: steps.signing.outputs.enabled == 'true'
         uses: actions/setup-node@v4
-        with: { node-version: 22 }
+        with:
+          node-version: '22'
       - name: Setup Java
         if: steps.signing.outputs.enabled == 'true'
         uses: actions/setup-java@v4
-        with: { distribution: temurin, java-version: '17' }
+        with:
+          distribution: temurin
+          java-version: '17'
       - name: Install Bubblewrap
         if: steps.signing.outputs.enabled == 'true'
         run: npm install -g @bubblewrap/cli
@@ -65,8 +69,10 @@ jobs:
         run: bubblewrap init --manifest https://malawihub.pages.dev/manifest.json --directory android-app --skipPwaValidation
       - name: Restore signing key
         if: steps.signing.outputs.enabled == 'true'
-        env: { ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }} }
-        run: echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android-app/malawihub-release.keystore
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android-app/malawihub-release.keystore
       - name: Build signed Android App Bundle
         if: steps.signing.outputs.enabled == 'true'
         working-directory: android-app
@@ -79,8 +85,12 @@ jobs:
       - name: Upload Android App Bundle
         if: steps.signing.outputs.enabled == 'true'
         uses: actions/upload-artifact@v4
-        with: { name: malawihub-android-release, path: android-app/app-release-bundle.aab }
+        with:
+          name: malawihub-android-release
+          path: android-app/app-release-bundle.aab
       - name: Upload APK
         if: steps.signing.outputs.enabled == 'true'
         uses: actions/upload-artifact@v4
-        with: { name: malawihub-android-apk, path: android-app/app-release-signed.apk }
+        with:
+          name: malawihub-android-apk
+          path: android-app/app-release-signed.apk
