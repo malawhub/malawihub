@@ -47,3 +47,8 @@ jobs:
         run: supabase functions deploy admin-create-business-user --project-ref cdqrdovgdidzxmyygoee
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Business Connector
+        run: supabase functions deploy business-device --project-ref cdqrdovgdidzxmyygoee
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
