@@ -11,7 +11,7 @@ jobs:
     name: Build and publish signed connector APK
     runs-on: ubuntu-latest
     env:
-      ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/malawihub-release.jks
+      ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/malawihub-release.jks
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
