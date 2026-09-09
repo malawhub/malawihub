@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   release-connector:
-    name: Build and publish signed connector APK
+    name: Build and publish signed connector APK and AAB
     runs-on: ubuntu-latest
     env:
       ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/malawihub-release.jks
@@ -69,9 +69,9 @@ jobs:
         run: |
           set -euo pipefail
           yes | sdkmanager --licenses >/dev/null || true
-          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
-          test -x "$ANDROID_HOME/build-tools/35.0.0/apksigner"
-          echo "Android SDK and apksigner are ready."
+          sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+          test -x "$ANDROID_HOME/build-tools/36.0.0/apksigner"
+          echo "Android SDK 36 and apksigner are ready."
 
       - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
@@ -88,31 +88,36 @@ jobs:
           test -f app/build.gradle
           gradle --version
 
-      - name: Build signed release APK
+      - name: Build signed release APK and Google Play AAB
         working-directory: android-connector
         shell: bash
         run: |
           set -euo pipefail
-          gradle :app:assembleRelease --no-daemon --stacktrace
+          gradle :app:assembleRelease :app:bundleRelease --no-daemon --stacktrace
 
-      - name: Verify signed APK and create checksum
+      - name: Verify signed APK and AAB and create checksums
         shell: bash
         run: |
           set -euo pipefail
           APK="android-connector/app/build/outputs/apk/release/app-release.apk"
-          APKSIGNER="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          AAB="android-connector/app/build/outputs/bundle/release/app-release.aab"
+          APKSIGNER="$ANDROID_HOME/build-tools/36.0.0/apksigner"
           test -s "$APK" || { echo "Release APK was not produced"; exit 1; }
+          test -s "$AAB" || { echo "Release AAB was not produced"; exit 1; }
           "$APKSIGNER" verify --verbose "$APK"
-          sha256sum "$APK" | tee android-connector/app-release.sha256
-          ls -lh "$APK" android-connector/app-release.sha256
+          sha256sum "$APK" | tee android-connector/app-release.apk.sha256
+          sha256sum "$AAB" | tee android-connector/app-release.aab.sha256
+          ls -lh "$APK" "$AAB" android-connector/app-release.apk.sha256 android-connector/app-release.aab.sha256
 
-      - name: Upload verified APK artifact
+      - name: Upload verified APK and AAB artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: malawihub-business-connector-release
+          name: malawihub-business-connector-v1.0.2
           path: |
             android-connector/app/build/outputs/apk/release/app-release.apk
-            android-connector/app-release.sha256
+            android-connector/app/build/outputs/bundle/release/app-release.aab
+            android-connector/app-release.apk.sha256
+            android-connector/app-release.aab.sha256
           if-no-files-found: error
 
       - name: Publish GitHub Release
@@ -121,16 +126,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TAG="business-connector-v1.0.1"
+          TAG="business-connector-v1.0.2"
           APK="android-connector/app/build/outputs/apk/release/app-release.apk"
-          SHA="android-connector/app-release.sha256"
+          AAB="android-connector/app/build/outputs/bundle/release/app-release.aab"
+          APK_SHA="android-connector/app-release.apk.sha256"
+          AAB_SHA="android-connector/app-release.aab.sha256"
           if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "Release $TAG already exists; replacing its APK and checksum."
-            gh release upload "$TAG" "$APK" "$SHA" --clobber
+            echo "Release $TAG already exists; replacing its release assets."
+            gh release upload "$TAG" "$APK" "$AAB" "$APK_SHA" "$AAB_SHA" --clobber
           else
-            gh release create "$TAG" "$APK" "$SHA" \
-              --title "MalawiHub Business Connector v1.0.1" \
-              --notes "Official signed MalawiHub Business Connector v1.0.1. Normal permanent Android app with MalawiHub branding. Use this APK to connect a supported business phone to MalawiHub Business Hub." \
+            gh release create "$TAG" "$APK" "$AAB" "$APK_SHA" "$AAB_SHA" \
+              --title "MalawiHub Business Connector v1.0.2" \
+              --notes "Production signed MalawiHub Business Connector v1.0.2. This release includes the Android App Bundle (AAB) prepared for Google Play submission and the APK for direct distribution. Core functionality reads supported business transaction SMS for business wallet monitoring and requires the applicable Google Play SMS permission declaration and review." \
               --target main
           fi
           echo "GitHub Release publication completed."
