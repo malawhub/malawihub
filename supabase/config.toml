@@ -1,0 +1,14 @@
+[functions.resource-discovery]
+verify_jwt = true
+
+[functions.admin-user-stats]
+verify_jwt = false
+
+[functions.teacher-ai]
+verify_jwt = true
+
+[functions.business-webhook]
+verify_jwt = false
+
+[functions.admin-create-business-user]
+verify_jwt = false
