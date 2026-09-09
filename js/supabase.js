@@ -12,6 +12,7 @@ window.supabaseClient = supabaseClient;
 (function enforceAreaRoutes(){
   const path = (location.pathname || "").toLowerCase();
   const isAdminPage = path.includes("/admin/");
+  const isBusinessAdminUsers = path.endsWith("/admin/business-users.html") || path.endsWith("/admin/business-users");
   const isOnlineClass = path.includes("/online-class/");
   const isOnlineAdmin = path.endsWith("/online-class/admin.html") || path.endsWith("/online-class/admin");
   const isBusinessPrivate = /\/business\/(employee|employer)(\.html)?$/.test(path);
@@ -31,6 +32,11 @@ window.supabaseClient = supabaseClient;
   async function guard(){
     try{
       const {data:{session}}=await supabaseClient.auth.getSession();
+
+      // Business Users has its own explicit admin-session verification.
+      // Do not run this global guard there because two independent auth checks
+      // can race during token refresh and falsely report an invalid session.
+      if(isBusinessAdminUsers) return;
 
       if(isAdminPage && !isAdminLogin){
         if(!session){location.replace("/admin/login.html");return}
@@ -91,6 +97,7 @@ window.supabaseClient = supabaseClient;
       }
     }catch(error){
       console.error("MalawiHub area access verification failed:",error);
+      if(isBusinessAdminUsers) return;
       if(isAdminPage && !isAdminLogin) location.replace("/admin/login.html?error=verification");
       else if(isOnlineAdmin) location.replace("/admin/login.html?error=verification");
       else if(isBusinessPrivate) location.replace("/business/index.html?error=verification");
