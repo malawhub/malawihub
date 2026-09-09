@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - '.github/workflows/release-connector.yml'
+      - 'android-connector/**'
 
 permissions:
   contents: write
@@ -19,7 +20,6 @@ jobs:
       ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/malawihub-release.jks
       ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
 
     steps:
       - name: Checkout
@@ -34,7 +34,6 @@ jobs:
           test -n "$KEYSTORE_B64" || { echo "Missing ANDROID_KEYSTORE_BASE64"; exit 1; }
           test -n "$ANDROID_KEYSTORE_PASSWORD" || { echo "Missing ANDROID_KEYSTORE_PASSWORD"; exit 1; }
           test -n "$ANDROID_KEY_ALIAS" || { echo "Missing ANDROID_KEY_ALIAS"; exit 1; }
-          test -n "$ANDROID_KEY_PASSWORD" || { echo "Missing ANDROID_KEY_PASSWORD"; exit 1; }
           printf '%s' "$KEYSTORE_B64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
           test -s "$ANDROID_KEYSTORE_PATH" || { echo "Keystore restoration produced an empty file"; exit 1; }
           keytool -list -keystore "$ANDROID_KEYSTORE_PATH" -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
@@ -48,7 +47,7 @@ jobs:
           keytool -certreq \
             -keystore "$ANDROID_KEYSTORE_PATH" \
             -storepass "$ANDROID_KEYSTORE_PASSWORD" \
-            -keypass "$ANDROID_KEY_PASSWORD" \
+            -keypass "$ANDROID_KEYSTORE_PASSWORD" \
             -alias "$ANDROID_KEY_ALIAS" \
             -file signing-test.csr >/dev/null
           test -s signing-test.csr || { echo "Private-key password verification did not produce a CSR"; exit 1; }
