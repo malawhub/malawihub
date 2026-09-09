@@ -112,7 +112,7 @@ jobs:
       - name: Upload verified APK and AAB artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: malawihub-business-connector-v1.0.2
+          name: malawihub-business-connector-v1.0.3
           path: |
             android-connector/app/build/outputs/apk/release/app-release.apk
             android-connector/app/build/outputs/bundle/release/app-release.aab
@@ -126,7 +126,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TAG="business-connector-v1.0.2"
+          TAG="business-connector-v1.0.3"
           APK="android-connector/app/build/outputs/apk/release/app-release.apk"
           AAB="android-connector/app/build/outputs/bundle/release/app-release.aab"
           APK_SHA="android-connector/app-release.apk.sha256"
@@ -136,8 +136,8 @@ jobs:
             gh release upload "$TAG" "$APK" "$AAB" "$APK_SHA" "$AAB_SHA" --clobber
           else
             gh release create "$TAG" "$APK" "$AAB" "$APK_SHA" "$AAB_SHA" \
-              --title "MalawiHub Business Connector v1.0.2" \
-              --notes "Production signed MalawiHub Business Connector v1.0.2. This release includes the Android App Bundle (AAB) prepared for Google Play submission and the APK for direct distribution. Core functionality reads supported business transaction SMS for business wallet monitoring and requires the applicable Google Play SMS permission declaration and review." \
+              --title "MalawiHub Business Connector v1.0.3" \
+              --notes "Production signed MalawiHub Business Connector v1.0.3. This release fixes SMS permission recovery and clearly guides users through enabling both required SMS permissions after device pairing." \
               --target main
           fi
           echo "GitHub Release publication completed."
