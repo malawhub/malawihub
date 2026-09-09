@@ -121,7 +121,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          TAG="business-connector-v1.0.0"
+          TAG="business-connector-v1.0.1"
           APK="android-connector/app/build/outputs/apk/release/app-release.apk"
           SHA="android-connector/app-release.sha256"
           if gh release view "$TAG" >/dev/null 2>&1; then
@@ -129,8 +129,8 @@ jobs:
             gh release upload "$TAG" "$APK" "$SHA" --clobber
           else
             gh release create "$TAG" "$APK" "$SHA" \
-              --title "MalawiHub Business Connector v1.0.0" \
-              --notes "Official signed MalawiHub Business Connector v1.0.0. Use this APK to connect a supported business phone to MalawiHub Business Hub." \
+              --title "MalawiHub Business Connector v1.0.1" \
+              --notes "Official signed MalawiHub Business Connector v1.0.1. Normal permanent Android app with MalawiHub branding. Use this APK to connect a supported business phone to MalawiHub Business Hub." \
               --target main
           fi
           echo "GitHub Release publication completed."
