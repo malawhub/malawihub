@@ -2,6 +2,11 @@ name: Release MalawiHub Business Connector
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/release-connector.yml'
 
 permissions:
   contents: write
