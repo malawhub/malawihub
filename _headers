@@ -4,3 +4,12 @@
 
 /robots.txt
   Content-Type: text/plain; charset=UTF-8
+
+/admin/*
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+
+/admin/business-users.html
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+
+/js/supabase.js
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
