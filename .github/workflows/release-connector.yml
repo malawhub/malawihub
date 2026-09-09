@@ -25,16 +25,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Validate signing secrets
+      - name: Validate signing secrets and restore keystore
         env:
           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        shell: bash
         run: |
+          set -euo pipefail
           test -n "$KEYSTORE_B64" || { echo "Missing ANDROID_KEYSTORE_BASE64"; exit 1; }
           test -n "$ANDROID_KEYSTORE_PASSWORD" || { echo "Missing ANDROID_KEYSTORE_PASSWORD"; exit 1; }
           test -n "$ANDROID_KEY_ALIAS" || { echo "Missing ANDROID_KEY_ALIAS"; exit 1; }
           test -n "$ANDROID_KEY_PASSWORD" || { echo "Missing ANDROID_KEY_PASSWORD"; exit 1; }
           printf '%s' "$KEYSTORE_B64" | base64 --decode > "$ANDROID_KEYSTORE_PATH"
-          test -s "$ANDROID_KEYSTORE_PATH"
+          test -s "$ANDROID_KEYSTORE_PATH" || { echo "Keystore restoration produced an empty file"; exit 1; }
+          keytool -list -keystore "$ANDROID_KEYSTORE_PATH" -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
+          echo "Signing keystore and alias verified."
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -47,35 +51,72 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install Android SDK packages
+        shell: bash
         run: |
+          set -euo pipefail
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+          test -x "$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          echo "Android SDK and apksigner are ready."
 
       - name: Set up Gradle 8.9
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
 
+      - name: Verify Gradle project
+        working-directory: android-connector
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f settings.gradle
+          test -f build.gradle
+          test -f app/build.gradle
+          gradle --version
+
       - name: Build signed release APK
         working-directory: android-connector
-        run: gradle :app:assembleRelease --no-daemon --stacktrace
-
-      - name: Verify and checksum APK
+        shell: bash
         run: |
+          set -euo pipefail
+          gradle :app:assembleRelease --no-daemon --stacktrace
+
+      - name: Verify signed APK and create checksum
+        shell: bash
+        run: |
+          set -euo pipefail
           APK="android-connector/app/build/outputs/apk/release/app-release.apk"
-          test -s "$APK"
-          apksigner verify --verbose "$APK"
+          APKSIGNER="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          test -s "$APK" || { echo "Release APK was not produced"; exit 1; }
+          "$APKSIGNER" verify --verbose "$APK"
           sha256sum "$APK" | tee android-connector/app-release.sha256
-          ls -lh "$APK"
+          ls -lh "$APK" android-connector/app-release.sha256
+
+      - name: Upload verified APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: malawihub-business-connector-release
+          path: |
+            android-connector/app/build/outputs/apk/release/app-release.apk
+            android-connector/app-release.sha256
+          if-no-files-found: error
 
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+        shell: bash
         run: |
+          set -euo pipefail
           TAG="business-connector-v1.0.0"
-          gh release create "$TAG" \
-            android-connector/app/build/outputs/apk/release/app-release.apk \
-            android-connector/app-release.sha256 \
-            --title "MalawiHub Business Connector v1.0.0" \
-            --notes "Official signed MalawiHub Business Connector v1.0.0. Use this APK to connect a supported business phone to MalawiHub Business Hub." \
-            --target main
+          APK="android-connector/app/build/outputs/apk/release/app-release.apk"
+          SHA="android-connector/app-release.sha256"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; replacing its APK and checksum."
+            gh release upload "$TAG" "$APK" "$SHA" --clobber
+          else
+            gh release create "$TAG" "$APK" "$SHA" \
+              --title "MalawiHub Business Connector v1.0.0" \
+              --notes "Official signed MalawiHub Business Connector v1.0.0. Use this APK to connect a supported business phone to MalawiHub Business Hub." \
+              --target main
+          fi
+          echo "GitHub Release publication completed."
