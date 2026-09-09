@@ -9,53 +9,27 @@
     <script src="../js/supabase.js"></script>
 </head>
 <body>
-<header>
-    <div class="logo">🇲🇼 MalawiHub</div>
-    <nav>
-        <a href="../index.html">Home</a>
-        <a href="../resources/index.html">Resources</a>
-    </nav>
-</header>
-<section class="hero">
-    <h1>🔐 Admin Login</h1>
-    <p>Only authorized MalawiHub administrators can enter this area.</p>
-</section>
-<main class="container">
-    <section class="card">
-        <label for="email">Email</label>
-        <input id="email" type="email" placeholder="Enter administrator email" autocomplete="username">
-        <label for="password">Password</label>
-        <input id="password" type="password" placeholder="Enter password" autocomplete="current-password">
-        <button id="loginBtn" onclick="login()">Login</button>
-        <p id="message"></p>
-    </section>
-</main>
+<header><div class="logo">🇲🇼 MalawiHub</div><nav><a href="../index.html">Home</a><a href="../resources/index.html">Resources</a></nav></header>
+<section class="hero"><h1>🔐 Admin Login</h1><p>Only authorized MalawiHub administrators can enter this area.</p></section>
+<main class="container"><section class="card"><label for="email">Email</label><input id="email" type="email" placeholder="Enter administrator email" autocomplete="username"><label for="password">Password</label><input id="password" type="password" placeholder="Enter password" autocomplete="current-password"><button id="loginBtn" onclick="login()">Login</button><p id="message"></p></section></main>
 <script>
-async function login() {
-    const email = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const message = document.getElementById('message');
-    const button = document.getElementById('loginBtn');
-    if (!email || !password) { message.textContent = 'Please enter your email and password.'; return; }
-    button.disabled = true;
-    message.textContent = 'Signing in…';
-    try {
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-        const { data: profile, error: profileError } = await supabaseClient
-            .from('profiles').select('role').eq('id', data.user.id).maybeSingle();
-        if (profileError) throw profileError;
-        if (profile?.role !== 'admin') {
-            await supabaseClient.auth.signOut();
-            message.textContent = '❌ This account is not authorized as an administrator.';
-            return;
-        }
-        window.location.replace('index.html');
-    } catch (error) {
-        console.error('Admin login failed:', error);
-        message.textContent = '❌ Incorrect email/password or administrator access is not authorized.';
-    } finally { button.disabled = false; }
+const message=document.getElementById('message');
+const params=new URLSearchParams(location.search);
+if(params.get('error')==='invalid_session')message.textContent='⚠️ Your administrator session is invalid or has expired. Please sign in again.';
+else if(params.get('error')==='verification')message.textContent='⚠️ Administrator session verification failed. Please sign in again.';
+else if(params.get('error')==='unauthorized')message.textContent='❌ This account is not authorized as an administrator.';
+async function login(){
+ const email=document.getElementById('email').value.trim(),password=document.getElementById('password').value,button=document.getElementById('loginBtn');
+ if(!email||!password){message.textContent='Please enter your email and password.';return}
+ button.disabled=true;message.textContent='Signing in…';
+ try{
+  const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+  if(error)throw error;
+  const {data:profile,error:profileError}=await supabaseClient.from('profiles').select('role').eq('id',data.user.id).maybeSingle();
+  if(profileError)throw profileError;
+  if(profile?.role!=='admin'){await supabaseClient.auth.signOut();message.textContent='❌ This account is not authorized as an administrator.';return}
+  window.location.replace('index.html');
+ }catch(error){console.error('Admin login failed:',error);message.textContent='❌ Incorrect email/password or administrator access is not authorized.'}
+ finally{button.disabled=false}
 }
-</script>
-</body>
-</html>
+</script></body></html>
