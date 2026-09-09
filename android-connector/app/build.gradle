@@ -1,5 +1,39 @@
 plugins { id 'com.android.application' }
 
-android { namespace 'mw.malawihub.connector'; compileSdk 35
-    defaultConfig { applicationId 'mw.malawihub.connector'; minSdk 26; targetSdk 35; versionCode 1; versionName '1.0.0' }
+android {
+    namespace 'mw.malawihub.connector'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'mw.malawihub.connector'
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName '1.0.0'
+    }
+
+    signingConfigs {
+        release {
+            def storeFilePath = System.getenv('ANDROID_KEYSTORE_PATH')
+            if (storeFilePath != null && !storeFilePath.isBlank()) {
+                storeFile file(storeFilePath)
+            }
+            storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+            keyAlias System.getenv('ANDROID_KEY_ALIAS')
+            keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+        }
+    }
+
+    buildTypes {
+        debug {
+            applicationIdSuffix '.debug'
+            versionNameSuffix '-debug'
+        }
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            shrinkResources false
+            debuggable false
+        }
+    }
 }
