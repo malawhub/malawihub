@@ -1,7 +1,5 @@
-/online-class/teacher-portal.html /online-class/teacher.html 302
-/online-class/admin.html /online-class/admin.html 200
-/business/ /business/users/ 302
-/business/index.html /business/users/ 302
-/online-class/resources.html /online-class/landing.html 302
-/online-class/index.html /online-class/landing.html 302
-/admin/index.html /admin/index.html 200
+/online-class/teacher-portal.html /teacher-portal/ 302
+/online-class/login.html /student-portal/ 302
+/online-class/landing.html /online-classes/ 302
+/online-class/resources.html /online-classes/ 302
+/online-class/redirect.html /online-classes/ 302
