@@ -40,6 +40,21 @@ jobs:
           keytool -list -keystore "$ANDROID_KEYSTORE_PATH" -storepass "$ANDROID_KEYSTORE_PASSWORD" -alias "$ANDROID_KEY_ALIAS" >/dev/null
           echo "Signing keystore and alias verified."
 
+      - name: Verify private-key password
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -f signing-test.csr
+          keytool -certreq \
+            -keystore "$ANDROID_KEYSTORE_PATH" \
+            -storepass "$ANDROID_KEYSTORE_PASSWORD" \
+            -keypass "$ANDROID_KEY_PASSWORD" \
+            -alias "$ANDROID_KEY_ALIAS" \
+            -file signing-test.csr >/dev/null
+          test -s signing-test.csr || { echo "Private-key password verification did not produce a CSR"; exit 1; }
+          rm -f signing-test.csr
+          echo "Private-key password verified."
+
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:
