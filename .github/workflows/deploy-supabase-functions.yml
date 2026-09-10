@@ -1,43 +1,30 @@
-name: Deploy Supabase Edge Functions
+name: Deploy Business Supabase Function
 
 on:
   push:
     branches:
       - main
     paths:
-      - "supabase/functions/**"
-      - "supabase/config.toml"
+      - "supabase/functions/admin-create-business-user/**"
       - ".github/workflows/deploy-supabase-functions.yml"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  deploy:
+  deploy-business-user:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
           version: latest
-      - name: Deploy resource discovery
-        run: supabase functions deploy resource-discovery --project-ref cdqrdovgdidzxmyygoee
-        env: { SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }} }
-      - name: Deploy admin user stats
-        run: supabase functions deploy admin-user-stats --project-ref cdqrdovgdidzxmyygoee
-        env: { SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }} }
-      - name: Deploy teacher AI
-        run: supabase functions deploy teacher-ai --project-ref cdqrdovgdidzxmyygoee
-        env: { SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }} }
-      - name: Deploy private business webhook
-        run: supabase functions deploy business-webhook --project-ref cdqrdovgdidzxmyygoee
-        env: { SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }} }
+
       - name: Deploy Business user registration
         run: supabase functions deploy admin-create-business-user --project-ref cdqrdovgdidzxmyygoee
-        env: { SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }} }
-      - name: Deploy Business Connector
-        run: supabase functions deploy business-device --project-ref cdqrdovgdidzxmyygoee
-        env: { SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }} }
-      - name: Deploy Online Class teacher administration
-        run: supabase functions deploy online-class-teacher-admin --project-ref cdqrdovgdidzxmyygoee
-        env: { SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }} }
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
