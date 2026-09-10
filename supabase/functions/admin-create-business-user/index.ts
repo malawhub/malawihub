@@ -5,6 +5,7 @@ const clean=(v:unknown)=>String(v??'').trim()
 const usernameOf=(v:unknown)=>clean(v).toLowerCase().replace(/[^a-z0-9._-]/g,'')
 async function hashCode(code:string){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(code));return Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,'0')).join('')}
 function randomCode(){const b=crypto.getRandomValues(new Uint8Array(8));const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';return Array.from(b,x=>chars[x%chars.length]).join('')}
+async function internalPassword(secret:string,userId:string,code:string){return hashCode(`MALAWIHUB_BUSINESS_AUTH_V1:${secret}:${userId}:${code.trim().toUpperCase()}`)}
 async function sendAccessEmail(to:string,name:string,username:string,code:string,role:string,workspace:string){
  const key=Deno.env.get('BREVO_API_KEY')||''
  if(!key)throw new Error('Brevo email delivery is not configured in Supabase.')
@@ -27,20 +28,20 @@ Deno.serve(async(req)=>{
   const {data:workspace,error:we}=await admin.from('business_workspaces').select('id,name').eq('id',workspaceId).maybeSingle();if(we)throw we;if(!workspace)return out({error:'Business workspace not found'},404)
   const existingUsername=await admin.from('business_members').select('id').eq('login_username',requestedUsername).limit(1);if(existingUsername.error)throw existingUsername.error
   const existingAuth=await findAuthUserByEmail(admin,email)
-  const issueCode=async(memberId:string,displayName:string,memberRole:string)=>{const code=randomCode(),codeHash=await hashCode(code);const {error}=await admin.from('business_members').update({login_code_hash:codeHash}).eq('id',memberId);if(error)throw error;await sendAccessEmail(email,displayName,requestedUsername,code,memberRole,workspace.name);return code}
+  const issueCode=async(memberId:string,userId:string,displayName:string,memberRole:string,memberEmail:string,memberUsername:string)=>{const code=randomCode(),codeHash=await hashCode(code),password=await internalPassword(service,userId,code);const {error}=await admin.auth.admin.updateUserById(userId,{password,user_metadata:{business_login_username:memberUsername}});if(error)throw error;const {error:memberUpdateError}=await admin.from('business_members').update({login_code_hash:codeHash}).eq('id',memberId);if(memberUpdateError)throw memberUpdateError;await sendAccessEmail(memberEmail,displayName,memberUsername,code,memberRole,workspace.name);return code}
   if(existingAuth){
-   const {data:members,error:memberError}=await admin.from('business_members').select('id,workspace_id,role,display_name,login_username').eq('user_id',existingAuth.id);if(memberError)throw memberError
+   const {data:members,error:memberError}=await admin.from('business_members').select('id,workspace_id,role,display_name,login_username,user_id').eq('user_id',existingAuth.id);if(memberError)throw memberError
    if(members?.length){
     const current=members.find((m:any)=>m.workspace_id===workspaceId);if(!current)return out({error:'This email is already registered as a Business user for another business. Use the existing Business account or a different email address.'},409)
     if(existingUsername.data?.length&&existingUsername.data[0].id!==current.id)return out({error:'That username is already in use'},409)
-    try{await issueCode(current.id,current.display_name||name,current.role)}catch(e){return out({error:e instanceof Error?e.message:'Business access email failed. The existing account was not duplicated.'},503)}
+    try{await issueCode(current.id,current.user_id,current.display_name||name,current.role,email,current.login_username)}catch(e){return out({error:e instanceof Error?e.message:'Business access email failed. The existing account was not duplicated.'},503)}
     return out({success:true,reused:true,workspace:workspace.name,role:current.role,username:current.login_username,emailSent:true,message:'Existing Business access renewed. A fresh access code was sent to the email address.'})
    }
    const taggedAsBusiness=Boolean(existingAuth.user_metadata?.business_login_username);if(!taggedAsBusiness)return out({error:'This email is already used by another MalawiHub account. Business accounts use separate access from Main Hub and Online Class, so use a different email address.'},409)
    if(existingUsername.data?.length)return out({error:'That username is already in use'},409)
    const {data:member,error:me}=await admin.from('business_members').insert({workspace_id:workspaceId,user_id:existingAuth.id,role,display_name:name,login_username:requestedUsername}).select('id').single();if(me||!member)return out({error:me?.message||'Could not restore Business membership'},400)
    if(role==='employee'){const {error:be}=await admin.from('business_wallet_balances').insert([{workspace_id:workspaceId,member_id:member.id,provider:'airtel_money',balance:0,currency:'MWK',status:'pending'},{workspace_id:workspaceId,member_id:member.id,provider:'mpamba',balance:0,currency:'MWK',status:'pending'}]);if(be){await admin.from('business_members').delete().eq('id',member.id);return out({error:be.message},400)}}
-   try{await issueCode(member.id,name,role)}catch(e){await admin.from('business_wallet_balances').delete().eq('member_id',member.id);await admin.from('business_members').delete().eq('id',member.id);return out({error:e instanceof Error?e.message:'Business access email failed. The previous Business identity was kept.'},503)}
+   try{await issueCode(member.id,existingAuth.id,name,role,email,requestedUsername)}catch(e){await admin.from('business_wallet_balances').delete().eq('member_id',member.id);await admin.from('business_members').delete().eq('id',member.id);return out({error:e instanceof Error?e.message:'Business access email failed. The previous Business identity was kept.'},503)}
    return out({success:true,reused:true,restored:true,workspace:workspace.name,role,username:requestedUsername,emailSent:true,message:'Previous incomplete Business account restored. A new access code was sent to the email address.'})
   }
   if(existingUsername.data?.length)return out({error:'That username is already in use'},409)
@@ -48,7 +49,7 @@ Deno.serve(async(req)=>{
   const userId=created.user.id
   const {data:member,error:me}=await admin.from('business_members').insert({workspace_id:workspaceId,user_id:userId,role,display_name:name,login_username:requestedUsername}).select('id').single();if(me||!member){await admin.auth.admin.deleteUser(userId);return out({error:me?.message||'Could not create Business membership'},400)}
   if(role==='employee'){const {error:be}=await admin.from('business_wallet_balances').insert([{workspace_id:workspaceId,member_id:member.id,provider:'airtel_money',balance:0,currency:'MWK',status:'pending'},{workspace_id:workspaceId,member_id:member.id,provider:'mpamba',balance:0,currency:'MWK',status:'pending'}]);if(be){await admin.from('business_members').delete().eq('id',member.id);await admin.auth.admin.deleteUser(userId);return out({error:be.message},400)}}
-  try{await issueCode(member.id,name,role)}catch(e){await admin.from('business_wallet_balances').delete().eq('member_id',member.id);await admin.from('business_members').delete().eq('id',member.id);await admin.auth.admin.deleteUser(userId);return out({error:e instanceof Error?e.message:'Business access email failed'},503)}
+  try{await issueCode(member.id,userId,name,role,email,requestedUsername)}catch(e){await admin.from('business_wallet_balances').delete().eq('member_id',member.id);await admin.from('business_members').delete().eq('id',member.id);await admin.auth.admin.deleteUser(userId);return out({error:e instanceof Error?e.message:'Business access email failed'},503)}
   return out({success:true,reused:false,workspace:workspace.name,role,username:requestedUsername,emailSent:true,message:'Business account created. The username and access code were sent to the email address.'})
  }catch(e){console.error('admin-create-business-user:',e);return out({error:e instanceof Error?e.message:'Unexpected error'},500)}
 })
