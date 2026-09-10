@@ -12,3 +12,6 @@ verify_jwt = false
 
 [functions.admin-create-business-user]
 verify_jwt = false
+
+[functions.online-class-teacher-admin]
+verify_jwt = true
