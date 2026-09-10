@@ -57,8 +57,10 @@ async function setupRoom(){
  roomCode=cleanCode($('code').value);userName=$('name').value.trim()||(role==='teacher'?'Teacher':'Student');
  if(!roomCode){alert('Enter a class code.');return}if(!window.supabaseClient){alert('Supabase is not available.');return}
  if(role==='teacher'){authUser=await getAuthUser();if(!authUser){$('loginNotice').classList.remove('hidden');alert('Please sign in to MalawiHub before starting a teacher class.');return}}
- const {data,error}=await supabaseClient.from('online_classes').select('*').eq('join_code',roomCode).maybeSingle();
- if(error||!data){alert('Class not found. Check the class code.');return}classData=data;classId=data.id;duration=data.duration_minutes||60;
+ if(role==='student'){authUser=await getAuthUser();if(!authUser){alert('Please sign in through the Student Portal before joining a class.');return}}
+ let data,error;
+ if(role==='student'){const joined=await supabaseClient.rpc('join_online_class',{p_join_code:roomCode});data=joined.data?.[0]||null;error=joined.error}else{const result=await supabaseClient.from('online_classes').select('*').eq('join_code',roomCode).maybeSingle();data=result.data;error=result.error}
+ if(error||!data){alert(error?.message||'Class not found. Check the class code.');return}classData=data;classId=data.id;duration=data.duration_minutes||60;
  $('room').classList.remove('hidden');$('roleText').textContent=role==='teacher'?'Teacher mode':'Student mode';$('classTitle').textContent=data.title||('Class: '+roomCode);$('allVideosLink').href='./resources.html?code='+encodeURIComponent(roomCode);await loadNotes();await loadResources();
  channel=supabaseClient.channel('malawihub-class-'+roomCode,{config:{broadcast:{self:false}}});
  channel.on('broadcast',{event:'class'},async({payload})=>{if(payload.code!==roomCode)return;if(!payload.to||payload.to==='*'||payload.to===getMyId())await handleSignal(payload)})
