@@ -24,13 +24,25 @@ import java.util.regex.Pattern;
 public class SmsReceiver extends BroadcastReceiver {
     private static final String API = "https://cdqrdovgdidzxmyygoee.supabase.co/functions/v1/business-device";
     private static final Pattern AMOUNT_AFTER = Pattern.compile(
-            "(?i)(?:received|sent|deposit(?:ed)?|withdraw(?:n|al)?|credited|debited|amount|payment)[^0-9]{0,32}([0-9][0-9,]*(?:\\.[0-9]{1,2})?)");
+            "(?i)(?:received|sent|deposit(?:ed)?|withdraw(?:n|al)?|credited|debited|amount|payment|cash\\s*(?:in|out))[^0-9]{0,32}([0-9][0-9,]*(?:\\.[0-9]{1,2})?)");
     private static final Pattern AMOUNT_BEFORE = Pattern.compile(
-            "(?i)([0-9][0-9,]*(?:\\.[0-9]{1,2})?)[^0-9]{0,24}(?:MWK|MK|received|sent|deposit(?:ed)?|withdraw(?:n|al)?|credited|debited|payment)");
+            "(?i)([0-9][0-9,]*(?:\\.[0-9]{1,2})?)[^0-9]{0,24}(?:MWK|MK|received|sent|deposit(?:ed)?|withdraw(?:n|al)?|credited|debited|payment|cash\\s*(?:in|out))");
     private static final Pattern BALANCE = Pattern.compile(
             "(?i)(?:balance|available balance|new balance|remaining|bal(?:ance)?)[^0-9]{0,32}([0-9][0-9,]*(?:\\.[0-9]{1,2})?)");
     private static final Pattern REFERENCE = Pattern.compile(
             "(?i)(?:ref(?:erence)?|transaction(?:\\s+id)?|txn(?:\\s+id)?)[\\s:#-]*([A-Z0-9-]{4,40})");
+
+    // A provider name alone is NOT enough. This prevents ordinary Airtel/TNM SMS,
+    // adverts and network messages from entering the Business Hub.
+    private static boolean isMoneyTransaction(String body, String lower) {
+        boolean airtelMoney = lower.contains("airtel money");
+        boolean mpamba = lower.contains("mpamba") && (lower.contains("tnm") || lower.contains("mobile money"));
+        if (!airtelMoney && !mpamba) return false;
+
+        return containsAny(lower,
+                "transaction", "received", "sent", "deposit", "withdraw", "credited", "debited",
+                "cash in", "cash out", "payment", "balance", "amount", "mwk", "mk");
+    }
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -55,13 +67,16 @@ public class SmsReceiver extends BroadcastReceiver {
 
         String lower = body.toLowerCase(Locale.ROOT);
         final String provider;
-        if (lower.contains("mpamba") || lower.contains("tnm")) {
-            provider = "mpamba";
-        } else if (lower.contains("airtel")) {
+        if (lower.contains("airtel money")) {
             provider = "airtel_money";
+        } else if (lower.contains("mpamba") && (lower.contains("tnm") || lower.contains("mobile money"))) {
+            provider = "mpamba";
         } else {
             return;
         }
+
+        // Do not forward anything unless it looks like an actual money transaction.
+        if (!isMoneyTransaction(body, lower)) return;
 
         final BroadcastReceiver.PendingResult pending = goAsync();
         new Thread(() -> {
@@ -115,9 +130,7 @@ public class SmsReceiver extends BroadcastReceiver {
                 output.write(bytes);
             }
             int status = connection.getResponseCode();
-            if (status >= 300) {
-                read(connection.getErrorStream());
-            }
+            if (status >= 300) read(connection.getErrorStream());
             connection.disconnect();
         } catch (Exception ignored) {
             // SMS broadcasts must never crash because the network is unavailable.
