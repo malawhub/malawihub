@@ -6,8 +6,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-const ADMIN_UUID = "759a11e5-6166-4fc0-8979-352ba589e88d";
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -37,7 +35,18 @@ serve(async (req) => {
       });
     }
 
-    if (user.id !== ADMIN_UUID) {
+    // Allow any account whose profile has the admin role.
+    // This keeps the dashboard working for all authorized administrators
+    // instead of depending on one hard-coded administrator UUID.
+    const { data: profile, error: profileError } = await adminClient
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (profileError) throw profileError;
+
+    if (profile?.role !== "admin") {
       return new Response(JSON.stringify({ error: "Forbidden" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" }
