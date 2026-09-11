@@ -6,6 +6,15 @@ function showMessage() {
 
 document.addEventListener("DOMContentLoaded", function() {
 
+    const toolsGrid = document.querySelector("#student-tools .grid");
+    if (toolsGrid && !document.getElementById("smart-writer-card")) {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.id = "smart-writer-card";
+        card.innerHTML = '<div class="icon">✍️</div><h3>Smart Writer</h3><p>Write freely by hand or use your voice to create a digital book.</p><button onclick="location.href=\'tools/smart-writer/index.html\'">Open</button>';
+        toolsGrid.appendChild(card);
+    }
+
     const searchBox = document.getElementById("toolSearch");
     const cards = document.querySelectorAll(".card");
 
