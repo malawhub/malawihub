@@ -5,7 +5,12 @@ const url = Deno.env.get("SUPABASE_URL")!;
 const service = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const anon = Deno.env.get("SUPABASE_ANON_KEY")!;
 const admin = createClient(url, service);
-const json = (x: unknown, status = 200) => new Response(JSON.stringify(x), { status, headers: { "content-type": "application/json" } });
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+};
+const json = (x: unknown, status = 200) => new Response(JSON.stringify(x), { status, headers: { ...corsHeaders, "content-type": "application/json" } });
 
 const hash = async (s: string) => {
   const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
@@ -23,6 +28,7 @@ async function user(r: Request) {
 
 Deno.serve(async r => {
   try {
+    if (r.method === "OPTIONS") return new Response("ok", { status: 200, headers: corsHeaders });
     if (r.method !== "POST") return json({ error: "POST required" }, 405);
     const b = await r.json();
 
