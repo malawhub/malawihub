@@ -2,7 +2,7 @@ package mw.malawihub.connector;
 
 import android.Manifest;import android.app.Activity;import android.os.Bundle;import android.content.Intent;import android.content.pm.PackageManager;import android.graphics.Color;import android.net.Uri;import android.provider.Settings;import android.view.View;import android.widget.*;import java.io.*;import java.net.*;import org.json.*;
 
-public class MainActivity {
+public class MainActivity extends Activity {
  static final String API="https://cdqrdovgdidzxmyygoee.supabase.co/functions/v1/business-device"; static final int SMS_REQUEST=10; EditText code; TextView status; Button connect,permissions,settings; android.content.SharedPreferences prefs;
  public void onCreate(Bundle b){super.onCreate(b);prefs=getSharedPreferences("hub",0); LinearLayout box=new LinearLayout(this);box.setOrientation(LinearLayout.VERTICAL);box.setPadding(36,50,36,30);
  TextView h=new TextView(this);h.setText("MalawiHub Business Connector");h.setTextSize(24);h.setTextColor(Color.rgb(21,32,51));box.addView(h);TextView i=new TextView(this);i.setText("Connect this phone to your Business Hub. SMS access is used only to monitor supported Airtel Money and Mpamba transaction messages.");i.setPadding(0,20,0,20);box.addView(i);
