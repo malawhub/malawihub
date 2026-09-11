@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="MalawiHub Smart Writer — write by hand or turn speech into a digital book.">
+<title>MalawiHub Smart Writer</title>
+<style>
+:root{--green:#087f3f;--dark:#123322;--paper:#fff;--bg:#eef3ef;--line:#d7e0da}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:#17251d}header{background:var(--green);color:#fff;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;gap:12px;position:sticky;top:0;z-index:5}header a{color:#fff;text-decoration:none;font-weight:700}.wrap{max-width:1100px;margin:auto;padding:18px}.hero{background:#fff;border-radius:16px;padding:20px;box-shadow:0 4px 18px #00000010}.hero h1{margin:0 0 6px}.hero p{margin:0;color:#53625a}.modes{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}.mode{border:1px solid var(--line);background:#fff;padding:11px 16px;border-radius:10px;font-weight:700;cursor:pointer}.mode.active{background:var(--green);color:#fff}.premium{border:1px solid #d9c27a;background:#fff9df;padding:12px;border-radius:12px;margin-bottom:14px}.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#fff;padding:10px;border:1px solid var(--line);border-radius:12px 12px 0 0}.toolbar button,.toolbar select{padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:#fff}.toolbar button{cursor:pointer}.toolbar .primary{background:var(--green);color:#fff;border-color:var(--green)}#book{background:var(--paper);border:1px solid var(--line);min-height:720px;position:relative;overflow:hidden;box-shadow:0 5px 20px #00000012}.page{position:relative;width:100%;height:720px;background:#fff}.page canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}.page-number{position:absolute;bottom:9px;right:16px;color:#89958e;font-size:12px;pointer-events:none}.voice{display:none;background:#fff;border:1px solid var(--line);border-radius:0 0 12px 12px;padding:15px}.voice textarea{width:100%;min-height:240px;border:1px solid var(--line);border-radius:10px;padding:14px;font:18px/1.6 Arial;resize:vertical}.voice-actions{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}.voice button{padding:11px 15px;border:0;border-radius:9px;background:var(--green);color:#fff;font-weight:700}.voice button.secondary{background:#eef2ef;color:#17251d}.status{margin-top:10px;color:#53625a;font-size:14px}.hidden{display:none!important}.books{margin-top:15px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px}.books input{padding:10px;border:1px solid var(--line);border-radius:8px;width:min(100%,420px)}footer{text-align:center;color:#68756e;padding:25px}.notice{font-size:13px;color:#68756e;margin-top:10px}@media(max-width:600px){.wrap{padding:10px}.page,#book{height:600px;min-height:600px}.toolbar{position:sticky;top:57px;z-index:4}}
+</style>
+</head>
+<body>
+<header><strong>🇲🇼 MalawiHub Smart Writer</strong><a href="../../">← MalawiHub</a></header>
+<main class="wrap">
+<section class="hero"><h1>✍️ Smart Writer</h1><p>Create a digital book using your real handwriting or your voice. Your handwriting stays as handwriting.</p></section>
+<div class="modes"><button class="mode active" id="handMode">✍️ Freehand Writing</button><button class="mode" id="voiceMode">🎙️ Voice to Book</button></div>
+<section class="premium"><strong>⭐ Premium Voice Mode</strong><br>Speak naturally and let the system place your words into the book. Local-language recognition and simple-English conversion are designed as premium features.</section>
+<div id="handPanel">
+<div class="toolbar"><button class="primary" id="newPage">＋ New Page</button><button id="undo">↶ Undo</button><button id="redo">↷ Redo</button><button id="clear">🧹 Clear</button><button id="save">💾 Save</button><button id="download">📄 PDF / Print</button><label>Pen <input id="size" type="range" min="1" max="12" value="3"></label><input id="penColor" type="color" value="#111111" title="Pen colour"></div>
+<div id="book"><div class="page" data-page="1"><canvas></canvas><span class="page-number">Page 1</span></div></div>
+</div>
+<div id="voicePanel" class="voice">
+<div class="voice-actions"><button id="startVoice">🎙️ Start speaking</button><button id="stopVoice" class="secondary">⏹ Stop</button><button id="addToBook" class="secondary">📖 Add to book</button><select id="language" title="Speech language"><option value="en-US">English</option><option value="ny-MW">Chichewa (Chichewa)</option><option value="sw-KE">Swahili</option></select></div>
+<textarea id="transcript" placeholder="Your spoken words will appear here..."></textarea>
+<div class="status" id="voiceStatus">Microphone is ready. Voice recognition depends on browser/device support.</div>
+<div class="notice">For premium local-language conversion, the future AI service can turn supported local-language speech into clear simple English before it is added to the book.</div>
+</div>
+<section class="books"><strong>📚 Your book</strong><div style="margin-top:9px"><input id="bookName" value="My MalawiHub Book" aria-label="Book name"></div><p class="notice">Freehand pages are saved on this device. Use PDF / Print to create a shareable document.</p></section>
+</main><footer>© 2026 MalawiHub Smart Writer</footer>
+<script>
+const book=document.getElementById('book');let currentPage=book.querySelector('.page'),canvas=currentPage.querySelector('canvas'),ctx,history=[],redoStack=[],drawing=false;
+function fit(c){const r=c.getBoundingClientRect(),d=devicePixelRatio||1;c.width=r.width*d;c.height=r.height*d;ctx=c.getContext('2d');ctx.scale(d,d);ctx.lineCap='round';ctx.lineJoin='round'}
+function point(e){const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+function snapshot(){history.push(canvas.toDataURL());if(history.length>30)history.shift();redoStack=[]}
+function restore(data){const img=new Image();img.onload=()=>{ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);ctx.drawImage(img,0,0,canvas.clientWidth,canvas.clientHeight)};img.src=data}
+function setup(){fit(canvas);snapshot()}
+canvas.addEventListener('pointerdown',e=>{drawing=true;canvas.setPointerCapture(e.pointerId);const p=point(e);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.strokeStyle=document.getElementById('penColor').value;ctx.lineWidth=document.getElementById('size').value});
+canvas.addEventListener('pointermove',e=>{if(!drawing)return;const p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke()});
+canvas.addEventListener('pointerup',()=>{if(drawing){drawing=false;snapshot()}});canvas.addEventListener('pointercancel',()=>{drawing=false});
+document.getElementById('undo').onclick=()=>{if(history.length>1){redoStack.push(history.pop());restore(history[history.length-1])}};
+document.getElementById('redo').onclick=()=>{if(redoStack.length){const s=redoStack.pop();history.push(s);restore(s)}};
+document.getElementById('clear').onclick=()=>{ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);snapshot()};
+document.getElementById('newPage').onclick=()=>{const n=book.querySelectorAll('.page').length+1,p=document.createElement('div');p.className='page';p.dataset.page=n;p.innerHTML='<canvas></canvas><span class="page-number">Page '+n+'</span>';book.appendChild(p);currentPage=p;canvas=p.querySelector('canvas');history=[];redoStack=[];setup();canvas.addEventListener('pointerdown',drawDown);canvas.addEventListener('pointermove',drawMove);canvas.addEventListener('pointerup',drawUp);window.scrollTo({top:book.offsetTop-70,behavior:'smooth'})};
+function drawDown(e){drawing=true;canvas.setPointerCapture(e.pointerId);const p=point(e);ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.strokeStyle=document.getElementById('penColor').value;ctx.lineWidth=document.getElementById('size').value}function drawMove(e){if(!drawing)return;const p=point(e);ctx.lineTo(p.x,p.y);ctx.stroke()}function drawUp(){if(drawing){drawing=false;snapshot()}}
+document.getElementById('save').onclick=()=>{localStorage.setItem('malawihub-smart-writer',JSON.stringify({name:document.getElementById('bookName').value,pages:[...book.querySelectorAll('canvas')].map(c=>c.toDataURL())}));alert('Book saved on this device.')};
+document.getElementById('download').onclick=()=>window.print();
+const handMode=document.getElementById('handMode'),voiceMode=document.getElementById('voiceMode'),handPanel=document.getElementById('handPanel'),voicePanel=document.getElementById('voicePanel');handMode.onclick=()=>{handMode.classList.add('active');voiceMode.classList.remove('active');handPanel.classList.remove('hidden');voicePanel.style.display='none'};voiceMode.onclick=()=>{voiceMode.classList.add('active');handMode.classList.remove('active');handPanel.classList.add('hidden');voicePanel.style.display='block'};
+let recognition=null;const transcript=document.getElementById('transcript'),status=document.getElementById('voiceStatus');const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(SR){recognition=new SR();recognition.continuous=true;recognition.interimResults=true;recognition.onresult=e=>{let final='';for(let i=0;i<e.results.length;i++)final+=e.results[i][0].transcript+(e.results[i].isFinal?' ':'');transcript.value=final;status.textContent='Listening and transcribing…'};recognition.onend=()=>status.textContent='Voice recognition stopped.';recognition.onerror=e=>status.textContent='Microphone error: '+e.error}else{status.textContent='This browser does not provide Speech Recognition. Try a supported browser.'}
+document.getElementById('startVoice').onclick=()=>{if(!recognition){alert('Speech recognition is not supported by this browser.');return}recognition.lang=document.getElementById('language').value;recognition.start();status.textContent='Listening… speak naturally.'};document.getElementById('stopVoice').onclick=()=>recognition&&recognition.stop();document.getElementById('addToBook').onclick=()=>{if(!transcript.value.trim()){alert('Speak or enter some words first.');return}alert('Voice text captured. A future Premium AI step will translate supported local languages into simple English before placing it into the handwritten book.');handMode.click()};
+window.addEventListener('resize',()=>{const old=canvas.toDataURL();fit(canvas);restore(old)});setup();
+</script>
+</body></html>
