@@ -1,1 +1,34 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MalawiHub Student Live Class</title><link rel="stylesheet" href="../css/style.css"><style>body{margin:0;background:#f5f7fb}.bar{padding:12px 16px;background:#fff;border-bottom:1px solid #e4e7ec;font-weight:800}.bar span{color:#667085;font-weight:500;font-size:13px;margin-left:8px}.gate{max-width:650px;margin:18px auto;padding:0 16px}.card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 4px 18px #00000012}.input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccd3df;border-radius:10px;margin:8px 0}.btn{width:100%;padding:12px;border:0;border-radius:10px;background:#0d6efd;color:#fff;font-weight:800}.msg{margin-top:10px;color:#667085;font-size:13px}.frame{width:100%;height:calc(100vh - 52px);border:0;display:none}</style></head><body><div class="bar">🇲🇼 MalawiHub Student Live Class <span>Student Portal · separate from Teacher Portal</span></div><div id="gate" class="gate"><div class="card"><h2>Join your class</h2><p>Enter the class code given by your teacher. You must be signed in with your registered Student account.</p><input id="code" class="input" maxlength="32" placeholder="Class code e.g. CHEM101"><button id="join" class="btn">Join Class</button><div id="msg" class="msg"></div></div></div><iframe id="classroom" class="frame" src="about:blank" title="Student Live Class"></iframe><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../js/supabase.js"></script><script>const $=id=>document.getElementById(id),frame=$('classroom');async function guard(){const {data}=await supabaseClient.auth.getUser();if(!data?.user){location.href='./login.html';return false}const {data:p}=await supabaseClient.from('profiles').select('role').eq('id',data.user.id).maybeSingle();if(!p||p.role!=='student'){await supabaseClient.auth.signOut();location.href='./login.html';return false}return true}async function join(){if(!(await guard()))return;const code=$('code').value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'');if(!code){$('msg').textContent='Enter your class code.';return}$('join').disabled=true;$('msg').textContent='Checking class access…';try{const {data,error}=await supabaseClient.rpc('join_online_class',{p_join_code:code});if(error)throw error;if(!data?.length)throw Error('Class could not be joined.');frame.src='./index.html?student=1';frame.style.display='block';$('gate').style.display='none'}catch(e){$('msg').textContent=e.message||'Could not join this class.';$('join').disabled=false}}$('join').onclick=join;$('code').onkeydown=e=>{if(e.key==='Enter')join()};guard();</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MalawiHub Student Portal</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+body{margin:0;background:#f5f7fb}.bar{padding:12px 16px;background:#fff;border-bottom:1px solid #e4e7ec;font-weight:800;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.bar span{color:#667085;font-weight:500;font-size:13px}.bar a{margin-left:auto;text-decoration:none;color:#087f3f;font-weight:800;padding:8px 10px;border:1px solid #cfe4d6;border-radius:9px;background:#f3faf5}.gate{max-width:650px;margin:18px auto;padding:0 16px}.card{background:#fff;border-radius:16px;padding:18px;box-shadow:0 4px 18px #00000012}.input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccd3df;border-radius:10px;margin:8px 0}.btn{width:100%;padding:12px;border:0;border-radius:10px;background:#0d6efd;color:#fff;font-weight:800}.smart{display:block;margin-top:14px;padding:14px;border-radius:12px;background:#eef7f1;color:#087f3f;text-decoration:none;border:1px solid #cfe4d6}.smart strong{display:block;margin-bottom:4px}.msg{margin-top:10px;color:#667085;font-size:13px}.frame{width:100%;height:calc(100vh - 58px);border:0;display:none}
+</style>
+</head>
+<body>
+<div class="bar">🇲🇼 MalawiHub Student Portal <span>Online Class · separate from Main MalawiHub and Teacher Portal</span><a href="../tools/smart-writer/?source=online-class">✍️ Smart Writer</a></div>
+<div id="gate" class="gate">
+<div class="card">
+<h2>Join your class</h2>
+<p>Enter the class code given by your teacher. You must be signed in with your registered Student account.</p>
+<input id="code" class="input" maxlength="32" placeholder="Class code e.g. CHEM101">
+<button id="join" class="btn">Join Class</button>
+<div id="msg" class="msg"></div>
+<a class="smart" href="../tools/smart-writer/?source=online-class"><strong>✍️ Smart Writer</strong><span>Write by hand or use Premium Voice to Book while studying.</span></a>
+</div>
+</div>
+<iframe id="classroom" class="frame" src="about:blank" title="Student Live Class"></iframe>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script>
+const $=id=>document.getElementById(id),frame=$('classroom');
+async function guard(){const {data}=await supabaseClient.auth.getUser();if(!data?.user){location.href='./login.html';return false}const {data:p}=await supabaseClient.from('profiles').select('role').eq('id',data.user.id).maybeSingle();if(!p||p.role!=='student'){await supabaseClient.auth.signOut();location.href='./login.html';return false}return true}
+async function join(){if(!(await guard()))return;const code=$('code').value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'');if(!code){$('msg').textContent='Enter your class code.';return}$('join').disabled=true;$('msg').textContent='Checking class access…';try{const {data,error}=await supabaseClient.rpc('join_online_class',{p_join_code:code});if(error)throw error;if(!data?.length)throw Error('Class could not be joined.');frame.src='./index.html?student=1';frame.style.display='block';$('gate').style.display='none'}catch(e){$('msg').textContent=e.message||'Could not join this class.';$('join').disabled=false}}
+$('join').onclick=join;$('code').onkeydown=e=>{if(e.key==='Enter')join()};guard();
+</script>
+</body>
+</html>
