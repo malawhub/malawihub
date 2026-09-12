@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MalawiHub Shared Whiteboard</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+body{margin:0;background:#eef3ef;color:#17251d;font-family:Arial,sans-serif}.wrap{max-width:1200px;margin:auto;padding:12px}.top,.toolbar,.access{background:#fff;border:1px solid #d7e0da;border-radius:14px;padding:12px;margin-bottom:10px;box-shadow:0 3px 14px #00000010}.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.top strong{font-size:20px}.top a{margin-left:auto;color:#087f3f;font-weight:700;text-decoration:none}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.toolbar button,.toolbar input,.toolbar select{padding:9px;border:1px solid #cfd8d2;border-radius:8px;background:#fff}.toolbar button{cursor:pointer;font-weight:700}.toolbar .primary{background:#087f3f;color:#fff;border-color:#087f3f}.toolbar .danger{background:#fff0f0;color:#a22;border-color:#e5bcbc}.board-wrap{background:#fff;border:1px solid #d7e0da;border-radius:14px;padding:8px;box-shadow:0 4px 18px #00000012}.board{width:100%;height:min(72vh,720px);display:block;background:#fff;border-radius:9px;touch-action:none;cursor:crosshair}.status{font-size:13px;color:#53625a;margin-top:8px}.hidden{display:none!important}.access{max-width:620px;margin:40px auto}.input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccd3df;border-radius:10px;margin:8px 0}.join{padding:12px 16px;border:0;border-radius:10px;background:#087f3f;color:#fff;font-weight:800;cursor:pointer}.legend{font-size:13px;color:#66756d}.role{font-size:13px;padding:5px 9px;border-radius:999px;background:#eef7f1;color:#087f3f;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="top"><strong>🇲🇼 MalawiHub Shared Whiteboard</strong><span id="role" class="role">Checking access…</span><a href="./student.html">← Student Portal</a></div>
+<div id="access" class="access">
+<h2>Open class whiteboard</h2><p>Teacher and students in the same class can draw on this board together. Everyone sees the changes live.</p>
+<input id="code" class="input" maxlength="32" placeholder="Class code e.g. CHEM101">
+<button id="join" class="join">Open Whiteboard</button><div id="msg" class="status"></div>
+</div>
+<div id="boardArea" class="hidden">
+<div class="toolbar">
+<button type="button" class="primary" id="pen">✏️ Pen</button><button type="button" id="eraser">🧽 Eraser</button>
+<label>Size <input id="size" type="range" min="1" max="20" value="4"></label>
+<label>Colour <input id="color" type="color" value="#111111"></label>
+<button type="button" id="undo">↶ Undo</button><button type="button" class="danger" id="clear">🧹 Clear board</button>
+<span class="legend">Both teacher and students can write, draw, solve maths, chemistry structures and diagrams.</span>
+</div>
+<div class="board-wrap"><canvas id="board" class="board"></canvas></div>
+<div id="status" class="status">Connecting…</div>
+</div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script>
+const $=id=>document.getElementById(id);const canvas=$('board'),ctx=canvas.getContext('2d');let channel=null,code='',role='',user=null,drawing=false,tool='pen',current=null,strokes=[],lastSend=0;
+function clean(v){return v.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,32)}
+function setMsg(t,error=false){$('msg').textContent=t;$('status').textContent=t;$('msg').style.color=error?'#a22':'#53625a'}
+function resize(){if(!$('boardArea').classList.contains('hidden')){const old=canvas.width?canvas.toDataURL():null;const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;canvas.width=r.width*d;canvas.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);ctx.lineCap='round';ctx.lineJoin='round';if(old){const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,r.width,r.height);img.src=old}}}
+function pos(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height}}
+function drawStroke(s){if(!s.points?.length)return;const w=canvas.clientWidth,h=canvas.clientHeight;ctx.save();ctx.strokeStyle=s.eraser?'#fff':s.color;ctx.lineWidth=s.size;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();s.points.forEach((p,i)=>{const x=p.x*w,y=p.y*h;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke();ctx.restore()}
+function redraw(){ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);strokes.forEach(drawStroke)}
+function addOrReplace(s){const i=strokes.findIndex(x=>x.id===s.id);if(i>=0)strokes[i]=s;else strokes.push(s);drawStroke(s)}
+async function send(event,payload){if(channel)await channel.send({type:'broadcast',event,payload})}
+async function openBoard(){code=clean($('code').value);if(!code){setMsg('Enter the class code.',true);return}$('join').disabled=true;setMsg('Checking class access…');try{const {data:u}=await supabaseClient.auth.getUser();user=u?.user;if(!user){location.href='./login.html';return}const {data:p}=await supabaseClient.from('profiles').select('role').eq('id',user.id).maybeSingle();if(!p){throw Error('Your MalawiHub profile was not found.')}if(p.role==='student'){const j=await supabaseClient.rpc('join_online_class',{p_join_code:code});if(j.error)throw j.error;if(!j.data?.length)throw Error('You are not registered in this class.')}else if(p.role==='teacher'){const q=await supabaseClient.from('online_classes').select('id').eq('join_code',code).eq('teacher_id',user.id).maybeSingle();if(q.error)throw q.error;if(!q.data)throw Error('This class does not belong to your teacher account.')}else{throw Error('Only a registered teacher or student can use the class whiteboard.')}role=p.role;$('role').textContent=role==='teacher'?'Teacher':'Student';$('access').classList.add('hidden');$('boardArea').classList.remove('hidden');resize();channel=supabaseClient.channel('malawihub-whiteboard-'+code,{config:{broadcast:{self:false}}});channel.on('broadcast',{event:'stroke',payload:s=>{if(s.code===code)addOrReplace(s)}}).on('broadcast',{event:'clear',payload:p=>{if(p.code===code){strokes=[];redraw()}}}).on('broadcast',{event:'sync-request',payload:p=>{if(p.code===code&&role==='teacher')send('sync',{code,strokes})}}).on('broadcast',{event:'sync',payload:p=>{if(p.code===code&&Array.isArray(p.strokes)){strokes=p.strokes;redraw()}});await channel.subscribe();setMsg('🟢 Whiteboard connected. '+(role==='teacher'?'Students can write with you.':'Your teacher and other students can see your writing live.'));await send('sync-request',{code,from:user.id})}catch(e){$('join').disabled=false;setMsg(e.message||'Could not open the whiteboard.',true)}}
+function down(e){drawing=true;canvas.setPointerCapture?.(e.pointerId);const p=pos(e);current={id:(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random()),code,color:$('color').value,size:Number($('size').value),eraser:tool==='eraser',points:[p]};addOrReplace(current)}
+function move(e){if(!drawing||!current)return;current.points.push(pos(e));drawStrokeSegment(current);const now=Date.now();if(now-lastSend>70){lastSend=now;send('stroke',current)}}
+function drawStrokeSegment(s){const pts=s.points;if(pts.length<2)return;const w=canvas.clientWidth,h=canvas.clientHeight,a=pts[pts.length-2],b=pts[pts.length-1];ctx.save();ctx.strokeStyle=s.eraser?'#fff':s.color;ctx.lineWidth=s.size;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(a.x*w,a.y*h);ctx.lineTo(b.x*w,b.y*h);ctx.stroke();ctx.restore()}
+function up(){if(!drawing)return;drawing=false;if(current){send('stroke',current);current=null}}
+canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);
+$('pen').onclick=()=>{tool='pen';$('pen').classList.add('primary');$('eraser').classList.remove('primary')};$('eraser').onclick=()=>{tool='eraser';$('eraser').classList.add('primary');$('pen').classList.remove('primary')};$('clear').onclick=async()=>{if(!channel)return;strokes=[];redraw();await send('clear',{code})};$('undo').onclick=async()=>{if(!strokes.length)return;strokes.pop();redraw();await send('sync',{code,strokes})};$('join').onclick=openBoard;$('code').onkeydown=e=>{if(e.key==='Enter')openBoard()};const q=new URLSearchParams(location.search).get('code');if(q)$('code').value=clean(q);window.addEventListener('resize',resize);
+</script>
+</body>
+</html>
