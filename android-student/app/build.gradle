@@ -1,0 +1,27 @@
+plugins { id 'com.android.application' }
+
+android {
+    namespace 'mw.malawihub.student'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'mw.malawihub.student'
+        minSdk 26
+        targetSdk 36
+        versionCode 1
+        versionName '1.0.0'
+    }
+    signingConfigs {
+        release {
+            def storeFilePath = System.getenv('ANDROID_KEYSTORE_PATH')
+            def storePasswordValue = System.getenv('ANDROID_KEYSTORE_PASSWORD')
+            if (storeFilePath != null && !storeFilePath.isBlank()) { storeFile file(storeFilePath) }
+            storePassword storePasswordValue
+            keyAlias System.getenv('ANDROID_KEY_ALIAS')
+            keyPassword storePasswordValue
+        }
+    }
+    buildTypes {
+        debug { applicationIdSuffix '.debug'; versionNameSuffix '-debug' }
+        release { signingConfig signingConfigs.release; minifyEnabled false; shrinkResources false; debuggable false }
+    }
+}
