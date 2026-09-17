@@ -6,6 +6,10 @@ on:
     paths:
       - 'android-admin/**'
       - '.github/workflows/build-admin-apk.yml'
+  pull_request:
+    paths:
+      - 'android-admin/**'
+      - '.github/workflows/build-admin-apk.yml'
 
 jobs:
   build-admin:
