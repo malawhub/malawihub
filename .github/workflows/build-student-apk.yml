@@ -1,0 +1,63 @@
+name: Build student APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'android-student/**'
+      - '.github/workflows/build-student-apk.yml'
+  pull_request:
+    paths:
+      - 'android-student/**'
+      - '.github/workflows/build-student-apk.yml'
+
+jobs:
+  build-student:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Check Android signing secrets
+        id: signing
+        shell: bash
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          if [[ -n "$ANDROID_KEYSTORE_BASE64" && -n "$ANDROID_KEYSTORE_PASSWORD" && -n "$ANDROID_KEY_ALIAS" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Android signing secrets are not configured."
+            exit 1
+          fi
+      - name: Restore release keystore
+        if: steps.signing.outputs.enabled == 'true'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/malawihub-release.keystore"
+      - name: Build signed student APK
+        working-directory: android-student
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/malawihub-release.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: gradle :app:assembleRelease --no-daemon
+      - name: Rename APK to student.apk
+        run: cp android-student/app/build/outputs/apk/release/app-release.apk student.apk
+      - name: Upload student APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: student-apk
+          path: student.apk
+          if-no-files-found: error
