@@ -11,7 +11,7 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 </head>
 <body>
 <div class="class-wrap">
-<div class="top"><div class="brand">🇲🇼 MalawiHub Live Class</div><a href="../index.html">← MalawiHub</a></div>
+<div class="top"><div class="brand">🇲🇼 MalawiHub Live Class</div><a id="backPortal" href="../index.html">← MalawiHub</a></div>
 <div class="panel">
 <h2 id="modeTitle">Join or start a class</h2>
 <div class="row">
@@ -42,6 +42,7 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 <script>
 const $=id=>document.getElementById(id);
 const teacherPortalMode=new URLSearchParams(location.search).get('teacher')==='1';
+if(teacherPortalMode){$('backPortal').textContent='← Teacher Portal';$('backPortal').href='../teacher-portal/dashboard.html';}
 if(teacherPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent='Teacher Class';$('modeHelp').textContent='Teacher mode. Students join through the Student Portal using the class code.';const codeFromUrl=new URLSearchParams(location.search).get('code');if(codeFromUrl)$('code').value=codeFromUrl;}
 let channel,resourceChannel,roomCode='',userName='',role=teacherPortalMode?'teacher':'',localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null;
 const peers=new Map();const state={students:new Map()};let myId='';
