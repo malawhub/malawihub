@@ -99,6 +99,7 @@ $('sendChat').onclick=async()=>{const text=$('chatInput').value.trim();if(!text|
 $('notes').oninput=()=>{if(role!=='teacher')return;clearTimeout(notesTimer);notesTimer=setTimeout(async()=>{await channel.send({type:'broadcast',event:'notes',payload:{code:roomCode,notes:$('notes').value}});await saveNotes()},300)};
 $('downloadNotes').onclick=()=>{const blob=new Blob([$('notes').value],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(roomCode||'malawihub-class')+'-notes.txt';a.click();URL.revokeObjectURL(a.href)};
 $('printNotes').onclick=()=>{const w=window.open('','_blank');if(!w)return;w.document.write('<pre style="white-space:pre-wrap;font:16px/1.6 Arial">'+esc($('notes').value)+'</pre>');w.document.close();w.print()};
+$('remoteVideo').addEventListener('click',()=>{$('remoteVideo').play().catch(()=>{});$('waiting').classList.add('hidden')});
 window.addEventListener('beforeunload',()=>{if(channel&&roomCode)channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'leave',id:getMyId(),name:userName}});if(resourceChannel)supabaseClient.removeChannel(resourceChannel)});
 </script>
 </body>
