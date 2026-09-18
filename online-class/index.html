@@ -13,14 +13,14 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 <div class="class-wrap">
 <div class="top"><div class="brand">🇲🇼 MalawiHub Live Class</div><a href="../index.html">← MalawiHub</a></div>
 <div class="panel">
-<h2>Join or start a class</h2>
+<h2 id="modeTitle">Join or start a class</h2>
 <div class="row">
 <input id="code" class="input" placeholder="Class code (e.g. CHEM101)" maxlength="32">
 <input id="name" class="input" placeholder="Your name" maxlength="60">
 <button class="btn primary" id="studentBtn">Join as Student</button>
 <button class="btn" id="teacherBtn">Teacher</button>
 </div>
-<p class="muted small">Students need the class code and their name. The teacher controls the lesson, microphone, screen and timer.</p>
+<p id="modeHelp" class="muted small">Students need the class code and their name. The teacher controls the lesson, microphone, screen and timer.</p>
 <div id="loginNotice" class="notice small hidden">Teacher mode requires a signed-in MalawiHub account.</div>
 </div>
 <div id="room" class="hidden">
@@ -41,7 +41,9 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 <script src="../js/supabase.js"></script>
 <script>
 const $=id=>document.getElementById(id);
-let channel,resourceChannel,roomCode='',userName='',role='',localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null;
+const teacherPortalMode=new URLSearchParams(location.search).get('teacher')==='1';
+if(teacherPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent='Teacher Class';$('modeHelp').textContent='Teacher mode. Students join through the Student Portal using the class code.';const codeFromUrl=new URLSearchParams(location.search).get('code');if(codeFromUrl)$('code').value=codeFromUrl;}
+let channel,resourceChannel,roomCode='',userName='',role=teacherPortalMode?'teacher':'',localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null;
 const peers=new Map();const state={students:new Map()};let myId='';
 function cleanCode(v){return v.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,32)}
 function msg(text){$('status').textContent=text}
@@ -90,7 +92,8 @@ async function endRoom(broadcast=true){clearInterval(timerInt);if(broadcast&&rol
 async function shareScreen(){if(role!=='teacher'||!startedAt)return;try{screenStream=await navigator.mediaDevices.getDisplayMedia({video:true,audio:false});const track=screenStream.getVideoTracks()[0];for(const pc of peers.values()){const sender=pc.getSenders().find(s=>s.track?.kind==='video');if(sender)await sender.replaceTrack(track)}track.onended=restoreCamera}catch(e){console.warn(e);alert('Screen sharing was cancelled or is not supported on this device.')}}
 async function restoreCamera(){if(!localStream)return;const track=localStream.getVideoTracks()[0];if(!track)return;for(const pc of peers.values()){const sender=pc.getSenders().find(s=>s.track?.kind==='video');if(sender)await sender.replaceTrack(track)}}
 async function toggleMic(){if(!localStream)return;const t=localStream.getAudioTracks()[0];if(t){t.enabled=!t.enabled;$('micBtn').textContent=t.enabled?'🎙 Microphone':'🔇 Muted'}}
-$('studentBtn').onclick=()=>{role='student';setupRoom()};$('teacherBtn').onclick=()=>{role='teacher';setupRoom()};$('startBtn').onclick=startClass;$('screenBtn').onclick=shareScreen;$('micBtn').onclick=toggleMic;$('endBtn').onclick=()=>endRoom(true);
+$('studentBtn').onclick=()=>{if(teacherPortalMode)return;role='student';setupRoom()};$('teacherBtn').onclick=()=>{role='teacher';setupRoom()};
+if(teacherPortalMode)setupRoom();$('startBtn').onclick=startClass;$('screenBtn').onclick=shareScreen;$('micBtn').onclick=toggleMic;$('endBtn').onclick=()=>endRoom(true);
 $('sendChat').onclick=async()=>{const text=$('chatInput').value.trim();if(!text||!channel)return;addChat('You',text);$('chatInput').value='';await channel.send({type:'broadcast',event:'chat',payload:{code:roomCode,name:userName,text}})};$('chatInput').onkeydown=e=>{if(e.key==='Enter')$('sendChat').click()};
 $('notes').oninput=()=>{if(role!=='teacher')return;clearTimeout(notesTimer);notesTimer=setTimeout(async()=>{await channel.send({type:'broadcast',event:'notes',payload:{code:roomCode,notes:$('notes').value}});await saveNotes()},300)};
 $('downloadNotes').onclick=()=>{const blob=new Blob([$('notes').value],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(roomCode||'malawihub-class')+'-notes.txt';a.click();URL.revokeObjectURL(a.href)};
