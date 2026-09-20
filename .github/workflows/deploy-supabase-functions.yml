@@ -49,6 +49,6 @@ jobs:
         with:
           version: latest
       - name: Deploy Online Class administrator
-        run: supabase functions deploy online-class-teacher-admin --project-ref cdqrdovgdidzxmyygoee --use-api
+        run: supabase functions deploy online-class-teacher-admin --project-ref cdqrdovgdidzxmyygoee
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
