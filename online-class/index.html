@@ -41,10 +41,12 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 <script src="../js/supabase.js"></script>
 <script>
 const $=id=>document.getElementById(id);
-const teacherPortalMode=new URLSearchParams(location.search).get('teacher')==='1';
-if(teacherPortalMode){$('areaLabel').textContent='Teacher Portal · Private Classroom';} else {$('areaLabel').textContent='Student Portal · Private Classroom';}
-if(teacherPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent='Teacher Class';$('modeHelp').textContent='Teacher mode. Students join through the Student Portal using the class code.';const codeFromUrl=new URLSearchParams(location.search).get('code');if(codeFromUrl)$('code').value=codeFromUrl;}
-let channel,resourceChannel,roomCode='',userName='',role=teacherPortalMode?'teacher':'',localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null;
+const params=new URLSearchParams(location.search);
+const adminMode=params.get('mode')==='admin';
+const teacherPortalMode=!adminMode && params.get('teacher')==='1';
+if(adminMode){$('areaLabel').textContent='Admin Hub · Private Classroom';} else if(teacherPortalMode){$('areaLabel').textContent='Teacher Portal · Private Classroom';} else {$('areaLabel').textContent='Student Portal · Private Classroom';}
+if(adminMode||teacherPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent=adminMode?'Administrator Class':'Teacher Class';$('modeHelp').textContent=adminMode?'Administrator mode. The administrator controls the lesson, microphone, screen and timer.':'Teacher mode. Students join through the Student Portal using the class code.';const codeFromUrl=params.get('code');if(codeFromUrl)$('code').value=codeFromUrl;}
+let channel,resourceChannel,roomCode='',userName='',role=adminMode?'admin':(teacherPortalMode?'teacher':''),localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null;
 const peers=new Map();const iceQueues=new Map();const state={students:new Map()};let myId='';\n// Self-contained WebRTC connectivity: use multiple public STUN endpoints and no paid TURN dependency.
 let iceServers=[
  {urls:'stun:stun.l.google.com:19302'},
@@ -73,7 +75,7 @@ async function loadResources(){if(!classId)return;const {data,error}=await supab
 async function setupRoom(){
  roomCode=cleanCode($('code').value);userName=$('name').value.trim()||(['teacher','admin'].includes(role)?'Teacher':'Student');
  if(!roomCode){alert('Enter a class code.');return}if(!window.supabaseClient){alert('Supabase is not available.');return}
- if(['teacher','admin'].includes(role)){authUser=await getAuthUser();if(!authUser){$('loginNotice').classList.remove('hidden');alert('Please sign in to MalawiHub before starting a teacher class.');return}const {data:profile}=await supabaseClient.from('profiles').select('role').eq('id',authUser.id).maybeSingle();if(!profile||!['teacher','admin'].includes(profile.role)){alert('Teacher or administrator access is required.');return}role=profile.role==='admin'?'admin':'teacher'}
+ if(['teacher','admin'].includes(role)){authUser=await getAuthUser();if(!authUser){$('loginNotice').classList.remove('hidden');alert('Please sign in to MalawiHub before starting a teacher class.');return}const {data:profile}=await supabaseClient.from('profiles').select('role').eq('id',authUser.id).maybeSingle();if(!profile||!['teacher','admin'].includes(profile.role)){alert('Teacher or administrator access is required.');return}if(adminMode&&profile.role!=='admin'){alert('Administrator access is required for this class.');return}if(teacherPortalMode&&profile.role!=='teacher'&&profile.role!=='admin'){alert('Teacher access is required for this class.');return}role=adminMode?'admin':(profile.role==='admin'?'admin':'teacher')}
  if(role==='student'){authUser=await getAuthUser();if(!authUser){alert('Please sign in through the Student Portal before joining a class.');return}}
  let data,error;
  if(role==='student'){const joined=await supabaseClient.rpc('join_online_class',{p_join_code:roomCode});data=joined.data?.[0]||null;error=joined.error}else{let result;if(role==='admin'){result=await supabaseClient.from('online_classes').select('*').eq('join_code',roomCode).maybeSingle()}else{result=await supabaseClient.from('online_classes').select('*').eq('join_code',roomCode).eq('teacher_id',authUser.id).maybeSingle()}data=result.data;error=result.error}
