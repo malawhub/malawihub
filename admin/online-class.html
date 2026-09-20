@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-store,no-cache,must-revalidate,max-age=0">
+<title>MalawiHub Admin — Online Class</title>
+<style>
+html,body{margin:0;height:100%;font-family:Arial,sans-serif;background:#f4f7f6}
+#guard{height:100%;display:flex;align-items:center;justify-content:center}
+.box{background:#fff;border-radius:16px;padding:28px;max-width:520px;margin:20px;text-align:center;box-shadow:0 8px 30px #0001}
+#classroom{display:none;width:100%;height:100%;border:0}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js?v=20260920-admin4"></script>
+</head>
+<body>
+<div id="guard"><div class="box"><h2>🎓 MalawiHub Administrator Online Class</h2><p id="status">Checking administrator access…</p></div></div>
+<iframe id="classroom" allow="camera; microphone; display-capture; autoplay; fullscreen"></iframe>
+<script>
+(async()=>{
+ try{
+  const {data:{user},error:uerr}=await supabaseClient.auth.getUser();
+  if(uerr)throw uerr;
+  if(!user)throw Error('Please sign in as administrator first.');
+  const {data:p,error:perr}=await supabaseClient.from('profiles').select('role').eq('id',user.id).maybeSingle();
+  if(perr)throw perr;
+  if(p?.role!=='admin')throw Error('Administrator access is required.');
+  const code=new URLSearchParams(location.search).get('code');
+  if(!code)throw Error('No class code was supplied.');
+  const frame=document.getElementById('classroom');
+  frame.src='../online-class/index.html?code='+encodeURIComponent(code)+'&mode=admin&admin=1&role=admin&v=20260920-admin4#admin';
+  frame.style.display='block';
+  document.getElementById('guard').style.display='none';
+ }catch(e){
+  document.getElementById('status').textContent=e.message||'Administrator access could not be verified.';
+ }
+})();
+</script>
+</body>
+</html>
