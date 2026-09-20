@@ -45,9 +45,20 @@ const teacherPortalMode=new URLSearchParams(location.search).get('teacher')==='1
 if(teacherPortalMode){$('backPortal').textContent='← Teacher Portal';$('backPortal').href='../teacher-portal/dashboard.html';}
 if(teacherPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent='Teacher Class';$('modeHelp').textContent='Teacher mode. Students join through the Student Portal using the class code.';const codeFromUrl=new URLSearchParams(location.search).get('code');if(codeFromUrl)$('code').value=codeFromUrl;}
 let channel,resourceChannel,roomCode='',userName='',role=teacherPortalMode?'teacher':'',localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null;
-const peers=new Map();const iceQueues=new Map();const state={students:new Map()};let myId='';\nlet iceServers=[{urls:'stun:stun.l.google.com:19302'}];
+const peers=new Map();const iceQueues=new Map();const state={students:new Map()};let myId='';\n// Self-contained WebRTC connectivity: use multiple public STUN endpoints and no paid TURN dependency.
+let iceServers=[
+ {urls:'stun:stun.l.google.com:19302'},
+ {urls:'stun:stun1.l.google.com:19302'},
+ {urls:'stun:stun2.l.google.com:19302'},
+ {urls:'stun:stun.cloudflare.com:3478'}
+];
 let turnLoaded=false;
-async function loadTurnServers(){try{const {data:{session}}=await supabaseClient.auth.getSession();if(!session)return;const r=await fetch('../functions/v1/online-class-turn',{method:'POST',headers:{Authorization:'Bearer '+session.access_token,'Content-Type':'application/json'}});if(!r.ok)return;const d=await r.json();if(Array.isArray(d.iceServers)&&d.iceServers.length){iceServers=d.iceServers;turnLoaded=true;for(const pc of peers.values())pc.setConfiguration({iceServers});}}catch(e){console.warn('TURN unavailable; continuing with STUN',e)}}
+async function loadTurnServers(){
+  // TURN is optional. The classroom deliberately works without any external TURN subscription.
+  // Keeping this hook allows a future relay to be added without changing the peer engine.
+  turnLoaded=false;
+  return false;
+}
 
 function cleanCode(v){return v.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,32)}
 function msg(text){$('status').textContent=text}
