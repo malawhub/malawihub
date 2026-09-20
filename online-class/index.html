@@ -12,7 +12,7 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 <body>
 <div class="class-wrap">
 <div class="top"><div class="brand">🇲🇼 MalawiHub Live Class</div><span id="areaLabel" class="muted small">Private classroom</span></div>
-<div class="panel">
+<div class="panel" id="modePanel">
 <h2 id="modeTitle">Join or start a class</h2>
 <div class="row">
 <input id="code" class="input" placeholder="Class code (e.g. CHEM101)" maxlength="32">
@@ -46,7 +46,7 @@ const adminMode=params.get('mode')==='admin'||params.get('admin')==='1'||params.
 const teacherPortalMode=!adminMode && (params.get('teacher')==='1');
 const studentPortalMode=!adminMode && !teacherPortalMode && (params.get('student')==='1'||params.get('role')==='student');
 if(adminMode){$('areaLabel').textContent='Admin Hub · Private Classroom';} else if(teacherPortalMode){$('areaLabel').textContent='Teacher Portal · Private Classroom';} else {$('areaLabel').textContent='Student Portal · Private Classroom';}
-if(adminMode||teacherPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent=adminMode?'Administrator Class':'Teacher Class';$('modeHelp').textContent=adminMode?'Administrator mode. The administrator controls the lesson, microphone, screen and timer.':'Teacher mode. Students join through the Student Portal using the class code.';const codeFromUrl=params.get('code');if(codeFromUrl)$('code').value=codeFromUrl;}
+if(adminMode||teacherPortalMode||studentPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent=adminMode?'Administrator Class':teacherPortalMode?'Teacher Class':'Student Class';$('modeHelp').textContent=adminMode?'Administrator mode. Only the administrator can control this class.':teacherPortalMode?'Teacher mode. Students join through the Student Portal using the class code.':'Student mode. Teacher and administrator controls are unavailable.';const codeFromUrl=params.get('code');if(codeFromUrl)$('code').value=codeFromUrl;$('modePanel').classList.add('hidden');}
 let channel,resourceChannel,roomCode='',userName='',role=adminMode?'admin':(teacherPortalMode?'teacher':(studentPortalMode?'student':'')),localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null;
 const peers=new Map();const iceQueues=new Map();const state={students:new Map()};let myId='';\n// Self-contained WebRTC connectivity: use multiple public STUN endpoints and no paid TURN dependency.
 let iceServers=[
