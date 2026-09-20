@@ -1,4 +1,4 @@
-name: Deploy Business Supabase Functions
+name: Deploy Supabase Functions
 
 on:
   push:
@@ -16,26 +16,38 @@ permissions:
 
 jobs:
   deploy-business-functions:
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.head_commit.message, '[business-deploy]') ||
+      github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Setup Supabase CLI
         uses: supabase/setup-cli@v1
         with:
           version: latest
-
       - name: Deploy Business user registration
+        continue-on-error: true
         run: supabase functions deploy admin-create-business-user --project-ref cdqrdovgdidzxmyygoee
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-
       - name: Deploy Business user unregister
+        continue-on-error: true
         run: supabase functions deploy admin-delete-business-user --project-ref cdqrdovgdidzxmyygoee
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
+  deploy-online-class-admin:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
       - name: Deploy Online Class administrator
         run: supabase functions deploy online-class-teacher-admin --project-ref cdqrdovgdidzxmyygoee --use-api
         env:
