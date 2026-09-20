@@ -18,7 +18,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
-    private static final String ADMIN_URL = "https://malawihub.pages.dev/admin/login.html";
+    private static final String ADMIN_URL = "https://malawihub.pages.dev/admin/login.html?v=20260920-adminapp5";
     private WebView webView;
     private ProgressBar progress;
     private final Handler handler = new Handler();
@@ -97,7 +97,7 @@ public class MainActivity extends Activity {
         settings.setUseWideViewPort(false);
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(false);
-        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);\n        // Always load the current Admin Portal. This prevents an old WebView cache from\n        // reopening legacy Online Class routes such as the Student Portal login.\n        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);\n        webView.clearCache(true);\n        webView.clearHistory();
 
         CookieManager cookies = CookieManager.getInstance();
         cookies.setAcceptCookie(true);
