@@ -22,3 +22,6 @@
 
 /js/supabase.js
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+
+/admin/administrator-classroom.html
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
