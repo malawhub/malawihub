@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Login - MalawiHub</title>
-    <!-- Admin login deployment verification: 2026-09-21 -->
     <link rel="stylesheet" href="../css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../js/supabase.js?v=20260921-adminlogin1"></script>
+    <script src="../js/supabase.js"></script>
 </head>
 <body>
 <header><div class="logo">🇲🇼 MalawiHub</div><nav><a href="../index.html">Home</a><a href="../resources/index.html">Resources</a></nav></header>
@@ -25,16 +24,12 @@ async function login(){
  button.disabled=true;message.textContent='Signing in…';
  try{
   const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
-  if(error){console.error('Admin sign-in error:',error);message.textContent='❌ '+(error.message||'Sign-in failed.');return}
-  if(!data?.user){message.textContent='❌ Sign-in returned no user.';return}
+  if(error)throw error;
   const {data:profile,error:profileError}=await supabaseClient.from('profiles').select('role').eq('id',data.user.id).maybeSingle();
-  if(profileError){console.error('Admin profile check error:',profileError);message.textContent='❌ Administrator profile could not be verified: '+profileError.message;return}
+  if(profileError)throw profileError;
   if(profile?.role!=='admin'){await supabaseClient.auth.signOut();message.textContent='❌ This account is not authorized as an administrator.';return}
-  const {data:{session},error:sessionError}=await supabaseClient.auth.getSession();
-  if(sessionError||!session){message.textContent='❌ Administrator session was not created. Please try again.';return}
-  const area=new URLSearchParams(location.search).get('area');
-  window.location.replace(area==='online-class'?'online-class.html?v=20260921-adminlogin1':'index.html?v=20260921-adminlogin1');
- }catch(error){console.error('Admin login failed:',error);message.textContent='❌ '+(error?.message||'Administrator login failed.')}
+  window.location.replace('index.html');
+ }catch(error){console.error('Admin login failed:',error);message.textContent='❌ Incorrect email/password or administrator access is not authorized.'}
  finally{button.disabled=false}
 }
 </script></body></html>
