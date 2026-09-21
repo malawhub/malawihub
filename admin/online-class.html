@@ -6,7 +6,7 @@
     const result=await api(action,{class_id:classId,duration_minutes:Number($('classDuration').value)||60});
     await loadClasses();
     if(action==='start_class' && result?.class?.join_code){
-      window.location.replace('/admin/administrator-classroom.html?code='+encodeURIComponent(result.class.join_code)+'&role=admin&v=20260921-admin5';
+      window.location.replace('/admin/administrator-classroom.html?code='+encodeURIComponent(result.class.join_code)+'&role=admin&v=20260921-admin5');
       return;
     }
   }catch(e){alert(e.message||'Class action failed.')}
