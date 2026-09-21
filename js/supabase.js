@@ -4,7 +4,7 @@ const supabaseClient=window.supabase.createClient(MH_SUPABASE_URL,MH_SUPABASE_KE
 window.supabaseClient=supabaseClient;
 
 (function enforceAreaRoutes(){
- const path=(location.pathname||"").toLowerCase(),params=new URLSearchParams(location.search);
+ const path=(location.pathname||"").toLowerCase(),params=new URLSearchParams(location.search),adminFrame=document.referrer.includes("/admin/administrator-classroom.html");
  const adminPage=path.includes("/admin/"),adminLogin=path.endsWith("/admin/login.html")||path.endsWith("/admin/login");
  const online=path.includes("/online-class/"),onlineAdmin=path.endsWith("/online-class/admin.html")||path.endsWith("/online-class/admin");
  const onlineLanding=path.endsWith("/online-class/landing.html")||path.endsWith("/online-class/landing")||path==="/online-classes/"||path.endsWith("/online-classes/index.html");
@@ -30,7 +30,7 @@ window.supabaseClient=supabaseClient;
    if(studentPrivate){if(!s){location.replace("/student-portal/");return}const p=await profile(s.user.id);if(p?.role!=="student"){await supabaseClient.auth.signOut();location.replace("/student-portal/?error=student_only")}return}
    if(!online||onlineLanding||studentLogin||teacherLogin)return;
    if(teacherPrivate){if(!s){location.replace("/teacher-portal/");return}const p=await profile(s.user.id);if(p?.role!=="teacher"&&p?.role!=="admin"){await supabaseClient.auth.signOut();location.replace("/teacher-portal/?error=teacher_only")}return}
-   if(studentLive){if(!s){location.replace("/student-portal/?next=live");return}const p=await profile(s.user.id);const teacherLaunch=params.get("teacher")==="1";const adminLaunch=params.get("mode")==="admin"||params.get("admin")==="1"||params.get("role")==="admin"||location.hash==="#admin";if(adminLaunch&&p?.role==="admin")return;if(teacherLaunch&&(p?.role==="teacher"||p?.role==="admin"))return;if(!adminLaunch&&!teacherLaunch&&p?.role!=="student"){await supabaseClient.auth.signOut();location.replace("/student-portal/?error=student_only")}}
+   if(studentLive){if(!s){location.replace("/student-portal/?next=live");return}const p=await profile(s.user.id);const teacherLaunch=params.get("teacher")==="1";const adminLaunch=adminFrame||params.get("mode")==="admin"||params.get("admin")==="1"||params.get("role")==="admin"||location.hash==="#admin";if(adminLaunch&&p?.role==="admin")return;if(teacherLaunch&&(p?.role==="teacher"||p?.role==="admin"))return;if(!adminLaunch&&!teacherLaunch&&p?.role!=="student"){await supabaseClient.auth.signOut();location.replace("/student-portal/?error=student_only")}}
   }catch(e){console.error("MalawiHub area access verification failed:",e);if(adminPage&&!adminLogin)location.replace("/admin/login.html?error=verification");else if(onlineAdmin)location.replace("/admin/login.html?error=verification");else if(businessPrivate)location.replace("/business/users/?error=verification");else if(teacherPrivate||teacherDashboard)location.replace("/teacher-portal/?error=verification");else if(studentPrivate||studentLive)location.replace("/student-portal/?error=verification")}
  }
  guard();
