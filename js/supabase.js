@@ -31,7 +31,7 @@ window.supabaseClient=supabaseClient;
    if(!online||onlineLanding||studentLogin||teacherLogin)return;
    if(teacherPrivate){if(!s){location.replace("/teacher-portal/");return}const p=await profile(s.user.id);if(p?.role!=="teacher"&&p?.role!=="admin"){await supabaseClient.auth.signOut();location.replace("/teacher-portal/?error=teacher_only")}return}
    if(studentLive){const teacherLaunch=params.get("teacher")==="1";const adminLaunch=adminFrame||params.get("mode")==="admin"||params.get("admin")==="1"||params.get("role")==="admin"||location.hash==="#admin";if(adminLaunch)return;if(!s){location.replace("/student-portal/?next=live");return}const p=await profile(s.user.id);if(teacherLaunch&&(p?.role==="teacher"||p?.role==="admin"))return;if(!teacherLaunch&&p?.role!=="student"){await supabaseClient.auth.signOut();location.replace("/student-portal/?error=student_only")}}
-  }catch(e){console.error("MalawiHub area access verification failed:",e);if(adminPage&&!adminLogin)location.replace("/admin/login.html?error=verification");else if(onlineAdmin)location.replace("/admin/login.html?error=verification");else if(businessPrivate)location.replace("/business/users/?error=verification");else if(teacherPrivate||teacherDashboard)location.replace("/teacher-portal/?error=verification");else if(studentPrivate||studentLive)location.replace("/student-portal/?error=verification")}
+  }catch(e){console.error("MalawiHub area access verification failed:",e);const liveAdmin=params.get("mode")==="admin"||params.get("admin")==="1"||params.get("role")==="admin"||location.hash==="#admin";const liveTeacher=params.get("teacher")==="1";if(adminPage&&!adminLogin)location.replace("/admin/login.html?error=verification");else if(onlineAdmin)location.replace("/admin/login.html?error=verification");else if(businessPrivate)location.replace("/business/users/?error=verification");else if(teacherPrivate||teacherDashboard)location.replace("/teacher-portal/?error=verification");else if(studentPrivate)location.replace("/student-portal/?error=verification");else if(studentLive&&!liveAdmin&&!liveTeacher)location.replace("/student-portal/?error=verification")}
  }
  guard();
 })();
@@ -51,3 +51,5 @@ async function fillOnlineClassCode(){
 window.updateMalawiHubLastSeen=updateMalawiHubLastSeen;
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",fillOnlineClassCode);else fillOnlineClassCode();
 // Administrator classroom routing deployment marker: 2026-09-21-admin6
+
+// Admin live-class guard fix: never redirect administrator launches to Student Portal.
