@@ -44,16 +44,19 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 // This route must never be redirected to the Student Portal by shared guards.
 const MH_SUPABASE_URL="https://cdqrdovgdidzxmyygoee.supabase.co";
 const MH_SUPABASE_KEY="sb_publishable_XHAK368Bg4dirFmtl229bQ_xzjCyqbv";
-const supabaseClient=window.supabase.createClient(MH_SUPABASE_URL,MH_SUPABASE_KEY);\nwindow.supabaseClient=supabaseClient;
+const supabaseClient=window.supabase.createClient(MH_SUPABASE_URL,MH_SUPABASE_KEY);
+window.supabaseClient=supabaseClient;
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
-const adminMode=true;\n// Canonical administrator classroom: the student/teacher join form is never used here.
+const adminMode=true;
+// Canonical administrator classroom: the student/teacher join form is never used here.
 const teacherPortalMode=!adminMode && (params.get('teacher')==='1');
 const studentPortalMode=!adminMode && !teacherPortalMode && (params.get('student')==='1'||params.get('role')==='student');
 if(adminMode){$('areaLabel').textContent='Administrator Hub · Private Classroom';} else if(teacherPortalMode){$('areaLabel').textContent='Teacher Portal · Private Classroom';} else {$('areaLabel').textContent='Student Portal · Private Classroom';}
 if(adminMode||teacherPortalMode||studentPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent=adminMode?'Administrator Class':teacherPortalMode?'Teacher Class':'Student Class';$('modeHelp').textContent=adminMode?'Administrator mode. Only the administrator can control this class.':teacherPortalMode?'Teacher mode. Students join through the Student Portal using the class code.':'Student mode. Teacher and administrator controls are unavailable.';const codeFromUrl=params.get('code');if(codeFromUrl)$('code').value=codeFromUrl;$('modePanel').classList.add('hidden');}
 let channel,resourceChannel,roomCode='',userName='',role=adminMode?'admin':(teacherPortalMode?'teacher':(studentPortalMode?'student':'')),localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null;
-const peers=new Map();const iceQueues=new Map();const state={students:new Map()};let myId='';\n// Self-contained WebRTC connectivity: use multiple public STUN endpoints and no paid TURN dependency.
+const peers=new Map();const iceQueues=new Map();const state={students:new Map()};let myId='';
+// Self-contained WebRTC connectivity: use multiple public STUN endpoints and no paid TURN dependency.
 let iceServers=[
  {urls:'stun:stun.l.google.com:19302'},
  {urls:'stun:stun1.l.google.com:19302'},
