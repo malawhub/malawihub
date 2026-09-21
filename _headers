@@ -8,6 +8,9 @@
 /admin/*
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0
 
+/admin/classroom/*
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+
 /admin/business-users.html
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0
 
