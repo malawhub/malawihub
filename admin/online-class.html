@@ -26,7 +26,7 @@ async function loadClasses(){
           ? ''
           : '<button class="btn primary" data-start-class="'+c.id+'">Start Class</button>';
       const codeParam = encodeURIComponent(c.join_code);
-      return '<div class="class-card"><div><span class="pill">'+esc(c.status)+'</span><h3>'+esc(c.title)+'</h3><p class="muted">'+esc(c.subject||'General')+' · '+c.duration_minutes+' minutes · Code: <b>'+esc(c.join_code)+'</b></p></div><div class="row">'+action+'<a class="btn primary" href="/admin/classroom/?code='+codeParam+'&role=admin&v=20260921-admin5">Open as Administrator</a><a class="btn" href="./whiteboard.html?code='+codeParam+'&role=admin">Whiteboard</a></div></div>'
+      return '<div class="class-card"><div><span class="pill">'+esc(c.status)+'</span><h3>'+esc(c.title)+'</h3><p class="muted">'+esc(c.subject||'General')+' · '+c.duration_minutes+' minutes · Code: <b>'+esc(c.join_code)+'</b></p></div><div class="row">'+action+'<a class="btn primary" href="/admin/classroom/?code='+codeParam+'&role=admin&v=20260921-admin5">Open as Administrator</a><a class="btn" href="/online-class/whiteboard.html?code='+codeParam+'&role=admin">Whiteboard</a></div></div>'
     }).join('');
     document.querySelectorAll('[data-start-class]').forEach(b=>b.onclick=()=>classAction(b.dataset.startClass,'start_class',b));
     document.querySelectorAll('[data-end-class]').forEach(b=>b.onclick=()=>classAction(b.dataset.endClass,'end_class',b));
