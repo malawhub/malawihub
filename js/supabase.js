@@ -13,7 +13,7 @@ window.supabaseClient=supabaseClient;
  const teacherPrivate=/\/online-class\/(teacher|teacher-workspace)(\.html)?$/.test(path)||path.endsWith("/online-class/teacher-portal.html")||path.endsWith("/online-class/teacher-portal");
  const teacherDashboard=path.endsWith("/teacher-portal/dashboard.html")||path.endsWith("/teacher-portal/dashboard");
  const studentPrivate=path.endsWith("/student-portal/classroom.html")||path.endsWith("/student-portal/classroom");
- const studentLive=path.endsWith("/online-class/index.html")||path.endsWith("/online-class/");
+ const studentLive=path.endsWith("/online-class/index.html")||path.endsWith("/online-class/");\n const liveAdmin=params.get("mode")==="admin"||params.get("admin")==="1"||params.get("role")==="admin"||path.endsWith("/admin/administrator-classroom.html");\n const liveTeacher=params.get("teacher")==="1"||params.get("role")==="teacher";
  const businessAdminUsers=path.endsWith("/admin/business-users.html")||path.endsWith("/admin/business-users");
  const canonicalOnlineClassAdmin=path.endsWith("/admin/online-class.html")||path.endsWith("/admin/online-class");
  const businessEntry=path==="/business/users/"||path.endsWith("/business/users/index.html")||path.endsWith("/business/users");
@@ -32,7 +32,7 @@ window.supabaseClient=supabaseClient;
    if(studentPrivate){if(!s){location.replace("/student-portal/");return}const p=await profile(s.user.id);if(p?.role!=="student"){await supabaseClient.auth.signOut();location.replace("/student-portal/?error=student_only")}return}
    if(!online||onlineLanding||studentLogin||teacherLogin)return;
    if(teacherPrivate){if(!s){location.replace("/teacher-portal/");return}const p=await profile(s.user.id);if(p?.role!=="teacher"&&p?.role!=="admin"){await supabaseClient.auth.signOut();location.replace("/teacher-portal/?error=teacher_only")}return}
-   if(studentLive){if(!s){location.replace("/student-portal/?next=live");return}const p=await profile(s.user.id);const teacherLaunch=params.get("teacher")==="1";if(teacherLaunch&&(p?.role==="teacher"||p?.role==="admin"))return;if(!teacherLaunch&&p?.role!=="student"){await supabaseClient.auth.signOut();location.replace("/student-portal/?error=student_only")}}
+   if(studentLive){if(liveAdmin){if(!s){location.replace("/admin/login.html?area=online-class");return}const p=await profile(s.user.id);if(p?.role!=="admin"){await supabaseClient.auth.signOut();location.replace("/admin/login.html?error=unauthorized&area=online-class")}return}if(liveTeacher){if(!s){location.replace("/teacher-portal/?next=live");return}const p=await profile(s.user.id);if(p?.role!=="teacher"&&p?.role!=="admin"){await supabaseClient.auth.signOut();location.replace("/teacher-portal/?error=teacher_only")}return}if(!s){location.replace("/student-portal/?next=live");return}const p=await profile(s.user.id);if(p?.role!=="student"){await supabaseClient.auth.signOut();location.replace("/student-portal/?error=student_only")}}
   }catch(e){console.error("MalawiHub area access verification failed:",e);if(canonicalOnlineClassAdmin){return}if(adminPage&&!adminLogin)location.replace("/admin/login.html?error=verification");else if(onlineAdmin)location.replace("/admin/login.html?error=verification");else if(businessPrivate)location.replace("/business/users/?error=verification");else if(teacherPrivate||teacherDashboard)location.replace("/teacher-portal/?error=verification");else if(studentPrivate||studentLive)location.replace("/student-portal/?error=verification")}
  }
  guard();
