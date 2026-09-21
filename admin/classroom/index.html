@@ -12,7 +12,7 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 <body>
 <div class="class-wrap">
 <div class="top"><div class="brand">🇲🇼 MalawiHub Live Class</div><span id="areaLabel" class="muted small">Private classroom</span></div>
-<div class="panel" id="modePanel">
+<div class="panel hidden" id="modePanel" aria-hidden="true">
 <h2 id="modeTitle">Join or start a class</h2>
 <div class="row">
 <input id="code" class="input" placeholder="Class code (e.g. CHEM101)" maxlength="32">
@@ -47,7 +47,7 @@ const MH_SUPABASE_KEY="sb_publishable_XHAK368Bg4dirFmtl229bQ_xzjCyqbv";
 const supabaseClient=window.supabase.createClient(MH_SUPABASE_URL,MH_SUPABASE_KEY);
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
-const adminMode=true;
+const adminMode=true;\n// Canonical administrator classroom: the student/teacher join form is never used here.
 const teacherPortalMode=!adminMode && (params.get('teacher')==='1');
 const studentPortalMode=!adminMode && !teacherPortalMode && (params.get('student')==='1'||params.get('role')==='student');
 if(adminMode){$('areaLabel').textContent='Administrator Hub · Private Classroom';} else if(teacherPortalMode){$('areaLabel').textContent='Teacher Portal · Private Classroom';} else {$('areaLabel').textContent='Student Portal · Private Classroom';}
