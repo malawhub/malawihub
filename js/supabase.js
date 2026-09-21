@@ -50,3 +50,4 @@ async function fillOnlineClassCode(){
 }
 window.updateMalawiHubLastSeen=updateMalawiHubLastSeen;
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",fillOnlineClassCode);else fillOnlineClassCode();
+// Administrator classroom routing deployment marker: 2026-09-21-admin6
