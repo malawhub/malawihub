@@ -44,7 +44,7 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 // This route must never be redirected to the Student Portal by shared guards.
 const MH_SUPABASE_URL="https://cdqrdovgdidzxmyygoee.supabase.co";
 const MH_SUPABASE_KEY="sb_publishable_XHAK368Bg4dirFmtl229bQ_xzjCyqbv";
-const supabaseClient=window.supabase.createClient(MH_SUPABASE_URL,MH_SUPABASE_KEY);
+const supabaseClient=window.supabase.createClient(MH_SUPABASE_URL,MH_SUPABASE_KEY);\nwindow.supabaseClient=supabaseClient;
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
 const adminMode=true;\n// Canonical administrator classroom: the student/teacher join form is never used here.
