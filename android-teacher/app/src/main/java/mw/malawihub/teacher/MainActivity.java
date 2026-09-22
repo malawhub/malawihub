@@ -1,6 +1,10 @@
 package mw.malawihub.teacher;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.media.projection.MediaProjectionManager;
+import android.os.Build;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,6 +22,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
+    private static final int SCREEN_CAPTURE_REQUEST=7001;
     private static final String TEACHER_URL = "https://malawihub.pages.dev/online-class/teacher-portal.html";
     private WebView webView; private ProgressBar progress; private final Handler handler=new Handler();
     @Override protected void onCreate(Bundle state){super.onCreate(state);showBrandedSplash();handler.postDelayed(this::openTeacher,1200);}
@@ -33,9 +38,37 @@ public class MainActivity extends Activity {
         LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(Color.WHITE);progress=new ProgressBar(this);progress.setIndeterminate(true);root.addView(progress,new LinearLayout.LayoutParams(-1,6));webView=new WebView(this);root.addView(webView,new LinearLayout.LayoutParams(-1,0,1));setContentView(root);
         WebSettings s=webView.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setDatabaseEnabled(true);s.setJavaScriptCanOpenWindowsAutomatically(true);s.setSupportMultipleWindows(false);s.setBuiltInZoomControls(false);s.setDisplayZoomControls(false);s.setAllowFileAccess(false);s.setAllowContentAccess(false);s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         CookieManager c=CookieManager.getInstance();c.setAcceptCookie(true);c.setAcceptThirdPartyCookies(webView,true);
-        webView.setWebViewClient(new WebViewClient(){@Override public void onPageStarted(WebView v,String u,android.graphics.Bitmap b){progress.setVisibility(View.VISIBLE);}@Override public void onPageFinished(WebView v,String u){progress.setVisibility(View.GONE);}@Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){return false;}@Override public void onReceivedError(WebView v,WebResourceRequest r,android.webkit.WebResourceError e){if(r.isForMainFrame())showError();}});webView.setWebChromeClient(new WebChromeClient());webView.loadUrl(TEACHER_URL);
+        webView.setWebViewClient(new WebViewClient(){@Override public void onPageStarted(WebView v,String u,android.graphics.Bitmap b){progress.setVisibility(View.VISIBLE);}@Override public void onPageFinished(WebView v,String u){progress.setVisibility(View.GONE);}@Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){return false;}@Override public void onReceivedError(WebView v,WebResourceRequest r,android.webkit.WebResourceError e){if(r.isForMainFrame())showError();}});webView.setWebChromeClient(new WebChromeClient(){
+            @Override public void onPermissionRequest(final android.webkit.PermissionRequest request){
+                runOnUiThread(()->{
+                    if(request.getOrigin()!=null && request.getOrigin().toString().startsWith("https://malawihub.pages.dev/")){
+                        request.grant(request.getResources());
+                    } else request.deny();
+                });
+            }
+        });
+        if(Build.VERSION.SDK_INT>=23) requestPermissions(new String[]{android.Manifest.permission.CAMERA,android.Manifest.permission.RECORD_AUDIO},7002);
+        webView.addJavascriptInterface(new Object(){
+            @android.webkit.JavascriptInterface public void requestNativeScreenShare(){
+                runOnUiThread(()->{
+                    MediaProjectionManager m=(MediaProjectionManager)getSystemService(MEDIA_PROJECTION_SERVICE);
+                    startActivityForResult(m.createScreenCaptureIntent(),SCREEN_CAPTURE_REQUEST);
+                });
+            }
+        },"MalawiHubNative");
+        webView.loadUrl(TEACHER_URL);
     }
     private void showError(){TextView m=text("Unable to open MalawiHub Teacher Portal. Check your internet connection and try again.",17,Color.DKGRAY);m.setPadding(40,80,40,40);setContentView(m);}
+    
+    @Override protected void onActivityResult(int requestCode,int resultCode,Intent data){
+        super.onActivityResult(requestCode,resultCode,data);
+        if(requestCode==SCREEN_CAPTURE_REQUEST && resultCode==RESULT_OK && data!=null){
+            Intent s=new Intent(this,ScreenShareService.class);
+            s.putExtra("resultCode",resultCode);s.putExtra("data",data);
+            if(Build.VERSION.SDK_INT>=26)startForegroundService(s);else startService(s);
+            if(webView!=null) webView.evaluateJavascript("window.dispatchEvent(new CustomEvent('malawihub-native-screen-share',{detail:{available:true}}));",null);
+        }
+    }
     @Override public void onBackPressed(){if(webView!=null&&webView.canGoBack())webView.goBack();else super.onBackPressed();}
     @Override protected void onDestroy(){handler.removeCallbacksAndMessages(null);if(webView!=null){webView.stopLoading();webView.destroy();}super.onDestroy();}
 }
