@@ -28,11 +28,11 @@ public class NativeScreenShareManager {
         if(active)return;
         code=roomCode==null?"":roomCode; fromId=nativeId==null?"native-screen":nativeId;
         PeerConnectionFactory.initialize(PeerConnectionFactory.builder(activity).createInitializationOptions());
-        factory=PeerConnectionFactory.builder()
-            .setVideoEncoderFactory(new DefaultVideoEncoderFactory(EglBase.create().getEglBaseContext(),true,true))
-            .setVideoDecoderFactory(new DefaultVideoDecoderFactory(EglBase.create().getEglBaseContext()))
-            .createPeerConnectionFactory();
         eglBase=EglBase.create();
+        factory=PeerConnectionFactory.builder()
+            .setVideoEncoderFactory(new DefaultVideoEncoderFactory(eglBase.getEglBaseContext(),true,true))
+            .setVideoDecoderFactory(new DefaultVideoDecoderFactory(eglBase.getEglBaseContext()))
+            .createPeerConnectionFactory();
         capturer=new ScreenCapturerAndroid(projectionData,new android.media.projection.MediaProjection.Callback(){
             @Override public void onStop(){stop();bridge.status("Screen sharing stopped by Android.");}
         });
