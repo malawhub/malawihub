@@ -106,7 +106,7 @@ public class NativeScreenShareManager {
         if(screenTrack!=null)screenTrack.dispose();screenTrack=null;
         if(source!=null)source.dispose();source=null;
         if(factory!=null)factory.dispose();factory=null;
-        if(eglBase!=null)eglBase.release();eglBase=null;
+        if(eglBase!=null)eglBase.release();eglBase=null;activity.stopService(new android.content.Intent(activity,ScreenShareService.class));
         try{JSONObject p=new JSONObject();p.put("type","native-screen-end");p.put("from",fromId);p.put("code",code);bridge.send(p);}catch(Exception ignored){}
     }
 }
