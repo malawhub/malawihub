@@ -18,6 +18,7 @@ public class NativeScreenShareManager {
     private VideoSource source;
     private VideoTrack screenTrack;
     private final Map<String,PeerConnection> peers=new ConcurrentHashMap<>();
+    private final Map<String,List<IceCandidate>> pendingIce=new ConcurrentHashMap<>();
     private String code="", fromId="native-screen";
     private boolean active=false;
 
@@ -80,12 +81,17 @@ public class NativeScreenShareManager {
             if("native-screen-answer".equals(type)){
                 PeerConnection pc=peers.get(id);if(pc==null)return;
                 JSONObject s=p.getJSONObject("sdp");
-                pc.setRemoteDescription(new SdpObserver(){public void onSetSuccess(){}public void onSetFailure(String s){}public void onCreateSuccess(SessionDescription d){}public void onCreateFailure(String s){}},
-                    new SessionDescription(SessionDescription.Type.ANSWER,s.getString("sdp")));
+                pc.setRemoteDescription(new SdpObserver(){
+                    public void onSetSuccess(){List<IceCandidate> q=pendingIce.remove(id);if(q!=null)for(IceCandidate x:q)pc.addIceCandidate(x);}
+                    public void onSetFailure(String s){}
+                    public void onCreateSuccess(SessionDescription d){}
+                    public void onCreateFailure(String s){}
+                },new SessionDescription(SessionDescription.Type.ANSWER,s.getString("sdp")));
             }else if("native-screen-ice".equals(type)){
                 PeerConnection pc=peers.get(id);if(pc==null)return;
                 JSONObject c=p.getJSONObject("candidate");
-                pc.addIceCandidate(new IceCandidate(c.optString("sdpMid"),c.optInt("sdpMLineIndex"),c.optString("candidate")));
+                IceCandidate candidate=new IceCandidate(c.optString("sdpMid"),c.optInt("sdpMLineIndex"),c.optString("candidate"));
+                if(pc.getRemoteDescription()!=null)pc.addIceCandidate(candidate);else{List<IceCandidate> q=pendingIce.get(id);if(q==null){q=new ArrayList<>();pendingIce.put(id,q);}q.add(candidate);}
             }
         }catch(Exception ignored){}
     }
