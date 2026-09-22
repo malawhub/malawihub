@@ -22,6 +22,8 @@ public class MainActivity extends Activity {
     private static final String ADMIN_URL = "https://malawihub.pages.dev/admin/login.html?v=20260920-adminapp6";
     private WebView webView;
     private ProgressBar progress;
+    private android.webkit.ValueCallback<android.net.Uri[]> fileCallback;
+    private static final int FILE_PICK_REQUEST=8001;
     private final Handler handler = new Handler();
     private NativeScreenShareManager nativeScreen;
 
@@ -136,7 +138,7 @@ public class MainActivity extends Activity {
         setContentView(message);
     }
 
-    @Override protected void onActivityResult(int requestCode,int resultCode,android.content.Intent data){super.onActivityResult(requestCode,resultCode,data);if(requestCode==7001&&resultCode==RESULT_OK&&data!=null){android.content.Intent s=new android.content.Intent(this,ScreenShareService.class);if(android.os.Build.VERSION.SDK_INT>=26)startForegroundService(s);else startService(s);if(nativeScreen!=null)nativeScreen.start(data,getIntent().getStringExtra("native_room"),getIntent().getStringExtra("native_id"));}}
+    @Override protected void onActivityResult(int requestCode,int resultCode,android.content.Intent data){super.onActivityResult(requestCode,resultCode,data);if(requestCode==FILE_PICK_REQUEST){if(fileCallback!=null){fileCallback.onReceiveValue(resultCode==RESULT_OK&&data!=null?new android.net.Uri[]{data.getData()}:null);fileCallback=null;}return;}if(requestCode==7001&&resultCode==RESULT_OK&&data!=null){android.content.Intent s=new android.content.Intent(this,ScreenShareService.class);if(android.os.Build.VERSION.SDK_INT>=26)startForegroundService(s);else startService(s);if(nativeScreen!=null)nativeScreen.start(data,getIntent().getStringExtra("native_room"),getIntent().getStringExtra("native_id"));}}
     @Override public void onBackPressed() {
         if(webView!=null&&webView.canGoBack()) webView.goBack(); else super.onBackPressed();
     }
