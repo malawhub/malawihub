@@ -141,13 +141,13 @@ public class MainActivity extends Activity {
         if(android.os.Build.VERSION.SDK_INT>=23){
             boolean camera=checkSelfPermission(android.Manifest.permission.CAMERA)==android.content.pm.PackageManager.PERMISSION_GRANTED;
             boolean mic=checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==android.content.pm.PackageManager.PERMISSION_GRANTED;
-            if(!camera||!mic){requestPermissions(new String[]{android.Manifest.permission.CAMERA,android.Manifest.permission.RECORD_AUDIO,android.Manifest.permission.POST_NOTIFICATIONS},7002);return;}
+            if(!mic){requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO},7002);return;}
         }
         loadAdminUrlAfterPermissions();
     }
-    private void showMediaPermissionError(){TextView m=new TextView(this);m.setText("Microphone and camera permission is required for MalawiHub Live Class. Open Android Settings > Apps > admin > Permissions and allow Microphone and Camera, then reopen the app.");m.setTextSize(16);m.setTextColor(Color.DKGRAY);m.setGravity(Gravity.CENTER);m.setPadding(32,60,32,40);setContentView(m);}
+    private void showMediaPermissionError(){TextView m=new TextView(this);m.setText("Microphone permission is required for MalawiHub Live Class. Open Android Settings > Apps > admin > Permissions and allow Microphone and Camera, then reopen the app.");m.setTextSize(16);m.setTextColor(Color.DKGRAY);m.setGravity(Gravity.CENTER);m.setPadding(32,60,32,40);setContentView(m);}
     private void loadAdminUrlAfterPermissions(){if(webView!=null && webView.getUrl()==null) webView.loadUrl(ADMIN_URL);}
-    @Override public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] grantResults){super.onRequestPermissionsResult(requestCode,permissions,grantResults);if(requestCode==7002){boolean granted=android.os.Build.VERSION.SDK_INT<23 || (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==android.content.pm.PackageManager.PERMISSION_GRANTED && checkSelfPermission(android.Manifest.permission.CAMERA)==android.content.pm.PackageManager.PERMISSION_GRANTED);if(granted)loadAdminUrlAfterPermissions();else showMediaPermissionError();}}
+    @Override public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] grantResults){super.onRequestPermissionsResult(requestCode,permissions,grantResults);if(requestCode==7002){boolean granted=android.os.Build.VERSION.SDK_INT<23 || checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==android.content.pm.PackageManager.PERMISSION_GRANTED;if(granted)loadAdminUrlAfterPermissions();else showMediaPermissionError();}}
         private void showError() {
         TextView message=new TextView(this);
         message.setText("Unable to open MalawiHub Admin. Check your internet connection and try again.");
