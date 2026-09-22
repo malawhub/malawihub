@@ -42,3 +42,5 @@ jobs:
           name: admin-apk
           path: admin.apk
           if-no-files-found: error
+
+# Keep this workflow active for the current production APK pipeline.
