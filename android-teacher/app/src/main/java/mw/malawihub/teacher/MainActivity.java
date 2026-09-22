@@ -20,11 +20,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import org.json.JSONObject;
 
 public class MainActivity extends Activity {
     private static final int SCREEN_CAPTURE_REQUEST=7001;
     private static final String TEACHER_URL = "https://malawihub.pages.dev/online-class/teacher-portal.html";
     private WebView webView; private ProgressBar progress; private final Handler handler=new Handler();
+    private NativeScreenShareManager nativeScreen;
     @Override protected void onCreate(Bundle state){super.onCreate(state);showBrandedSplash();handler.postDelayed(this::openTeacher,1200);}
     private void showBrandedSplash(){
         LinearLayout splash=new LinearLayout(this);splash.setOrientation(LinearLayout.VERTICAL);splash.setGravity(Gravity.CENTER);splash.setPadding(32,32,32,32);splash.setBackgroundColor(Color.WHITE);
@@ -38,7 +40,11 @@ public class MainActivity extends Activity {
         LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(Color.WHITE);progress=new ProgressBar(this);progress.setIndeterminate(true);root.addView(progress,new LinearLayout.LayoutParams(-1,6));webView=new WebView(this);root.addView(webView,new LinearLayout.LayoutParams(-1,0,1));setContentView(root);
         WebSettings s=webView.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setDatabaseEnabled(true);s.setJavaScriptCanOpenWindowsAutomatically(true);s.setSupportMultipleWindows(false);s.setBuiltInZoomControls(false);s.setDisplayZoomControls(false);s.setAllowFileAccess(false);s.setAllowContentAccess(false);s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         CookieManager c=CookieManager.getInstance();c.setAcceptCookie(true);c.setAcceptThirdPartyCookies(webView,true);
-        webView.setWebViewClient(new WebViewClient(){@Override public void onPageStarted(WebView v,String u,android.graphics.Bitmap b){progress.setVisibility(View.VISIBLE);}@Override public void onPageFinished(WebView v,String u){progress.setVisibility(View.GONE);}@Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){return false;}@Override public void onReceivedError(WebView v,WebResourceRequest r,android.webkit.WebResourceError e){if(r.isForMainFrame())showError();}});webView.setWebChromeClient(new WebChromeClient(){
+        webView.setWebViewClient(new WebViewClient(){@Override public void onPageStarted(WebView v,String u,android.graphics.Bitmap b){progress.setVisibility(View.VISIBLE);}@Override public void onPageFinished(WebView v,String u){progress.setVisibility(View.GONE);}@Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){return false;}@Override public void onReceivedError(WebView v,WebResourceRequest r,android.webkit.WebResourceError e){if(r.isForMainFrame())showError();}});nativeScreen=new NativeScreenShareManager(this,new NativeScreenShareManager.SignalBridge(){
+            @Override public void send(JSONObject payload){ runOnUiThread(()->{ if(webView!=null) webView.evaluateJavascript("window.__malawiNativeSend("+JSONObject.quote(payload.toString())+");",null); }); }
+            @Override public void status(String text){ runOnUiThread(()->{ if(webView!=null) webView.evaluateJavascript("window.__malawiNativeStatus("+JSONObject.quote(text)+");",null); }); }
+        });
+        webView.setWebChromeClient(new WebChromeClient(){
             @Override public void onPermissionRequest(final android.webkit.PermissionRequest request){
                 runOnUiThread(()->{
                     if(request.getOrigin()!=null && request.getOrigin().toString().startsWith("https://malawihub.pages.dev/")){
@@ -49,12 +55,17 @@ public class MainActivity extends Activity {
         });
         if(Build.VERSION.SDK_INT>=23) requestPermissions(new String[]{android.Manifest.permission.CAMERA,android.Manifest.permission.RECORD_AUDIO},7002);
         webView.addJavascriptInterface(new Object(){
-            @android.webkit.JavascriptInterface public void requestNativeScreenShare(){
+            @android.webkit.JavascriptInterface public void requestNativeScreenShare(String roomCode,String nativeId){
                 runOnUiThread(()->{
+                    if(nativeScreen!=null&&nativeScreen.isActive()){nativeScreen.stop();return;}
+                    getIntent().putExtra("native_room",roomCode);
+                    getIntent().putExtra("native_id",nativeId);
                     MediaProjectionManager m=(MediaProjectionManager)getSystemService(MEDIA_PROJECTION_SERVICE);
                     startActivityForResult(m.createScreenCaptureIntent(),SCREEN_CAPTURE_REQUEST);
                 });
             }
+            @android.webkit.JavascriptInterface public void nativeStudentJoined(String id){if(nativeScreen!=null)nativeScreen.studentJoined(id);}
+            @android.webkit.JavascriptInterface public void nativeSignal(String json){try{if(nativeScreen!=null)nativeScreen.signal(new JSONObject(json));}catch(Exception ignored){}}
         },"MalawiHubNative");
         webView.loadUrl(TEACHER_URL);
     }
@@ -66,7 +77,7 @@ public class MainActivity extends Activity {
             Intent s=new Intent(this,ScreenShareService.class);
             s.putExtra("resultCode",resultCode);s.putExtra("data",data);
             if(Build.VERSION.SDK_INT>=26)startForegroundService(s);else startService(s);
-            if(webView!=null) webView.evaluateJavascript("window.dispatchEvent(new CustomEvent('malawihub-native-screen-share',{detail:{available:true}}));",null);
+            if(nativeScreen!=null) nativeScreen.start(data,getIntent().getStringExtra("native_room"),getIntent().getStringExtra("native_id"));
         }
     }
     @Override public void onBackPressed(){if(webView!=null&&webView.canGoBack())webView.goBack();else super.onBackPressed();}
