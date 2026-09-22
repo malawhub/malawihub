@@ -25,7 +25,7 @@ import org.json.JSONObject;
 public class MainActivity extends Activity {
     private static final int SCREEN_CAPTURE_REQUEST=7001;
     private static final String TEACHER_URL = "https://malawihub.pages.dev/online-class/teacher-portal.html";
-    private WebView webView; private ProgressBar progress; private final Handler handler=new Handler();
+    private WebView webView; private ProgressBar progress; private final Handler handler=new Handler(); private android.webkit.ValueCallback<android.net.Uri[]> fileCallback; private static final int FILE_PICK_REQUEST=8001;
     private NativeScreenShareManager nativeScreen;
     @Override protected void onCreate(Bundle state){super.onCreate(state);showBrandedSplash();handler.postDelayed(this::openTeacher,1200);}
     private void showBrandedSplash(){
@@ -73,6 +73,7 @@ public class MainActivity extends Activity {
     
     @Override protected void onActivityResult(int requestCode,int resultCode,Intent data){
         super.onActivityResult(requestCode,resultCode,data);
+        if(requestCode==FILE_PICK_REQUEST){if(fileCallback!=null){fileCallback.onReceiveValue(resultCode==RESULT_OK&&data!=null?new android.net.Uri[]{data.getData()}:null);fileCallback=null;}return;}
         if(requestCode==SCREEN_CAPTURE_REQUEST && resultCode==RESULT_OK && data!=null){
             Intent s=new Intent(this,ScreenShareService.class);
             s.putExtra("resultCode",resultCode);s.putExtra("data",data);
