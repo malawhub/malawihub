@@ -82,13 +82,13 @@ public class MainActivity extends Activity {
         if(Build.VERSION.SDK_INT>=23){
             boolean camera=checkSelfPermission(android.Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED;
             boolean mic=checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED;
-            if(!mic || !camera){ java.util.ArrayList<String> needed=new java.util.ArrayList<>(); if(!mic) needed.add(android.Manifest.permission.RECORD_AUDIO); if(!camera) needed.add(android.Manifest.permission.CAMERA); requestPermissions(needed.toArray(new String[0]),7002);return;}
+            if(!mic){ requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO},7002);return; } if(!camera){ requestPermissions(new String[]{android.Manifest.permission.CAMERA},7004);return; }
         }
         loadTeacherUrlAfterPermissions();
     }
     private void showMediaPermissionError(){TextView m=text("Microphone permission is required for MalawiHub Live Class. Open Android Settings > Apps > teacher > Permissions and allow Microphone and Camera, then reopen the app.",16,Color.DKGRAY);m.setPadding(32,60,32,40);m.setGravity(Gravity.CENTER);setContentView(m);}
     private void loadTeacherUrlAfterPermissions(){if(webView!=null && webView.getUrl()==null) webView.loadUrl(TEACHER_URL);}
-    @Override public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] grantResults){super.onRequestPermissionsResult(requestCode,permissions,grantResults);if(requestCode==7002){boolean mic=Build.VERSION.SDK_INT<23 || checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED; boolean camera=Build.VERSION.SDK_INT<23 || checkSelfPermission(android.Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED; if(mic&&camera)loadTeacherUrlAfterPermissions();else showMediaPermissionError();}}
+    @Override public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] grantResults){super.onRequestPermissionsResult(requestCode,permissions,grantResults);if(requestCode==7002 || requestCode==7004){boolean mic=Build.VERSION.SDK_INT<23 || checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED; boolean camera=Build.VERSION.SDK_INT<23 || checkSelfPermission(android.Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED; if(mic)loadTeacherUrlAfterPermissions();else showMediaPermissionError();}}
         private void showError(){TextView m=text("Unable to open MalawiHub Teacher Portal. Check your internet connection and try again.",17,Color.DKGRAY);m.setPadding(40,80,40,40);setContentView(m);}
     
     @Override protected void onActivityResult(int requestCode,int resultCode,Intent data){
