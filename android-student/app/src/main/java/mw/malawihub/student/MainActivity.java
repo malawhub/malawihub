@@ -28,7 +28,7 @@ public class MainActivity extends Activity {
     @Override protected void onCreate(Bundle state) {
         super.onCreate(state);
         showBrandedSplash();
-        handler.postDelayed(this::openStudent, 1200);
+        handler.postDelayed(this::requestAppPermissions, 1200);
     }
 
     private void showBrandedSplash() {
@@ -44,6 +44,16 @@ public class MainActivity extends Activity {
         setContentView(splash);
     }
     private TextView text(String s,float size,int color){TextView t=new TextView(this);t.setText(s);t.setTextSize(size);t.setTextColor(color);t.setGravity(Gravity.CENTER);return t;}
+    private void requestAppPermissions(){
+        if(android.os.Build.VERSION.SDK_INT>=23){
+            java.util.ArrayList<String> needed=new java.util.ArrayList<>();
+            if(checkSelfPermission(android.Manifest.permission.CAMERA)!=android.content.pm.PackageManager.PERMISSION_GRANTED) needed.add(android.Manifest.permission.CAMERA);
+            if(checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)!=android.content.pm.PackageManager.PERMISSION_GRANTED) needed.add(android.Manifest.permission.RECORD_AUDIO);
+            if(android.os.Build.VERSION.SDK_INT>=33 && checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)!=android.content.pm.PackageManager.PERMISSION_GRANTED) needed.add(android.Manifest.permission.POST_NOTIFICATIONS);
+            if(!needed.isEmpty()){requestPermissions(needed.toArray(new String[0]),7003);return;}
+        }
+        openStudent();
+    }
     private void openStudent(){
         LinearLayout root=new LinearLayout(this); root.setOrientation(LinearLayout.VERTICAL); root.setBackgroundColor(Color.WHITE);
         progress=new ProgressBar(this); progress.setIndeterminate(true); root.addView(progress,new LinearLayout.LayoutParams(-1,6));
@@ -53,7 +63,8 @@ public class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient(){@Override public void onPageStarted(WebView v,String u,android.graphics.Bitmap b){progress.setVisibility(View.VISIBLE);}@Override public void onPageFinished(WebView v,String u){progress.setVisibility(View.GONE);}@Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){return false;}@Override public void onReceivedError(WebView v,WebResourceRequest r,android.webkit.WebResourceError e){if(r.isForMainFrame())showError();}});
         webView.setWebChromeClient(new WebChromeClient(){ @Override public boolean onShowFileChooser(WebView view, android.webkit.ValueCallback<android.net.Uri[]> callback, FileChooserParams params){ if(fileCallback!=null) fileCallback.onReceiveValue(null); fileCallback=callback; try{android.content.Intent i=params.createIntent();startActivityForResult(i,FILE_PICK_REQUEST);return true;}catch(Exception e){fileCallback=null;callback.onReceiveValue(null);return false;} } }); webView.loadUrl(STUDENT_URL);
     }
-    @Override protected void onActivityResult(int requestCode,int resultCode,android.content.Intent data){super.onActivityResult(requestCode,resultCode,data);if(requestCode==FILE_PICK_REQUEST&&fileCallback!=null){fileCallback.onReceiveValue(resultCode==RESULT_OK&&data!=null?new android.net.Uri[]{data.getData()}:null);fileCallback=null;}}\n    private void showError(){TextView m=text("Unable to open MalawiHub Student Portal. Check your internet connection and try again.",17,Color.DKGRAY);m.setPadding(40,80,40,40);setContentView(m);}
+    @Override protected void onActivityResult(int requestCode,int resultCode,android.content.Intent data){super.onActivityResult(requestCode,resultCode,data);if(requestCode==FILE_PICK_REQUEST&&fileCallback!=null){fileCallback.onReceiveValue(resultCode==RESULT_OK&&data!=null?new android.net.Uri[]{data.getData()}:null);fileCallback=null;}}
+    private void showError(){TextView m=text("Unable to open MalawiHub Student Portal. Check your internet connection and try again.",17,Color.DKGRAY);m.setPadding(40,80,40,40);setContentView(m);}
     @Override public void onBackPressed(){if(webView!=null&&webView.canGoBack())webView.goBack();else super.onBackPressed();}
     @Override protected void onDestroy(){handler.removeCallbacksAndMessages(null);if(webView!=null){webView.stopLoading();webView.destroy();}super.onDestroy();}
 }
