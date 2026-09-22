@@ -39,5 +39,10 @@ android {
 }
 
 dependencies {
-    implementation 'io.github.webrtc-sdk:android:144.7559.01'
+    // The WebRTC AAR contains the org.webrtc classes used by the native
+    // screen-sharing bridge. Disable transitive dependencies because the
+    // old org.webrtc:google-webrtc:1.0.32006 artifact is no longer available.
+    implementation('io.github.webrtc-sdk:android:144.7559.01') {
+        transitive = false
+    }
 }
