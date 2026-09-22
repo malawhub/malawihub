@@ -53,7 +53,7 @@ public class MainActivity extends Activity {
                 });
             }
         });
-        if(Build.VERSION.SDK_INT>=23) requestPermissions(new String[]{android.Manifest.permission.CAMERA,android.Manifest.permission.RECORD_AUDIO},7002);
+        requestMediaPermissions();
         webView.addJavascriptInterface(new Object(){
             @android.webkit.JavascriptInterface public void requestNativeScreenShare(String roomCode,String nativeId){
                 runOnUiThread(()->{
@@ -67,9 +67,9 @@ public class MainActivity extends Activity {
             @android.webkit.JavascriptInterface public void nativeStudentJoined(String id){if(nativeScreen!=null)nativeScreen.studentJoined(id);}
             @android.webkit.JavascriptInterface public void nativeSignal(String json){try{if(nativeScreen!=null)nativeScreen.signal(new JSONObject(json));}catch(Exception ignored){}}
         },"MalawiHubNative");
-        webView.loadUrl(TEACHER_URL);
+        loadTeacherUrlAfterPermissions();
     }
-    private void showError(){TextView m=text("Unable to open MalawiHub Teacher Portal. Check your internet connection and try again.",17,Color.DKGRAY);m.setPadding(40,80,40,40);setContentView(m);}
+    private void requestMediaPermissions(){\n        if(Build.VERSION.SDK_INT>=23){\n            boolean camera=checkSelfPermission(android.Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED;\n            boolean mic=checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED;\n            if(!camera||!mic){requestPermissions(new String[]{android.Manifest.permission.CAMERA,android.Manifest.permission.RECORD_AUDIO},7002);return;}\n        }\n        loadTeacherUrlAfterPermissions();\n    }\n    private void loadTeacherUrlAfterPermissions(){if(webView!=null && webView.getUrl()==null) webView.loadUrl(TEACHER_URL);}\n    @Override public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] grantResults){super.onRequestPermissionsResult(requestCode,permissions,grantResults);if(requestCode==7002){loadTeacherUrlAfterPermissions();}}\n        private void showError(){TextView m=text("Unable to open MalawiHub Teacher Portal. Check your internet connection and try again.",17,Color.DKGRAY);m.setPadding(40,80,40,40);setContentView(m);}
     
     @Override protected void onActivityResult(int requestCode,int resultCode,Intent data){
         super.onActivityResult(requestCode,resultCode,data);
