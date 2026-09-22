@@ -37,3 +37,5 @@ jobs:
           name: student-apk
           path: student.apk
           if-no-files-found: error
+
+# Keep this workflow active for the current production APK pipeline.
