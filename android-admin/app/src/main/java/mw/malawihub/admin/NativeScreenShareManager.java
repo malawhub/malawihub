@@ -55,6 +55,7 @@ public class NativeScreenShareManager {
                 PeerConnection.IceServer.builder("stun:stun.l.google.com:19302").createIceServer(),
                 PeerConnection.IceServer.builder("stun:stun.cloudflare.com:3478").createIceServer()
             ));
+            cfg.sdpSemantics=PeerConnection.SdpSemantics.UNIFIED_PLAN;
             PeerConnection pc=factory.createPeerConnection(cfg,new PeerConnection.Observer(){
                 public void onIceCandidate(IceCandidate c){try{JSONObject p=new JSONObject();p.put("type","native-screen-ice");p.put("to",id);p.put("from",fromId);p.put("candidate",new JSONObject().put("sdpMid",c.sdpMid).put("sdpMLineIndex",c.sdpMLineIndex).put("candidate",c.sdp));bridge.send(p);}catch(Exception ignored){}}
                 public void onSignalingChange(PeerConnection.SignalingState s){} public void onIceConnectionChange(PeerConnection.IceConnectionState s){}
