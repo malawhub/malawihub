@@ -141,7 +141,7 @@ public class MainActivity extends Activity {
         if(android.os.Build.VERSION.SDK_INT>=23){
             boolean camera=checkSelfPermission(android.Manifest.permission.CAMERA)==android.content.pm.PackageManager.PERMISSION_GRANTED;
             boolean mic=checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==android.content.pm.PackageManager.PERMISSION_GRANTED;
-            if(!camera||!mic){requestPermissions(new String[]{android.Manifest.permission.CAMERA,android.Manifest.permission.RECORD_AUDIO},7002);return;}
+            if(!camera||!mic){requestPermissions(new String[]{android.Manifest.permission.CAMERA,android.Manifest.permission.RECORD_AUDIO,android.Manifest.permission.POST_NOTIFICATIONS},7002);return;}
         }
         loadAdminUrlAfterPermissions();
     }
