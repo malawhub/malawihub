@@ -119,13 +119,31 @@ async function setupRoom(){
 window.__malawiNativeSend=async function(json){try{const p=typeof json==='string'?JSON.parse(json):json;await send(p)}catch(e){console.warn('native signal send',e)}};
 window.__malawiNativeStatus=function(text){msg(text);if(String(text).includes('Screen sharing is active')){ $('screenBtn').textContent='⏹ Stop Sharing'; if(window.MalawiHubNative)state.students.forEach((n,id)=>window.MalawiHubNative.nativeStudentJoined(id)); }else if(String(text).includes('stopped')){$('screenBtn').textContent='🖥 Share Screen';}};
 async function send(payload){payload.code=roomCode;await channel.send({type:'broadcast',event:'class',payload})}
+async function flushIce(peerId){
+ const pc=peers.get(peerId);
+ const queued=iceQueues.get(peerId)||[];
+ if(!pc||!pc.remoteDescription||!queued.length)return;
+ iceQueues.delete(peerId);
+ for(const candidate of queued){
+   try{await pc.addIceCandidate(candidate)}catch(e){console.warn('Queued ICE candidate failed',e)}
+ }
+}
+async function renegotiate(id){
+ const pc=peers.get(id);
+ if(!pc||!channel)return;
+ const target=['teacher','admin'].includes(role)?id:'teacher';
+ const offer=await pc.createOffer();
+ await pc.setLocalDescription(offer);
+ await send({type:['teacher','admin'].includes(role)?'offer':'student-offer',to:target,from:getMyId(),sdp:pc.localDescription});
+}
 async function handleSignal(p){
  if(['teacher','admin'].includes(role)&&p.type==='join'){state.students.set(p.from,p.name);renderStudents();if(window.MalawiHubNative)window.MalawiHubNative.nativeStudentJoined(p.from);await channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'join',id:p.from,name:p.name}});const pc=makePeer(p.from);if(localStream)localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});if(startedAt){const offer=await pc.createOffer();await pc.setLocalDescription(offer);await send({type:'offer',to:p.from,from:getMyId(),sdp:pc.localDescription})}}
  else if(role==='student'&&p.type==='offer'){const pc=makePeer('teacher');await pc.setRemoteDescription(p.sdp);await flushIce('teacher');const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:'answer',to:p.from,from:getMyId(),sdp:pc.localDescription})}
  else if(role==='student'&&p.type==='native-screen-offer'){const pc=makePeer('native-screen');await pc.setRemoteDescription(p.sdp);await flushIce('native-screen');const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:'native-screen-answer',to:p.from,from:getMyId(),sdp:pc.localDescription})}
  else if(role==='student'&&p.type==='native-screen-end'){const pc=peers.get('native-screen');if(pc){pc.close();peers.delete('native-screen')}const main=peers.get('teacher');if(main){const tracks=main.getReceivers().map(r=>r.track).filter(Boolean);if(tracks.length)$('remoteVideo').srcObject=new MediaStream(tracks)}msg('Screen sharing ended.');}
  else if(['teacher','admin'].includes(role)&&p.type==='native-screen-answer'){if(window.MalawiHubNative)window.MalawiHubNative.nativeSignal(JSON.stringify(p))}
- else if(['teacher','admin'].includes(role)&&p.type==='answer'){const pc=peers.get(p.from);if(pc){await pc.setRemoteDescription(p.sdp);await flushIce(p.from)}}
+ else if(['teacher','admin'].includes(role)&&(p.type==='answer'||p.type==='student-answer')){const pc=peers.get(p.from);if(pc){await pc.setRemoteDescription(p.sdp);await flushIce(p.from)}}
+ else if(['teacher','admin'].includes(role)&&p.type==='student-offer'){const pc=makePeer(p.from);await pc.setRemoteDescription(p.sdp);await flushIce(p.from);const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:'student-answer',to:p.from,from:getMyId(),sdp:pc.localDescription})}
  else if(role==='student'&&p.type==='native-screen-ice'){const pc=peers.get('native-screen');if(pc&&p.candidate){if(pc.remoteDescription)try{await pc.addIceCandidate(p.candidate)}catch(e){console.warn('Native ICE',e)}else{if(!iceQueues.has('native-screen'))iceQueues.set('native-screen',[]);iceQueues.get('native-screen').push(p.candidate)}}}
  else if(['teacher','admin'].includes(role)&&p.type==='native-screen-ice'){if(window.MalawiHubNative)window.MalawiHubNative.nativeSignal(JSON.stringify(p))}
  else if(p.type==='ice'){const peerId=['teacher','admin'].includes(role)?p.from:'teacher';const pc=peers.get(peerId);if(pc&&p.candidate){if(pc.remoteDescription)try{await pc.addIceCandidate(p.candidate)}catch(e){console.warn('ICE',e)}else{if(!iceQueues.has(peerId))iceQueues.set(peerId,[]);iceQueues.get(peerId).push(p.candidate)}}}
