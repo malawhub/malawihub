@@ -9,6 +9,38 @@ if(action==="list_classes"){if(!isAdmin)return json({error:"Administrator access
 if(action==="start_class"){if(!isAdmin)return json({error:"Administrator access required"},403);const classId=String(body.class_id||"");const duration=Math.min(240,Math.max(5,Number(body.duration_minutes)||60));if(!classId)return json({error:"Class ID is required."},400);const startsAt=new Date().toISOString();const {data,error}=await admin.from("online_classes").update({duration_minutes:duration,status:"live",starts_at:startsAt}).eq("id",classId).select("id,join_code,title,subject,teacher_id,duration_minutes,starts_at,status").maybeSingle();if(error)throw error;if(!data)return json({error:"Class not found."},404);return json({ok:true,class:data});}
 if(action==="end_class"){if(!isAdmin)return json({error:"Administrator access required"},403);const classId=String(body.class_id||"");if(!classId)return json({error:"Class ID is required."},400);const {data,error}=await admin.from("online_classes").update({status:"ended"}).eq("id",classId).select("id,join_code,title,subject,teacher_id,duration_minutes,starts_at,status").maybeSingle();if(error)throw error;if(!data)return json({error:"Class not found."},404);return json({ok:true,class:data});}
 if(action==="list"){if(!isAdmin)return json({error:"Administrator access required"},403);const {data,error}=await admin.from("profiles").select("id,email,username,role,full_name,can_register_students,created_at").eq("role","teacher").order("created_at",{ascending:false});if(error)throw error;return json({teachers:data||[]});}
+if(action==="unregister_self"){
+  if(!isTeacher&&!isAdmin)return json({error:"Only teacher or student accounts can unregister here."},403);
+  if(isAdmin)return json({error:"Administrator accounts cannot be unregistered from this portal."},403);
+  const targetId=user.id;
+  if(isTeacher)await admin.from("online_classes").update({teacher_id:null}).eq("teacher_id",targetId);
+  const {error:profileDeleteError}=await admin.from("profiles").delete().eq("id",targetId);
+  if(profileDeleteError)throw profileDeleteError;
+  const {error:deleteError}=await admin.auth.admin.deleteUser(targetId);
+  if(deleteError)throw deleteError;
+  return json({ok:true});
+}
+if(action==="list_students"){
+  if(!isAdmin)return json({error:"Administrator access required"},403);
+  const {data,error}=await admin.from("profiles").select("id,email,username,role,full_name,created_at").eq("role","student").order("created_at",{ascending:false});
+  if(error)throw error;
+  return json({students:data||[]});
+}
+if(action==="unregister_user"){
+  if(!isAdmin)return json({error:"Administrator access required"},403);
+  const targetId=String(body.user_id||"");
+  const targetRole=String(body.role||"");
+  if(!targetId||!["student","teacher"].includes(targetRole))return json({error:"Student or teacher account is required."},400);
+  const {data:target,error:targetError}=await admin.from("profiles").select("id,role").eq("id",targetId).maybeSingle();
+  if(targetError)throw targetError;
+  if(!target||target.role!==targetRole)return json({error:"Account not found or role has changed."},404);
+  if(targetRole==="teacher")await admin.from("online_classes").update({teacher_id:null}).eq("teacher_id",targetId);
+  const {error:profileDeleteError}=await admin.from("profiles").delete().eq("id",targetId);
+  if(profileDeleteError)throw profileDeleteError;
+  const {error:deleteError}=await admin.auth.admin.deleteUser(targetId);
+  if(deleteError)throw deleteError;
+  return json({ok:true});
+}
 if(action==="register_teacher"){if(!isAdmin)return json({error:"Administrator access required"},403);const email=String(body.email||"").trim().toLowerCase(),password=String(body.password||""),name=String(body.name||"").trim();if(!email.includes("@"))return json({error:"Enter a valid teacher email."},400);if(password.length<8)return json({error:"Teacher password must be at least 8 characters."},400);const {data,error}=await admin.auth.admin.listUsers({page:1,perPage:1000});if(error)throw error;const found=(data.users||[]).find(u=>(u.email||"").toLowerCase()===email);if(found){const {data:existingProfile,error:ep}=await admin.from("profiles").select("role").eq("id",found.id).maybeSingle();if(ep)throw ep;if(existingProfile?.role&&existingProfile.role!=="teacher")return json({error:"This email already belongs to a different MalawiHub user area. Use a new email for the Online Class teacher account."},409);const {error:e}=await admin.auth.admin.updateUserById(found.id,{password,user_metadata:{...(found.user_metadata||{}),full_name:name||email}});if(e)throw e;const {error:pe2}=await admin.from("profiles").upsert({id:found.id,email,role:"teacher",full_name:name||email},{onConflict:"id"});if(pe2)throw pe2;return json({ok:true,teacher:{id:found.id,email,role:"teacher",name:name||email},existing:true});}const {data:created,error:ce}=await admin.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{full_name:name||email}});if(ce||!created.user)throw ce||new Error("Could not create teacher account");const {error:pe3}=await admin.from("profiles").upsert({id:created.user.id,email,role:"teacher",full_name:name||email},{onConflict:"id"});if(pe3)throw pe3;return json({ok:true,teacher:{id:created.user.id,email,role:"teacher",name:name||email},existing:false});}
 if(action==="set_student_registration"){if(!isAdmin)return json({error:"Administrator access required"},403);const teacherId=String(body.teacher_id||"");if(!teacherId)return json({error:"Teacher ID is required."},400);const {error}=await admin.from("profiles").update({can_register_students:Boolean(body.allowed)}).eq("id",teacherId).eq("role","teacher");if(error)throw error;return json({ok:true});}
 if(action==="remove"){if(!isAdmin)return json({error:"Administrator access required"},403);const teacherId=String(body.teacher_id||"");const {error}=await admin.from("profiles").update({role:"student",can_register_students:false}).eq("id",teacherId).eq("role","teacher");if(error)throw error;return json({ok:true});}
