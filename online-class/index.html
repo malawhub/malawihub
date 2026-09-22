@@ -27,7 +27,7 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 <div class="panel"><div class="row"><div><b id="classTitle">Live class</b><div class="muted small" id="roleText"></div></div><div class="timer" id="timer">00:00</div><div class="live"><span class="dot"></span><b id="status">Waiting</b></div></div></div>
 <div class="grid2">
 <div>
-<div class="panel"><div class="row"><button class="btn primary" id="startBtn">▶ Start Class</button><button class="btn" id="screenBtn">🖥 Share Screen</button><button class="btn" id="micBtn">🎙 Microphone</button><a class="btn" id="whiteboardBtn" href="./whiteboard.html">🧑‍🏫 Shared Whiteboard</a><button class="btn danger" id="endBtn">End Class</button></div><div class="stage"><video id="remoteVideo" autoplay playsinline></video><div id="waiting" style="color:white">Waiting for the teacher…</div></div></div>
+<div class="panel"><div class="row"><button class="btn primary" id="startBtn">▶ Start Class</button><button class="btn" id="screenBtn">🖥 Share Screen</button><button class="btn" id="micBtn">🎙 Microphone</button><a class="btn" id="whiteboardBtn" href="./whiteboard.html">🧑‍🏫 Shared Whiteboard</a><button class="btn danger" id="endBtn">End Class</button></div><div class="stage"><video id="remoteVideo" autoplay playsinline></video><audio id="remoteAudio" autoplay playsinline></audio><div id="waiting" style="color:white">Waiting for the teacher…</div></div></div>
 <div class="panel"><h3>📝 Live Notes</h3><textarea id="notes" class="notes" placeholder="Teacher's notes will appear here…"></textarea><div class="row" style="margin-top:10px"><button class="btn" id="downloadNotes">⬇ Download Notes</button><button class="btn" id="printNotes">🖨 Print / Save PDF</button><span class="muted small" id="saveState">Not connected</span></div></div>
 <div class="panel private-note-panel"><div class="private-note-title"><h3>🔒 My Private Device Notes</h3><span class="muted small" id="privateNoteState">Private — not shared</span></div><p class="muted small">Open notes stored on this device or a text note from your device. These notes are private unless the teacher chooses to show the current note to students.</p><div class="row"><input id="privateNoteFile" type="file" accept=".txt,.md,.csv,text/plain,text/markdown,text/csv" class="hidden"><button class="btn" id="openPrivateNote">📂 Open from Device</button><button class="btn" id="savePrivateNote">💾 Save on Device</button><button class="btn" id="clearPrivateNote">Clear</button><button class="btn primary hidden" id="showPrivateNote">👁 Show to Students</button><button class="btn danger hidden" id="hidePrivateNote">🙈 Hide from Students</button></div><textarea id="privateNotes" class="private-notes" placeholder="Your private notes…"></textarea><div id="studentSharedNote" class="share-note hidden"><b>Teacher shared note</b><div id="studentSharedNoteText" style="margin-top:8px"></div></div></div><div class="panel"><h3>🎥 Class Video Resources</h3><p class="muted small">Teacher-provided videos for this lesson appear here while you are in class.</p><div id="videoResources" class="video-grid"><div class="resource-empty muted">No video resources yet.</div></div><p style="margin-top:10px"><a id="allVideosLink" href="#" target="_blank" rel="noopener">Open all class videos ↗</a></p></div>
 </div>
@@ -50,7 +50,7 @@ if(adminMode){$('areaLabel').textContent='Admin Hub · Private Classroom';} else
 if(adminMode||teacherPortalMode||studentPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent=adminMode?'Administrator Class':teacherPortalMode?'Teacher Class':'Student Class';$('modeHelp').textContent=adminMode?'Administrator mode. Only the administrator can control this class.':teacherPortalMode?'Teacher mode. Students join through the Student Portal using the class code.':'Student mode. Teacher and administrator controls are unavailable.';const codeFromUrl=params.get('code')||storedStudentCode;if(codeFromUrl)$('code').value=codeFromUrl;$('name').value=sessionStorage.getItem('malawihub_student_name')||'Student';$('modePanel').classList.add('hidden');}
 let channel,resourceChannel,roomCode='',userName='',privateNoteShown=false,role=adminMode?'admin':(teacherPortalMode?'teacher':(studentPortalMode?'student':'')),localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null;
 const peers=new Map();const iceQueues=new Map();const state={students:new Map()};let myId='';
-// Self-contained WebRTC connectivity: use multiple public STUN endpoints and no paid TURN dependency.
+// WebRTC connectivity: use public STUN plus the configured short-lived Cloudflare TURN relay.
 let iceServers=[
  {urls:'stun:stun.l.google.com:19302'},
  {urls:'stun:stun1.l.google.com:19302'},
@@ -59,9 +59,16 @@ let iceServers=[
 ];
 let turnLoaded=false;
 async function loadTurnServers(){
-  // TURN is optional. The classroom deliberately works without any external TURN subscription.
-  // Keeping this hook allows a future relay to be added without changing the peer engine.
-  turnLoaded=false;
+  try{
+    const {data,error}=await supabaseClient.functions.invoke('online-class-turn');
+    if(!error && Array.isArray(data?.iceServers) && data.iceServers.length){
+      iceServers=[...iceServers,...data.iceServers];
+      turnLoaded=true;
+      console.log('MalawiHub TURN relay loaded');
+      return true;
+    }
+    console.warn('TURN relay unavailable; continuing with STUN',error||data?.error);
+  }catch(e){console.warn('TURN relay unavailable; continuing with STUN',e)}
   return false;
 }
 
@@ -91,7 +98,22 @@ async function setupRoom(){
  .on('broadcast',{event:'chat'},({payload})=>{if(payload.code===roomCode)addChat(payload.name,payload.text)})
  .on('broadcast',{event:'presence'},({payload})=>{if(payload.code!==roomCode)return;if(payload.action==='join'){state.students.set(payload.id,payload.name);renderStudents()}if(payload.action==='leave'){state.students.delete(payload.id);removePeer(payload.id);renderStudents()}});
  await new Promise((resolve,reject)=>channel.subscribe((s,e)=>{if(s==='SUBSCRIBED')resolve();else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT')reject(e||Error('Class realtime connection failed.'))}));msg('Connected');
- if(role==='student'){$('startBtn').classList.add('hidden');$('screenBtn').classList.add('hidden');$('micBtn').classList.add('hidden');$('endBtn').classList.add('hidden');$('notes').readOnly=true;$('showPrivateNote').classList.add('hidden');$('hidePrivateNote').classList.add('hidden');if(data.status==='ended'){msg('Class ended');return}await send({type:'join',from:getMyId(),name:userName,to:'teacher'})}
+ if(role==='student'){
+  $('startBtn').classList.add('hidden');$('screenBtn').classList.add('hidden');$('endBtn').classList.add('hidden');
+  $('micBtn').classList.remove('hidden');$('micBtn').textContent='🎙 Microphone ON';
+  $('notes').readOnly=true;$('showPrivateNote').classList.add('hidden');$('hidePrivateNote').classList.add('hidden');
+  if(data.status==='ended'){msg('Class ended');return}
+  try{
+    if(!localStream)localStream=await getMicrophoneStream();
+    $('micBtn').textContent=localStream.getAudioTracks().some(t=>t.enabled)?'🎙 Microphone ON':'🔇 Microphone OFF';
+    msg('Microphone ready · joining class');
+  }catch(e){
+    console.error('Student microphone access failed',e);
+    $('micBtn').textContent='🎙 Enable Microphone';
+    msg('Joined without microphone · tap Microphone to enable');
+  }
+  await send({type:'join',from:getMyId(),name:userName,to:'teacher'})
+}
  else {$('startBtn').classList.remove('hidden');$('notes').readOnly=false;$('showPrivateNote').classList.remove('hidden');$('hidePrivateNote').classList.remove('hidden');if(data.status==='live'&&data.starts_at){startedAt=data.starts_at;startTimer();msg('LIVE');await loadNotes()}}
 }
 window.__malawiNativeSend=async function(json){try{const p=typeof json==='string'?JSON.parse(json):json;await send(p)}catch(e){console.warn('native signal send',e)}};
@@ -110,7 +132,27 @@ async function handleSignal(p){
  else if(p.type==='start'){startedAt=p.startedAt;duration=Number(p.duration)||60;startTimer();$('waiting').classList.add('hidden');msg('LIVE');await loadNotes()}
  else if(p.type==='end'){await endRoom(false)}
 }
-function makePeer(id){if(peers.has(id))return peers.get(id);const pc=new RTCPeerConnection({iceServers:iceServers});peers.set(id,pc);pc.onicecandidate=e=>{if(e.candidate)send({type:'ice',to:['teacher','admin'].includes(role)?id:'teacher',from:getMyId(),candidate:e.candidate})};pc.ontrack=e=>{if(e.streams?.[0]){$('remoteVideo').srcObject=e.streams[0];$('waiting').classList.add('hidden');$('remoteVideo').play().catch(()=>{ $('waiting').textContent='Tap the video to start audio'; $('waiting').classList.remove('hidden') })}};pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed'){if(['teacher','admin'].includes(role))setTimeout(()=>renegotiate(id),1000)}if(pc.connectionState==='disconnected'&&['teacher','admin'].includes(role)){setTimeout(()=>{const x=peers.get(id);if(x&&x.connectionState==='disconnected')renegotiate(id)},3000)}if(pc.connectionState==='closed')removePeer(id)};if(['teacher','admin'].includes(role)&&localStream)localStream.getTracks().forEach(t=>pc.addTrack(t,localStream));return pc}
+function makePeer(id){
+ if(peers.has(id))return peers.get(id);
+ const pc=new RTCPeerConnection({iceServers:iceServers});
+ peers.set(id,pc);
+ pc.onicecandidate=e=>{if(e.candidate)send({type:'ice',to:['teacher','admin'].includes(role)?id:'teacher',from:getMyId(),candidate:e.candidate})};
+ pc.ontrack=e=>{
+   if(e.track){
+     const stream=e.streams?.[0]||new MediaStream([e.track]);
+     if(e.track.kind==='audio'){
+       $('remoteAudio').srcObject=stream;
+       $('remoteAudio').play().catch(()=>{});
+     }
+     if(e.track.kind==='video')$('remoteVideo').srcObject=stream;
+     $('remoteVideo').play().catch(()=>{});
+     $('remoteAudio').play().catch(()=>{});
+     $('waiting').classList.add('hidden');
+   }
+ };
+pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed'){if(['teacher','admin'].includes(role))setTimeout(()=>renegotiate(id),1000)}if(pc.connectionState==='disconnected'&&['teacher','admin'].includes(role)){setTimeout(()=>{const x=peers.get(id);if(x&&x.connectionState==='disconnected')renegotiate(id)},3000)}if(pc.connectionState==='closed')removePeer(id)};if(localStream)localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});
+ return pc;
+}
 function removePeer(id){const pc=peers.get(id);if(pc){pc.close();peers.delete(id)}}
 async function loadNotes(){if(!classId)return;try{const {data,error}=await supabaseClient.from('class_notes').select('content').eq('class_id',classId).maybeSingle();if(error)throw error;if(data){$('notes').value=data.content||'';$('saveState').textContent='Loaded'}}catch(e){console.warn('loadNotes',e)}}
 async function saveNotes(){if(!classId||!['teacher','admin'].includes(role))return;try{const {error}=await supabaseClient.from('class_notes').upsert({class_id:classId,content:$('notes').value,updated_at:new Date().toISOString()});if(error)throw error;$('saveState').textContent='Saved'}catch(e){console.warn('saveNotes',e);$('saveState').textContent='Live only'}}
@@ -120,20 +162,51 @@ function savePrivateNoteLocal(){try{localStorage.setItem(privateNoteKey(),$('pri
 function openPrivateNoteFile(file){if(!file)return;const reader=new FileReader();reader.onload=()=>{$('privateNotes').value=String(reader.result||'');savePrivateNoteLocal();$('privateNoteState').textContent='Opened from device — private'};reader.onerror=()=>alert('Could not open that note file.');reader.readAsText(file)}
 async function showPrivateNoteToStudents(){if(!['teacher','admin'].includes(role)||!channel)return;const content=$('privateNotes').value;if(!content.trim()){alert('Your private note is empty.');return}privateNoteShown=true;$('privateNoteState').textContent='Shown to students';await channel.send({type:'broadcast',event:'private-note',payload:{code:roomCode,action:'show',content}})}
 async function hidePrivateNoteFromStudents(){if(!['teacher','admin'].includes(role)||!channel)return;privateNoteShown=false;$('privateNoteState').textContent='Private — hidden from students';await channel.send({type:'broadcast',event:'private-note',payload:{code:roomCode,action:'hide'}})}
+async function getMicrophoneStream(){
+  if(!window.isSecureContext)throw new Error('SECURE_CONTEXT');
+  if(!navigator.mediaDevices?.getUserMedia)throw new Error('NO_GETUSERMEDIA');
+  const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+  const tracks=stream.getAudioTracks();
+  if(!tracks.length)throw new Error('NO_AUDIO_TRACK');
+  tracks.forEach(t=>t.enabled=true);
+  return stream;
+}
 async function getClassMedia(){if(!window.isSecureContext)throw new Error('SECURE_CONTEXT');if(!navigator.mediaDevices?.getUserMedia)throw new Error('NO_GETUSERMEDIA');let audioStream;try{audioStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});}catch(e){console.error('MalawiHub microphone capture failed',e);throw e;}const audioTracks=audioStream.getAudioTracks();if(!audioTracks.length)throw new Error('NO_AUDIO_TRACK');audioTracks.forEach(t=>{t.enabled=true;});let videoTrack=null;try{const cameraStream=await navigator.mediaDevices.getUserMedia({audio:false,video:true});videoTrack=cameraStream.getVideoTracks()[0]||null;}catch(e){console.warn('Camera unavailable; continuing audio-only',e);}const stream=new MediaStream();audioTracks.forEach(t=>stream.addTrack(t));if(videoTrack)stream.addTrack(videoTrack);return stream;}
 async function startClass(){if(!['teacher','admin'].includes(role))return;authUser=authUser||await getAuthUser();if(!authUser){alert('Please sign in first.');return}try{if(!localStream)localStream=await getClassMedia();$('micBtn').textContent=localStream.getAudioTracks().some(t=>t.enabled)?'🎙 Microphone ON':'🔇 Microphone OFF';}catch(e){console.error('Microphone access failed',e);if(e.name==='NotAllowedError'||e.name==='PermissionDeniedError')alert('Microphone access is blocked for MalawiHub. Allow Microphone for malawihub.pages.dev in your browser/site settings, then press Microphone again. If you are using the MalawiHub Android app, allow Microphone in Android Settings > Apps > teacher/admin > Permissions.');else if(e.name==='NotFoundError')alert('No microphone was found on this device. Check that a microphone is available and try again.');else if(e.name==='NotReadableError')alert('The microphone is already in use or Android could not open it. Close other apps using the microphone, then try again.');else if(e.name==='SecurityError')alert('The browser blocked microphone access for this page. Open MalawiHub directly in Chrome over HTTPS and try again.');else if(e.name==='TypeError')alert('This browser does not provide microphone capture to MalawiHub. Try the latest Chrome browser.');else alert('Microphone access failed ('+(e.name||'unknown error')+'). Please try again in Chrome.');return}duration=Number(prompt('Class duration in minutes:',duration))||60;if(duration<5)duration=5;if(duration>240)duration=240;startedAt=new Date().toISOString();$('startBtn').disabled=true;try{const {data,error}=await supabaseClient.from('online_classes').update({duration_minutes:duration,status:'live',starts_at:startedAt}).eq('id',classId).select().single();if(error)throw error;classData=data;await saveNotes()}catch(e){console.error(e);alert('Could not start the class: '+(e.message||'database error'));$('startBtn').disabled=false;return}startTimer();msg('LIVE');for(const [id,pc] of peers){localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});const offer=await pc.createOffer();await pc.setLocalDescription(offer);await send({type:'offer',to:id,from:getMyId(),sdp:pc.localDescription})}await send({type:'start',from:getMyId(),to:'*',startedAt,duration})}
 function startTimer(){clearInterval(timerInt);timerInt=setInterval(()=>{if(!startedAt)return;const elapsed=Math.floor((Date.now()-new Date(startedAt).getTime())/1000),left=Math.max(0,duration*60-elapsed);$('timer').textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');if(left<=0){clearInterval(timerInt);if(['teacher','admin'].includes(role))endRoom(true);else endRoom(false)}},1000)}
 async function endRoom(broadcast=true){clearInterval(timerInt);if(broadcast&&['teacher','admin'].includes(role)&&channel)await send({type:'end',from:getMyId(),to:'*'});msg('Class ended');$('startBtn').disabled=true;localStream?.getTracks().forEach(t=>t.stop());screenStream?.getTracks().forEach(t=>t.stop());peers.forEach(p=>p.close());peers.clear();if(['teacher','admin'].includes(role)&&classId)try{const q=supabaseClient.from('online_classes').update({status:'ended'}).eq('id',classId);if(role==='teacher')q.eq('teacher_id',authUser?.id);await q}catch(e){console.warn(e)}}
 async function shareScreen(){if(!['teacher','admin'].includes(role)||!startedAt)return;if(window.MalawiHubNative){window.MalawiHubNative.requestNativeScreenShare(roomCode,getMyId());$('screenBtn').textContent='⏳ Starting Screen Share…';return}if(!window.isSecureContext){alert('Screen sharing requires a secure HTTPS page.');return}if(!navigator.mediaDevices?.getDisplayMedia){alert('Screen sharing is not supported by this browser/device. Try Chrome on Android or a current desktop browser.');return}try{screenStream=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:15,max:30},cursor:'always'},audio:false});const track=screenStream.getVideoTracks()[0];if(!track)throw Error('No screen track was returned.');for(const [id,pc] of peers){let sender=pc.getSenders().find(s=>s.track?.kind==='video');if(sender)await sender.replaceTrack(track);else{pc.addTrack(track,screenStream);await renegotiate(id)}}$('screenBtn').textContent='⏹ Stop Sharing';track.onended=restoreCamera}catch(e){console.warn('Screen sharing:',e);screenStream?.getTracks().forEach(t=>t.stop());screenStream=null;alert('Screen sharing could not start. Choose a screen/window when the browser asks and allow capture.')} }
 async function restoreCamera(){if(!localStream)return;screenStream?.getTracks().forEach(t=>t.stop());screenStream=null;const track=localStream.getVideoTracks()[0];for(const [id,pc] of peers){const sender=pc.getSenders().find(s=>s.track?.kind==='video');if(sender&&track)await sender.replaceTrack(track);else if(track){pc.addTrack(track,localStream);await renegotiate(id)}}$('screenBtn').textContent='🖥 Share Screen';}
-async function toggleMic(){if(!['teacher','admin'].includes(role))return;if(!localStream){try{localStream=await getClassMedia();$('micBtn').textContent='🎙 Microphone ON';for(const [id,pc] of peers){if(!pc.getSenders().some(s=>s.track?.kind==='audio'))pc.addTrack(localStream.getAudioTracks()[0],localStream);await renegotiate(id)}return}catch(e){console.error('Microphone access failed',e);alert(e.name==='NotAllowedError'?'Microphone access is blocked for MalawiHub. Allow Microphone for malawihub.pages.dev in site settings and try again.':'Microphone access failed. Check this site’s microphone permission.');return}}const t=localStream.getAudioTracks()[0];if(t){t.enabled=!t.enabled;$('micBtn').textContent=t.enabled?'🎙 Microphone ON':'🔇 Microphone OFF'}}
+async function toggleMic(){
+ if(!['teacher','admin','student'].includes(role))return;
+ if(!localStream){
+  try{
+   localStream=['teacher','admin'].includes(role)?await getClassMedia():await getMicrophoneStream();
+$('micBtn').textContent='🎙 Microphone ON';
+   for(const [id,pc] of peers){
+     if(!pc.getSenders().some(s=>s.track?.kind==='audio'))pc.addTrack(localStream.getAudioTracks()[0],localStream);
+     if(['teacher','admin'].includes(role))await renegotiate(id);
+     else if(peers.has('teacher'))await renegotiate('teacher');
+   }
+   return;
+  }catch(e){
+   console.error('Microphone access failed',e);
+   alert(e.name==='NotAllowedError'||e.name==='PermissionDeniedError'?'Microphone access is blocked for MalawiHub. Allow Microphone for malawihub.pages.dev in site settings, then try again.':'Microphone access failed. Check this site’s microphone permission.');
+   return;
+  }
+ }
+ const t=localStream.getAudioTracks()[0];
+ if(t){t.enabled=!t.enabled;$('micBtn').textContent=t.enabled?'🎙 Microphone ON':'🔇 Microphone OFF'}
+}
 $('studentBtn').onclick=()=>{if(adminMode||teacherPortalMode||studentPortalMode)return;role='student';setupRoom()};$('teacherBtn').onclick=()=>{if(adminMode||studentPortalMode)return;role='teacher';setupRoom()};
 if(adminMode||teacherPortalMode||studentPortalMode)setupRoom();$('startBtn').onclick=startClass;$('screenBtn').onclick=shareScreen;$('micBtn').onclick=toggleMic;$('endBtn').onclick=()=>endRoom(true);
 $('sendChat').onclick=async()=>{const text=$('chatInput').value.trim();if(!text||!channel)return;addChat('You',text);$('chatInput').value='';await channel.send({type:'broadcast',event:'chat',payload:{code:roomCode,name:userName,text}})};$('chatInput').onkeydown=e=>{if(e.key==='Enter')$('sendChat').click()};
 $('notes').oninput=()=>{if(!['teacher','admin'].includes(role))return;clearTimeout(notesTimer);notesTimer=setTimeout(async()=>{await channel.send({type:'broadcast',event:'notes',payload:{code:roomCode,notes:$('notes').value}});await saveNotes()},300)};
 $('downloadNotes').onclick=()=>{const blob=new Blob([$('notes').value],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(roomCode||'malawihub-class')+'-notes.txt';a.click();URL.revokeObjectURL(a.href)};
 $('printNotes').onclick=()=>{const w=window.open('','_blank');if(!w)return;w.document.write('<pre style="white-space:pre-wrap;font:16px/1.6 Arial">'+esc($('notes').value)+'</pre>');w.document.close();w.print()};
-$('remoteVideo').addEventListener('click',()=>{$('remoteVideo').play().catch(()=>{});$('waiting').classList.add('hidden')});
+$('remoteVideo').addEventListener('click',()=>{$('remoteVideo').play().catch(()=>{});$('remoteAudio').play().catch(()=>{});$('waiting').classList.add('hidden')});
+$('remoteAudio').addEventListener('click',()=>{$('remoteAudio').play().catch(()=>{});$('remoteVideo').play().catch(()=>{});$('waiting').classList.add('hidden')});
+document.addEventListener('click',()=>{$('remoteAudio').play().catch(()=>{});$('remoteVideo').play().catch(()=>{})},{once:true});
 $('openPrivateNote').onclick=()=>$('privateNoteFile').click();
 $('privateNoteFile').addEventListener('change',e=>openPrivateNoteFile(e.target.files?.[0]));
 $('savePrivateNote').onclick=savePrivateNoteLocal;
