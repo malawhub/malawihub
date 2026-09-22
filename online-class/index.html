@@ -49,7 +49,8 @@ const studentPortalMode=!adminMode && !teacherPortalMode && (params.get('student
 if(adminMode){$('areaLabel').textContent='Admin Hub · Private Classroom';} else if(teacherPortalMode){$('areaLabel').textContent='Teacher Portal · Private Classroom';} else {$('areaLabel').textContent='Student Portal · Private Classroom';}
 if(adminMode||teacherPortalMode||studentPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent=adminMode?'Administrator Class':teacherPortalMode?'Teacher Class':'Student Class';$('modeHelp').textContent=adminMode?'Administrator mode. Only the administrator can control this class.':teacherPortalMode?'Teacher mode. Students join through the Student Portal using the class code.':'Student mode. Teacher and administrator controls are unavailable.';const codeFromUrl=params.get('code')||storedStudentCode;if(codeFromUrl)$('code').value=codeFromUrl;$('name').value=sessionStorage.getItem('malawihub_student_name')||'Amon Alick';$('modePanel').classList.add('hidden');}
 let channel,resourceChannel,roomCode='',userName='',privateNoteShown=false,role=adminMode?'admin':(teacherPortalMode?'teacher':(studentPortalMode?'student':'')),localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null;
-const peers=new Map();const iceQueues=new Map();const state={students:new Map()};let myId='';\n// Self-contained WebRTC connectivity: use multiple public STUN endpoints and no paid TURN dependency.
+const peers=new Map();const iceQueues=new Map();const state={students:new Map()};let myId='';
+// Self-contained WebRTC connectivity: use multiple public STUN endpoints and no paid TURN dependency.
 let iceServers=[
  {urls:'stun:stun.l.google.com:19302'},
  {urls:'stun:stun1.l.google.com:19302'},
