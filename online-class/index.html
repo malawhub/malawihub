@@ -92,7 +92,7 @@ async function setupRoom(){
  else {$('startBtn').classList.remove('hidden');$('notes').readOnly=false;if(data.status==='live'&&data.starts_at){startedAt=data.starts_at;startTimer();msg('LIVE');await loadNotes()}}
 }
 window.__malawiNativeSend=async function(json){try{const p=typeof json==='string'?JSON.parse(json):json;await send(p)}catch(e){console.warn('native signal send',e)}};
-window.__malawiNativeStatus=function(text){msg(text);if(String(text).includes('Screen sharing is active')&&window.MalawiHubNative){state.students.forEach((n,id)=>window.MalawiHubNative.nativeStudentJoined(id));}};
+window.__malawiNativeStatus=function(text){msg(text);if(String(text).includes('Screen sharing is active')){ $('screenBtn').textContent='⏹ Stop Sharing'; if(window.MalawiHubNative)state.students.forEach((n,id)=>window.MalawiHubNative.nativeStudentJoined(id)); }else if(String(text).includes('stopped')){$('screenBtn').textContent='🖥 Share Screen';}};
 async function send(payload){payload.code=roomCode;await channel.send({type:'broadcast',event:'class',payload})}
 async function handleSignal(p){
  if(['teacher','admin'].includes(role)&&p.type==='join'){state.students.set(p.from,p.name);renderStudents();if(window.MalawiHubNative)window.MalawiHubNative.nativeStudentJoined(p.from);await channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'join',id:p.from,name:p.name}});const pc=makePeer(p.from);if(localStream)localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});if(startedAt){const offer=await pc.createOffer();await pc.setLocalDescription(offer);await send({type:'offer',to:p.from,from:getMyId(),sdp:pc.localDescription})}}
