@@ -3,7 +3,8 @@ package mw.malawihub.teacher;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.projection.MediaProjectionManager;\nimport android.media.AudioManager;
+import android.media.projection.MediaProjectionManager;
+import android.media.AudioManager;
 import android.os.Build;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -60,7 +61,8 @@ public class MainActivity extends Activity {
                 });
             }
         });
-        ((AudioManager)getSystemService(AUDIO_SERVICE)).setMode(AudioManager.MODE_IN_COMMUNICATION);\n        requestMediaPermissions();
+        ((AudioManager)getSystemService(AUDIO_SERVICE)).setMode(AudioManager.MODE_IN_COMMUNICATION);
+        requestMediaPermissions();
         webView.addJavascriptInterface(new Object(){
             @android.webkit.JavascriptInterface public void requestNativeScreenShare(String roomCode,String nativeId){
                 runOnUiThread(()->{
@@ -80,7 +82,7 @@ public class MainActivity extends Activity {
         if(Build.VERSION.SDK_INT>=23){
             boolean camera=checkSelfPermission(android.Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED;
             boolean mic=checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED;
-            if(!mic){requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO},7002);return;}
+            if(!mic || !camera){ java.util.ArrayList<String> needed=new java.util.ArrayList<>(); if(!mic) needed.add(android.Manifest.permission.RECORD_AUDIO); if(!camera) needed.add(android.Manifest.permission.CAMERA); requestPermissions(needed.toArray(new String[0]),7002);return;}
         }
         loadTeacherUrlAfterPermissions();
     }
