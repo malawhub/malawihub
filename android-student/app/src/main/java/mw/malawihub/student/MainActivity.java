@@ -19,7 +19,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
-    private static final String STUDENT_URL = "https://malawihub.pages.dev/online-class/login.html";
+    private static final String STUDENT_URL = "https://malawihub.pages.dev/student-portal/index.html?v=20260922-account-controls";
     private WebView webView;
     private ProgressBar progress;
     private android.webkit.ValueCallback<android.net.Uri[]> fileCallback;
