@@ -117,16 +117,16 @@ public class MainActivity extends Activity {
         webView.setWebChromeClient(new WebChromeClient(){
             @Override public void onPermissionRequest(final android.webkit.PermissionRequest request){runOnUiThread(()->{if(request.getOrigin()!=null&&request.getOrigin().toString().startsWith("https://malawihub.pages.dev/"))request.grant(request.getResources());else request.deny();});}
         });
-        if(android.os.Build.VERSION.SDK_INT>=23) requestPermissions(new String[]{android.Manifest.permission.CAMERA,android.Manifest.permission.RECORD_AUDIO},7002);
+        requestMediaPermissions();
         webView.addJavascriptInterface(new Object(){
             @android.webkit.JavascriptInterface public void requestNativeScreenShare(String roomCode,String nativeId){runOnUiThread(()->{if(nativeScreen!=null&&nativeScreen.isActive()){nativeScreen.stop();return;}getIntent().putExtra("native_room",roomCode);getIntent().putExtra("native_id",nativeId);android.media.projection.MediaProjectionManager m=(android.media.projection.MediaProjectionManager)getSystemService(MEDIA_PROJECTION_SERVICE);startActivityForResult(m.createScreenCaptureIntent(),7001);});}
             @android.webkit.JavascriptInterface public void nativeStudentJoined(String id){if(nativeScreen!=null)nativeScreen.studentJoined(id);}
             @android.webkit.JavascriptInterface public void nativeSignal(String json){try{if(nativeScreen!=null)nativeScreen.signal(new JSONObject(json));}catch(Exception ignored){}}
         },"MalawiHubNative");
-        webView.loadUrl(ADMIN_URL);
+        loadAdminUrlAfterPermissions();
     }
 
-    private void showError() {
+    private void requestMediaPermissions(){\n        if(android.os.Build.VERSION.SDK_INT>=23){\n            boolean camera=checkSelfPermission(android.Manifest.permission.CAMERA)==android.content.pm.PackageManager.PERMISSION_GRANTED;\n            boolean mic=checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==android.content.pm.PackageManager.PERMISSION_GRANTED;\n            if(!camera||!mic){requestPermissions(new String[]{android.Manifest.permission.CAMERA,android.Manifest.permission.RECORD_AUDIO},7002);return;}\n        }\n        loadAdminUrlAfterPermissions();\n    }\n    private void loadAdminUrlAfterPermissions(){if(webView!=null && webView.getUrl()==null) webView.loadUrl(ADMIN_URL);}\n    @Override public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] grantResults){super.onRequestPermissionsResult(requestCode,permissions,grantResults);if(requestCode==7002){loadAdminUrlAfterPermissions();}}\n        private void showError() {
         TextView message=new TextView(this);
         message.setText("Unable to open MalawiHub Admin. Check your internet connection and try again.");
         message.setTextSize(17);
