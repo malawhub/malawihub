@@ -8,7 +8,6 @@ import android.content.Intent;
 import android.media.projection.MediaProjection;
 import android.os.IBinder;
 import android.os.Build;
-import androidx.annotation.Nullable;
 
 public class ScreenShareService extends Service {
     private static final String CHANNEL_ID="malawihub_screen_share";
@@ -38,5 +37,5 @@ public class ScreenShareService extends Service {
         return new Notification.Builder(this).setContentTitle("MalawiHub").setContentText("Screen sharing is active").setSmallIcon(android.R.drawable.ic_menu_view).setOngoing(true).build();
     }
     @Override public void onDestroy(){if(projection!=null){projection.stop();projection=null;}super.onDestroy();}
-    @Nullable @Override public IBinder onBind(Intent intent){return null;}
+    @Override public IBinder onBind(Intent intent){return null;}
 }
