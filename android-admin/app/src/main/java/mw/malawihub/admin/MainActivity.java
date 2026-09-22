@@ -16,12 +16,14 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import org.json.JSONObject;
 
 public class MainActivity extends Activity {
     private static final String ADMIN_URL = "https://malawihub.pages.dev/admin/login.html?v=20260920-adminapp6";
     private WebView webView;
     private ProgressBar progress;
     private final Handler handler = new Handler();
+    private NativeScreenShareManager nativeScreen;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -108,7 +110,18 @@ public class MainActivity extends Activity {
             @Override public boolean shouldOverrideUrlLoading(WebView view,WebResourceRequest request){return false;}
             @Override public void onReceivedError(WebView view,android.webkit.WebResourceRequest request,android.webkit.WebResourceError error){if(request.isForMainFrame())showError();}
         });
-        webView.setWebChromeClient(new WebChromeClient());
+        nativeScreen=new NativeScreenShareManager(this,new NativeScreenShareManager.SignalBridge(){
+            @Override public void send(JSONObject payload){ runOnUiThread(()->{ if(webView!=null) webView.evaluateJavascript("window.__malawiNativeSend("+JSONObject.quote(payload.toString())+");",null); }); }
+            @Override public void status(String text){ runOnUiThread(()->{ if(webView!=null) webView.evaluateJavascript("window.__malawiNativeStatus("+JSONObject.quote(text)+");",null); }); }
+        });
+        webView.setWebChromeClient(new WebChromeClient(){
+            @Override public void onPermissionRequest(final android.webkit.PermissionRequest request){runOnUiThread(()->{if(request.getOrigin()!=null&&request.getOrigin().toString().startsWith("https://malawihub.pages.dev/"))request.grant(request.getResources());else request.deny();});}
+        });
+        webView.addJavascriptInterface(new Object(){
+            @android.webkit.JavascriptInterface public void requestNativeScreenShare(String roomCode,String nativeId){runOnUiThread(()->{if(nativeScreen!=null&&nativeScreen.isActive()){nativeScreen.stop();return;}getIntent().putExtra("native_room",roomCode);getIntent().putExtra("native_id",nativeId);android.media.projection.MediaProjectionManager m=(android.media.projection.MediaProjectionManager)getSystemService(MEDIA_PROJECTION_SERVICE);startActivityForResult(m.createScreenCaptureIntent(),7001);});}
+            @android.webkit.JavascriptInterface public void nativeStudentJoined(String id){if(nativeScreen!=null)nativeScreen.studentJoined(id);}
+            @android.webkit.JavascriptInterface public void nativeSignal(String json){try{if(nativeScreen!=null)nativeScreen.signal(new JSONObject(json));}catch(Exception ignored){}}
+        },"MalawiHubNative");
         webView.loadUrl(ADMIN_URL);
     }
 
@@ -122,6 +135,7 @@ public class MainActivity extends Activity {
         setContentView(message);
     }
 
+    @Override protected void onActivityResult(int requestCode,int resultCode,android.content.Intent data){super.onActivityResult(requestCode,resultCode,data);if(requestCode==7001&&resultCode==RESULT_OK&&data!=null){android.content.Intent s=new android.content.Intent(this,ScreenShareService.class);if(android.os.Build.VERSION.SDK_INT>=26)startForegroundService(s);else startService(s);if(nativeScreen!=null)nativeScreen.start(data,getIntent().getStringExtra("native_room"),getIntent().getStringExtra("native_id"));}}
     @Override public void onBackPressed() {
         if(webView!=null&&webView.canGoBack()) webView.goBack(); else super.onBackPressed();
     }
