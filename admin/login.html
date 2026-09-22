@@ -11,7 +11,7 @@
 <body>
 <header><div class="logo">🇲🇼 MalawiHub</div><nav><a href="../index.html">Home</a><a href="../resources/index.html">Resources</a></nav></header>
 <section class="hero"><h1>🔐 Admin Login</h1><p>Only authorized MalawiHub administrators can enter this area.</p></section>
-<main class="container"><section class="card"><label for="email">Email</label><input id="email" type="email" placeholder="Enter administrator email" autocomplete="username"><label for="password">Password</label><input id="password" type="password" placeholder="Enter password" autocomplete="current-password"><button id="loginBtn" onclick="login()">Login</button><p id="message"></p></section></main>
+<main class="container"><section class="card"><label for="email">Email</label><input id="email" type="email" placeholder="Enter administrator email" autocomplete="username"><label for="password">Password</label><input id="password" type="password" placeholder="Enter password" autocomplete="current-password"><button id="loginBtn" onclick="login()">Login</button><p><a href="/reset-password-request.html?role=admin">Forgot administrator password?</a></p><p id="message"></p></section></main>
 <script>
 const message=document.getElementById('message');
 const params=new URLSearchParams(location.search);
