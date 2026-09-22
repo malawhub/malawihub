@@ -1,9 +1,5 @@
 plugins { id 'com.android.application' }
 
-dependencies {
-    implementation 'org.webrtc:google-webrtc:1.0.32006'
-}
-
 android {
     namespace 'mw.malawihub.teacher'
     compileSdk 36
