@@ -27,5 +27,5 @@ android {
 }
 
 dependencies {
-    implementation 'io.github.webrtc-sdk:android:144.7559.01'
+    implementation('io.github.webrtc-sdk:android:144.7559.01') { transitive = false }
 }
