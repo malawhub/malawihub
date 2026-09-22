@@ -27,7 +27,7 @@ public class NativeScreenShareManager {
     public void start(Intent projectionData,String roomCode,String nativeId){
         if(active)return;
         code=roomCode==null?"":roomCode; fromId=nativeId==null?"native-screen":nativeId;
-        PeerConnectionFactory.initialize(PeerConnectionFactory.builder(activity).createInitializationOptions());
+        PeerConnectionFactory.initialize(PeerConnectionFactory.InitializationOptions.builder(activity).createInitializationOptions());
         eglBase=EglBase.create();
         factory=PeerConnectionFactory.builder()
             .setVideoEncoderFactory(new DefaultVideoEncoderFactory(eglBase.getEglBaseContext(),true,true))
