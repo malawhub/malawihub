@@ -43,6 +43,7 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
 const storedStudentCode=sessionStorage.getItem('malawihub_class_code')||'';
+const pageVersion='20260923-student-mic2';
 const adminMode=params.get('mode')==='admin'||params.get('admin')==='1'||params.get('role')==='admin'||location.hash==='#admin';
 const teacherPortalMode=!adminMode && (params.get('teacher')==='1');
 const studentPortalMode=!adminMode && !teacherPortalMode && (params.get('student')==='1'||params.get('role')==='student'||!!storedStudentCode);
@@ -103,15 +104,11 @@ async function setupRoom(){
   $('micBtn').classList.remove('hidden');$('micBtn').textContent='🎙 Microphone ON';
   $('notes').readOnly=true;$('showPrivateNote').classList.add('hidden');$('hidePrivateNote').classList.add('hidden');
   if(data.status==='ended'){msg('Class ended');return}
-  try{
-    if(!localStream)localStream=await getMicrophoneStream();
-    $('micBtn').textContent=localStream.getAudioTracks().some(t=>t.enabled)?'🎙 Microphone ON':'🔇 Microphone OFF';
-    msg('Microphone ready · joining class');
-  }catch(e){
-    console.error('Student microphone access failed',e);
-    $('micBtn').textContent='🎙 Enable Microphone';
-    msg('Joined without microphone · tap Microphone to enable');
-  }
+  // Do not request the student's microphone automatically here.
+  // Browsers and Android WebView may reject getUserMedia without a user gesture.
+  // The student explicitly enables the microphone with the Microphone button.
+  $('micBtn').textContent='🎙 Enable Microphone';
+  msg('Joined class · tap Microphone to speak');
   await send({type:'join',from:getMyId(),name:userName,to:'teacher'})
 }
  else {$('startBtn').classList.remove('hidden');$('notes').readOnly=false;$('showPrivateNote').classList.remove('hidden');$('hidePrivateNote').classList.remove('hidden');if(data.status==='live'&&data.starts_at){startedAt=data.starts_at;startTimer();msg('LIVE');await loadNotes()}}
