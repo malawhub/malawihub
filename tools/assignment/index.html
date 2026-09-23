@@ -172,19 +172,36 @@ flex-direction:column;
 align-items:center
 }
 
-.university-logo-wrap{
-height:95px;
-width:120px;
+.cover-logos{
+position:absolute;
+top:30px;
+left:38px;
+right:38px;
+display:flex;
+justify-content:space-between;
+align-items:flex-start;
+pointer-events:none
+}
+
+.cover-logo-box{
+width:105px;
+height:90px;
 display:flex;
 align-items:center;
-justify-content:center;
-margin:0 auto 10px
+justify-content:center
+}
+
+.cover-logo{
+max-width:90px;
+max-height:80px;
+object-fit:contain
+}
+
+.malawihub-logo{
+display:block
 }
 
 .university-logo{
-max-width:90px;
-max-height:85px;
-object-fit:contain;
 display:none
 }
 
@@ -322,6 +339,82 @@ letter-spacing:3px;
 font-size:25px;
 }
 
+.group-cover{
+margin-top:30px;
+padding:55px 45px;
+border:2px solid #222;
+min-height:1000px;
+text-align:center;
+background:#fff;
+position:relative;
+page-break-before:always;
+break-before:page
+}
+
+.group-cover h3{
+font-size:25px;
+margin:90px 0 18px
+}
+
+.group-cover .group-subtitle{
+font-size:18px;
+margin-bottom:35px;
+line-height:1.5
+}
+
+.group-info{
+width:92%;
+max-width:760px;
+margin:0 auto 35px;
+text-align:left
+}
+
+.group-info-row{
+display:grid;
+grid-template-columns:190px 25px minmax(0,1fr);
+font-size:16px;
+margin:10px 0
+}
+
+.group-info-row strong{
+font-weight:bold
+}
+
+.members-table{
+width:100%;
+border-collapse:collapse;
+margin-top:25px;
+font-size:14px
+}
+
+.members-table th,
+.members-table td{
+border:1px solid #222;
+padding:10px 8px;
+height:34px
+}
+
+.members-table th{
+font-weight:bold;
+text-align:center
+}
+
+.members-table td:first-child{
+width:55px;
+text-align:center
+}
+
+.members-table td:nth-child(3){
+width:220px
+}
+
+.group-note{
+margin-top:18px;
+font-size:12px;
+color:#555;
+text-align:left
+}
+
 @media print{
 
 body{
@@ -346,6 +439,17 @@ margin:0
 border:0;
 min-height:100vh;
 padding:60px 40px
+}
+
+.group-cover{
+border:0;
+min-height:100vh;
+margin:0;
+padding:60px 40px
+}
+
+.group-cover h3{
+margin-top:90px
 }
 }
 </style>
@@ -418,6 +522,34 @@ Create a clean and professional assignment cover page.
 <option>Other University / College</option>
 </select>
 
+<label for="assignmentType">Assignment Type</label>
+<select id="assignmentType" onchange="handleAssignmentTypeChange()">
+<option value="individual">Individual Assignment</option>
+<option value="group">Group Assignment</option>
+</select>
+
+<div id="groupOptions" style="display:none">
+<label for="groupSize">Number of Group Members</label>
+<select id="groupSize" onchange="buildMemberTable()">
+<option value="2">2</option>
+<option value="3">3</option>
+<option value="4">4</option>
+<option value="5">5</option>
+<option value="6">6</option>
+<option value="7">7</option>
+<option value="8">8</option>
+<option value="9">9</option>
+<option value="10" selected>10</option>
+<option value="11">11</option>
+<option value="12">12</option>
+<option value="13">13</option>
+<option value="14">14</option>
+<option value="15">15</option>
+</select>
+
+<div id="memberInputs"></div>
+</div>
+
 <label for="school">School / Faculty / College</label>
 <input
 type="text"
@@ -466,8 +598,13 @@ Assignment Cover Preview
 
 <div class="cover" id="cover">
 
-<div class="university-logo-wrap" id="universityLogoWrap">
-<img id="universityLogo" class="university-logo" alt="University logo">
+<div class="cover-logos">
+<div class="cover-logo-box">
+<img class="cover-logo malawihub-logo" src="/icons/icon.svg" alt="MalawiHub logo">
+</div>
+<div class="cover-logo-box">
+<img id="universityLogo" class="cover-logo university-logo" alt="University logo">
+</div>
 </div>
 
 <h2 id="outInstitution">University / College</h2>
@@ -532,6 +669,37 @@ Assignment Title
 
 </div>
 
+</div>
+
+<div class="group-cover" id="groupCover" style="display:none">
+<div class="cover-logos">
+<div class="cover-logo-box">
+<img class="cover-logo malawihub-logo" src="/icons/icon.svg" alt="MalawiHub logo">
+</div>
+<div class="cover-logo-box">
+<img id="groupUniversityLogo" class="cover-logo university-logo" alt="University logo">
+</div>
+</div>
+
+<h3>GROUP ASSIGNMENT</h3>
+<div class="group-subtitle" id="groupAssignmentTitle">Assignment Title</div>
+
+<div class="group-info">
+<div class="group-info-row"><strong>University / College</strong><span>:</span><span id="groupInstitution"></span></div>
+<div class="group-info-row"><strong>School / Faculty / College</strong><span>:</span><span id="groupSchool"></span></div>
+<div class="group-info-row"><strong>Department</strong><span>:</span><span id="groupDepartment"></span></div>
+<div class="group-info-row"><strong>Course</strong><span>:</span><span id="groupCourse"></span></div>
+<div class="group-info-row"><strong>Course Code</strong><span>:</span><span id="groupCode"></span></div>
+</div>
+
+<table class="members-table">
+<thead>
+<tr><th>No.</th><th>Group Member Name</th><th>Student ID / Registration Number</th></tr>
+</thead>
+<tbody id="groupMembersTable"></tbody>
+</table>
+
+<div class="group-note">Group members are listed for identification of the students who contributed to this assignment.</div>
 </div>
 
 <button class="download" onclick="downloadPDF()">
@@ -664,6 +832,7 @@ return document.getElementById(id).value.trim();
 
 document.addEventListener("DOMContentLoaded", function(){
     checkPremiumAccess();
+    handleAssignmentTypeChange();
 });
 
 
@@ -673,6 +842,11 @@ async function updateUniversityLogo(institution){
 
     logo.style.display="none";
     logo.removeAttribute("src");
+    const groupLogo=document.getElementById("groupUniversityLogo");
+    if(groupLogo){
+        groupLogo.style.display="none";
+        groupLogo.removeAttribute("src");
+    }
 
     if(!institution){
         return;
@@ -700,6 +874,12 @@ async function updateUniversityLogo(institution){
             logo.src=data.logo_url;
             logo.style.display="block";
 
+            const groupLogo=document.getElementById("groupUniversityLogo");
+            if(groupLogo){
+                groupLogo.src=data.logo_url;
+                groupLogo.style.display="block";
+            }
+
             logo.onerror=function(){
                 console.warn("University logo could not be loaded:", data.logo_url);
                 logo.style.display="none";
@@ -712,6 +892,65 @@ async function updateUniversityLogo(institution){
         console.error("University logo error:", error);
 
     }
+}
+
+function handleAssignmentTypeChange(){
+
+    const type=document.getElementById("assignmentType").value;
+    const options=document.getElementById("groupOptions");
+
+    if(type==="group"){
+        options.style.display="block";
+        buildMemberTable();
+    }else{
+        options.style.display="none";
+    }
+}
+
+function buildMemberTable(){
+
+    const size=parseInt(document.getElementById("groupSize").value,10);
+    const box=document.getElementById("memberInputs");
+    const existing=[];
+
+    box.querySelectorAll(".member-name").forEach(function(el){
+        existing.push({
+            name:el.value,
+            id:el.parentElement.parentElement.querySelector(".member-id").value
+        });
+    });
+
+    let html="";
+    for(let i=1;i<=size;i++){
+        const old=existing[i-1] || {name:"",id:""};
+        html +=
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0">' +
+        '<input class="member-name" placeholder="Member '+i+' name" value="'+escapeHtml(old.name)+'">' +
+        '<input class="member-id" placeholder="Member '+i+' student ID / registration number" value="'+escapeHtml(old.id)+'">' +
+        '</div>';
+    }
+
+    box.innerHTML=html;
+}
+
+function escapeHtml(value){
+    return String(value || "")
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+}
+
+function getGroupMembers(){
+
+    return Array.from(document.querySelectorAll(".member-name")).map(function(nameInput,index){
+        const idInput=document.querySelectorAll(".member-id")[index];
+        return {
+            name:nameInput.value.trim(),
+            id:idInput ? idInput.value.trim() : ""
+        };
+    });
 }
 
 async function generateCover(){
@@ -739,6 +978,46 @@ return;
 if(!get("title")){
 alert("Please enter the assignment title.");
 return;
+}
+
+const assignmentType=document.getElementById("assignmentType").value;
+
+if(assignmentType==="group"){
+
+    const members=getGroupMembers();
+
+    if(members.some(function(member){ return !member.name || !member.id; })){
+        alert("Please enter the name and Student ID / Registration Number for every group member.");
+        return;
+    }
+
+    document.getElementById("groupAssignmentTitle").textContent=get("title");
+    document.getElementById("groupInstitution").textContent=institution;
+    document.getElementById("groupSchool").textContent=get("school");
+    document.getElementById("groupDepartment").textContent=get("department");
+    document.getElementById("groupCourse").textContent=get("course");
+    document.getElementById("groupCode").textContent=get("code");
+
+    const memberRows=members.map(function(member,index){
+        return "<tr><td>"+(index+1)+"</td><td>"+escapeHtml(member.name)+"</td><td>"+escapeHtml(member.id)+"</td></tr>";
+    }).join("");
+
+    document.getElementById("groupMembersTable").innerHTML=memberRows;
+
+    const universityLogo=document.getElementById("universityLogo");
+    const groupUniversityLogo=document.getElementById("groupUniversityLogo");
+
+    if(universityLogo.src){
+        groupUniversityLogo.src=universityLogo.src;
+        groupUniversityLogo.style.display=universityLogo.style.display==="none"?"none":"block";
+    }
+
+    document.getElementById("groupCover").style.display="block";
+
+}else{
+
+    document.getElementById("groupCover").style.display="none";
+
 }
 
 document.getElementById("outInstitution").textContent=institution;
@@ -806,6 +1085,10 @@ field.value="";
 });
 
 document.getElementById("institution").value="";
+document.getElementById("assignmentType").value="individual";
+document.getElementById("groupOptions").style.display="none";
+document.getElementById("memberInputs").innerHTML="";
+document.getElementById("groupCover").style.display="none";
 
 
 
