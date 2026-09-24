@@ -20,7 +20,7 @@ import android.widget.TextView;
 import org.json.JSONObject;
 
 public class MainActivity extends Activity {
-    private static final String ADMIN_URL = "https://malawihub.pages.dev/admin/login.html?v=20260924-audio-duplex2";
+    private static final String ADMIN_URL = "https://malawihub.pages.dev/admin/login.html?v=20260924-audio-duplex3";
     private WebView webView;
     private ProgressBar progress;
     private android.webkit.ValueCallback<android.net.Uri[]> fileCallback;
