@@ -1,16 +1,1 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MalawiHub Administrator Classroom</title>
-<meta http-equiv="Cache-Control" content="no-store">
-</head>
-<body>
-<p>Opening the Administrator Classroom…</p>
-<script>
-const q=location.search||"";
-location.replace("/admin/classroom/"+q);
-</script>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MalawiHub Administrator Classroom</title><meta http-equiv="Cache-Control" content="no-store"></head><body><p>Opening the Administrator Classroom…</p><script>const p=new URLSearchParams(location.search);const t=new URL('/online-class/admin-room.html',location.origin);for(const k of ['code','role','v'])if(p.has(k))t.searchParams.set(k,p.get(k));t.searchParams.set('role','admin');t.searchParams.set('v','20260924-admin-legacy1');location.replace(t.toString());</script></body></html>
