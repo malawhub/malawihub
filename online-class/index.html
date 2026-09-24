@@ -45,9 +45,8 @@ const params=new URLSearchParams(location.search);
 const storedStudentCode=sessionStorage.getItem('malawihub_class_code')||'';
 const pageVersion='20260924-student-join1';
 const adminMode=params.get('mode')==='admin'||params.get('admin')==='1'||params.get('role')==='admin'||location.hash==='#admin';
-const teacherPortalMode=!adminMode && (params.get('teacher')==='1');
-const explicitStudentMode=params.get('student')==='1'||params.get('role')==='student';
 const explicitTeacherMode=params.get('teacher')==='1'||params.get('role')==='teacher';
+const explicitStudentMode=params.get('student')==='1'||params.get('role')==='student';
 const studentPortalMode=!adminMode && !teacherPortalMode && explicitStudentMode;
 const teacherPortalModeResolved=!adminMode && !studentPortalMode && (params.get('teacher')==='1'||params.get('role')==='teacher');
 if(studentPortalMode){const directCode=params.get('code')||storedStudentCode;if(directCode){$('code').value=directCode;}}
@@ -90,7 +89,7 @@ async function loadResources(){if(!classId)return;const {data,error}=await supab
 async function setupRoom(){
  roomCode=cleanCode($('code').value);userName=$('name').value.trim()||(['teacher','admin'].includes(role)?'Teacher':'Student');
  if(!roomCode){showEntryError('No class code was supplied. Return to the Student Portal and enter the class code.');return}if(!window.supabaseClient){showEntryError('MalawiHub could not connect to Supabase. Refresh the page and try again.');return}
- if(['teacher','admin'].includes(role)){authUser=await getAuthUser();if(!authUser){$('loginNotice').classList.remove('hidden');alert('Please sign in to MalawiHub before starting a teacher class.');return}const {data:profile}=await supabaseClient.from('profiles').select('role').eq('id',authUser.id).maybeSingle();if(!profile||!['teacher','admin'].includes(profile.role)){alert('Teacher or administrator access is required.');return}if(adminMode&&profile.role!=='admin'){alert('Administrator access is required for this class.');return}if(teacherPortalMode&&profile.role!=='teacher'&&profile.role!=='admin'){alert('Teacher access is required for this class.');return}role=adminMode?'admin':(profile.role==='admin'?'admin':'teacher')}
+ if(['teacher','admin'].includes(role)){authUser=await getAuthUser();if(!authUser){$('loginNotice').classList.remove('hidden');alert('Please sign in to MalawiHub before starting a teacher class.');return}const {data:profile}=await supabaseClient.from('profiles').select('role').eq('id',authUser.id).maybeSingle();if(!profile||!['teacher','admin'].includes(profile.role)){alert('Teacher or administrator access is required.');return}if(adminMode&&profile.role!=='admin'){alert('Administrator access is required for this class.');return}if(teacherPortalModeResolved&&profile.role!=='teacher'&&profile.role!=='admin'){alert('Teacher access is required for this class.');return}role=adminMode?'admin':(profile.role==='admin'?'admin':'teacher')}
  if(role==='student'){authUser=await getAuthUser();if(!authUser){showEntryError('Your student session has expired. Return to the Student Portal, log in again and join the class.');return}}
  let data,error;
  if(role==='student'){const joined=await supabaseClient.rpc('join_online_class',{p_join_code:roomCode});error=joined.error;data=Array.isArray(joined.data)?(joined.data[0]||null):(joined.data||null);if(error)console.error('join_online_class failed',error)}else{let result;if(role==='admin'){result=await supabaseClient.from('online_classes').select('*').eq('join_code',roomCode).maybeSingle()}else{result=await supabaseClient.from('online_classes').select('*').eq('join_code',roomCode).eq('teacher_id',authUser.id).maybeSingle()}data=result.data;error=result.error}
