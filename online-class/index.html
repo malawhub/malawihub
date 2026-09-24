@@ -232,3 +232,29 @@ async function toggleMic(){
  }
 }
 
+
+
+// Classroom controls and automatic entry.
+$('studentBtn').addEventListener('click',()=>setupRoom().catch(e=>{console.error('Student classroom setup',e);alert(e.message||'Could not join the class.')}));
+$('teacherBtn').addEventListener('click',async()=>{role='teacher';teacherPortalMode=true;try{await setupRoom()}catch(e){console.error('Teacher classroom setup',e);alert(e.message||'Could not open the teacher class.')}});
+$('startBtn').addEventListener('click',startClass);
+$('screenBtn').addEventListener('click',shareScreen);
+$('micBtn').addEventListener('click',toggleMic);
+$('endBtn').addEventListener('click',()=>endRoom(true));
+$('sendChat').addEventListener('click',async()=>{const input=$('chatInput');const text=input.value.trim();if(!text||!channel)return;await channel.send({type:'broadcast',event:'chat',payload:{code:roomCode,name:userName,text}});input.value='';});
+$('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('sendChat').click()});
+$('notes').addEventListener('input',()=>{if(['teacher','admin'].includes(role)){clearTimeout(notesTimer);notesTimer=setTimeout(async()=>{await saveNotes();if(channel)await channel.send({type:'broadcast',event:'notes',payload:{code:roomCode,notes:$('notes').value}})},500)}});
+$('downloadNotes').addEventListener('click',()=>{const blob=new Blob([$('notes').value||''],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='malawihub-class-notes-'+(roomCode||'class')+'.txt';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)});
+$('printNotes').addEventListener('click',()=>{const w=window.open('','_blank');if(!w)return;w.document.write('<!doctype html><title>MalawiHub Class Notes</title><pre style="white-space:pre-wrap;font:16px/1.5 sans-serif">'+esc($('notes').value||'')+'</pre>');w.document.close();w.focus();w.print()});
+$('openPrivateNote').addEventListener('click',()=>$('privateNoteFile').click());
+$('privateNoteFile').addEventListener('change',e=>openPrivateNoteFile(e.target.files?.[0]));
+$('savePrivateNote').addEventListener('click',savePrivateNoteLocal);
+$('clearPrivateNote').addEventListener('click',()=>{$('privateNotes').value='';savePrivateNoteLocal()});
+$('showPrivateNote').addEventListener('click',showPrivateNoteToStudents);
+$('hidePrivateNote').addEventListener('click',hidePrivateNoteFromStudents);
+
+// Student Portal opens this page with student=1, role=student and a validated class code.
+// Enter the classroom immediately; do not show the legacy "Join or start a class" screen.
+if(studentPortalMode && (params.get('code')||storedStudentCode)){
+  setupRoom().catch(e=>{console.error('Automatic student classroom setup',e);alert(e.message||'Could not open the class. Please return to the Student Portal and try again.')});
+}
