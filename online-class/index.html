@@ -43,7 +43,7 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
 const storedStudentCode=sessionStorage.getItem('malawihub_class_code')||'';
-const pageVersion='20260923-student-mic2';
+const pageVersion='20260924-audio-duplex1';
 const adminMode=params.get('mode')==='admin'||params.get('admin')==='1'||params.get('role')==='admin'||location.hash==='#admin';
 const teacherPortalMode=!adminMode && (params.get('teacher')==='1');
 const studentPortalMode=!adminMode && !teacherPortalMode && (params.get('student')==='1'||params.get('role')==='student'||!!storedStudentCode);
@@ -135,7 +135,7 @@ async function renegotiate(id){
 }
 async function handleSignal(p){
  if(['teacher','admin'].includes(role)&&p.type==='join'){state.students.set(p.from,p.name);renderStudents();if(window.MalawiHubNative)window.MalawiHubNative.nativeStudentJoined(p.from);await channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'join',id:p.from,name:p.name}});const pc=makePeer(p.from);if(localStream)localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});if(startedAt){const offer=await pc.createOffer();await pc.setLocalDescription(offer);await send({type:'offer',to:p.from,from:getMyId(),sdp:pc.localDescription})}}
- else if(role==='student'&&p.type==='offer'){const pc=makePeer('teacher');if(localStream)localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track?.kind===t.kind))pc.addTrack(t,localStream)});await pc.setRemoteDescription(p.sdp);await flushIce('teacher');const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:'answer',to:p.from,from:getMyId(),sdp:pc.localDescription})}
+ else if(role==='student'&&p.type==='offer'){const pc=makePeer('teacher');if(localStream){const at=localStream.getAudioTracks()[0];const as=pc.getSenders().find(s=>s.track?.kind==='audio'||(!s.track&&pc.getTransceivers().some(t=>t.sender===s&&t.receiver.track?.kind==='audio')));if(at&&as)await as.replaceTrack(at);localStream.getVideoTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)})}await pc.setRemoteDescription(p.sdp);await flushIce('teacher');const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:'answer',to:p.from,from:getMyId(),sdp:pc.localDescription})}
  else if(role==='student'&&p.type==='native-screen-offer'){const pc=makePeer('native-screen');await pc.setRemoteDescription(p.sdp);await flushIce('native-screen');const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:'native-screen-answer',to:p.from,from:getMyId(),sdp:pc.localDescription})}
  else if(role==='student'&&p.type==='native-screen-end'){const pc=peers.get('native-screen');if(pc){pc.close();peers.delete('native-screen')}const main=peers.get('teacher');if(main){const tracks=main.getReceivers().map(r=>r.track).filter(Boolean);if(tracks.length)$('remoteVideo').srcObject=new MediaStream(tracks)}msg('Screen sharing ended.');}
  else if(['teacher','admin'].includes(role)&&p.type==='native-screen-answer'){if(window.MalawiHubNative)window.MalawiHubNative.nativeSignal(JSON.stringify(p))}
@@ -150,6 +150,12 @@ async function handleSignal(p){
 function makePeer(id){
  if(peers.has(id))return peers.get(id);
  const pc=new RTCPeerConnection({iceServers:iceServers});
+ let studentAudioTransceiver=null;
+ if(role==='student'){
+   // Reserve the student audio sender before signaling starts. This avoids a
+   // second offer/answer exchange when the student turns the microphone on.
+   studentAudioTransceiver=pc.addTransceiver('audio',{direction:'sendrecv'});
+ }
  peers.set(id,pc);
  pc.onicecandidate=e=>{if(e.candidate)send({type:'ice',to:['teacher','admin'].includes(role)?id:'teacher',from:getMyId(),candidate:e.candidate})};
  pc.ontrack=e=>{
@@ -165,7 +171,13 @@ function makePeer(id){
      $('waiting').classList.add('hidden');
    }
  };
-pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed'){if(['teacher','admin'].includes(role))setTimeout(()=>renegotiate(id),1000)}if(pc.connectionState==='disconnected'&&['teacher','admin'].includes(role)){setTimeout(()=>{const x=peers.get(id);if(x&&x.connectionState==='disconnected')renegotiate(id)},3000)}if(pc.connectionState==='closed')removePeer(id)};if(localStream)localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});
+pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed'){if(['teacher','admin'].includes(role))setTimeout(()=>renegotiate(id),1000)}if(pc.connectionState==='disconnected'&&['teacher','admin'].includes(role)){setTimeout(()=>{const x=peers.get(id);if(x&&x.connectionState==='disconnected')renegotiate(id)},3000)}if(pc.connectionState==='closed')removePeer(id)};if(localStream){
+   if(role==='student' && studentAudioTransceiver){
+     const at=localStream.getAudioTracks()[0];
+     if(at)studentAudioTransceiver.sender.replaceTrack(at).catch(e=>console.warn('Student audio track attach failed',e));
+     localStream.getVideoTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});
+   }else localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});
+ }
  return pc;
 }
 function removePeer(id){const pc=peers.get(id);if(pc){pc.close();peers.delete(id)}}
@@ -211,7 +223,16 @@ $('micBtn').textContent='🎙 Microphone ON';
   }
  }
  const t=localStream.getAudioTracks()[0];
- if(t){t.enabled=!t.enabled;$('micBtn').textContent=t.enabled?'🎙 Microphone ON':'🔇 Microphone OFF';if(t.enabled&&role==='student'&&peers.has('teacher')&&!peers.get('teacher').getSenders().some(s=>s.track?.kind==='audio')){const pc=peers.get('teacher');pc.addTrack(t,localStream);await renegotiate('teacher')}}
+ if(t){
+   t.enabled=!t.enabled;
+   $('micBtn').textContent=t.enabled?'🎙 Microphone ON':'🔇 Microphone OFF';
+   if(role==='student'&&peers.has('teacher')){
+     const pc=peers.get('teacher');
+     const sender=pc.getSenders().find(s=>s.track?.kind==='audio'||(!s.track&&pc.getTransceivers().some(x=>x.sender===s&&x.receiver.track?.kind==='audio')));
+     if(sender)await sender.replaceTrack(t);
+     else {const tr=pc.addTransceiver('audio',{direction:'sendrecv'});await tr.sender.replaceTrack(t)}
+   }
+ }
 }
 $('studentBtn').onclick=()=>{if(adminMode||teacherPortalMode||studentPortalMode)return;role='student';setupRoom()};$('teacherBtn').onclick=()=>{if(adminMode||studentPortalMode)return;role='teacher';setupRoom()};
 if(adminMode||teacherPortalMode||studentPortalMode)setupRoom();$('startBtn').onclick=startClass;$('screenBtn').onclick=shareScreen;$('micBtn').onclick=toggleMic;$('endBtn').onclick=()=>endRoom(true);
