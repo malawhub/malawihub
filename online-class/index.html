@@ -211,9 +211,15 @@ async function toggleMic(){
    localStream=['teacher','admin'].includes(role)?await getClassMedia():await getMicrophoneStream();
 $('micBtn').textContent='🎙 Microphone ON';
    for(const [id,pc] of peers){
-     if(!pc.getSenders().some(s=>s.track?.kind==='audio'))pc.addTrack(localStream.getAudioTracks()[0],localStream);
-     if(['teacher','admin'].includes(role))await renegotiate(id);
-     else if(peers.has('teacher'))await renegotiate('teacher');
+     const at=localStream.getAudioTracks()[0];
+     if(role==='student'){
+       const sender=pc.getSenders().find(s=>s.track?.kind==='audio'||(!s.track&&pc.getTransceivers().some(x=>x.sender===s&&x.receiver.track?.kind==='audio')));
+       if(sender) await sender.replaceTrack(at);
+       else {const tr=pc.addTransceiver('audio',{direction:'sendrecv'});await tr.sender.replaceTrack(at)}
+     }else{
+       if(!pc.getSenders().some(s=>s.track?.kind==='audio'))pc.addTrack(at,localStream);
+       await renegotiate(id);
+     }
    }
    return;
   }catch(e){
