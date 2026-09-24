@@ -605,7 +605,6 @@ Assignment Cover Preview
 </div>
 </div>
 
-<h2 id="outInstitution"></h2>
 
 <div class="school" id="outSchool"></div>
 
@@ -678,7 +677,6 @@ Assignment Cover Preview
 </div>
 </div>
 
-<h2 id="groupInstitution"></h2>
 <div class="school" id="groupSchool"></div>
 <div class="department" id="groupDepartment"></div>
 <div class="info">
@@ -987,7 +985,6 @@ if(template !== "basic"){
 if(assignmentType==="group"){
 
     const members=getGroupMembers();
-    document.getElementById("groupInstitution").textContent=institution;
     document.getElementById("groupSchool").textContent=get("school");
     document.getElementById("groupDepartment").textContent=get("department");
     document.getElementById("groupTitle").textContent=get("title");
@@ -1020,7 +1017,6 @@ if(assignmentType==="group"){
 
 }else{
 
-    document.getElementById("outInstitution").textContent=institution;
     document.getElementById("outSchool").textContent=get("school");
     document.getElementById("outDepartment").textContent=get("department");
     document.getElementById("outAssignmentNumber").textContent=get("assignmentNumber");
