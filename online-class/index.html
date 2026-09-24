@@ -43,10 +43,11 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
 const storedStudentCode=sessionStorage.getItem('malawihub_class_code')||'';
-const pageVersion='20260924-student-direct2';
+const pageVersion='20260924-student-join1';
 const adminMode=params.get('mode')==='admin'||params.get('admin')==='1'||params.get('role')==='admin'||location.hash==='#admin';
 const teacherPortalMode=!adminMode && (params.get('teacher')==='1');
 const studentPortalMode=!adminMode && !teacherPortalMode && (params.get('student')==='1'||params.get('role')==='student'||!!storedStudentCode||!!params.get('code'));
+if(studentPortalMode){const directCode=params.get('code')||storedStudentCode;if(directCode){$('code').value=directCode;}}
 if(adminMode){$('areaLabel').textContent='Admin Hub · Private Classroom';} else if(teacherPortalMode){$('areaLabel').textContent='Teacher Portal · Private Classroom';} else {$('areaLabel').textContent='Student Portal · Private Classroom';}
 if(adminMode||teacherPortalMode||studentPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent=adminMode?'Administrator Class':teacherPortalMode?'Teacher Class':'Student Class';$('modeHelp').textContent=adminMode?'Administrator mode. Only the administrator can control this class.':teacherPortalMode?'Teacher mode. Students join through the Student Portal using the class code.':'Student mode. Teacher and administrator controls are unavailable.';const codeFromUrl=params.get('code')||storedStudentCode;if(codeFromUrl)$('code').value=codeFromUrl;$('name').value=sessionStorage.getItem('malawihub_student_name')||'Student';$('modePanel').classList.add('hidden');}
 let channel,resourceChannel,roomCode='',userName='',privateNoteShown=false,role=adminMode?'admin':(teacherPortalMode?'teacher':(studentPortalMode?'student':'')),localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null;
