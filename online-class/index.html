@@ -43,7 +43,7 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
 const storedStudentCode=sessionStorage.getItem('malawihub_class_code')||'';
-const pageVersion='20260924-audio-duplex1';
+const pageVersion='20260924-audio-duplex3';
 const adminMode=params.get('mode')==='admin'||params.get('admin')==='1'||params.get('role')==='admin'||location.hash==='#admin';
 const teacherPortalMode=!adminMode && (params.get('teacher')==='1');
 const studentPortalMode=!adminMode && !teacherPortalMode && (params.get('student')==='1'||params.get('role')==='student'||!!storedStudentCode);
@@ -135,7 +135,7 @@ async function renegotiate(id){
 }
 async function handleSignal(p){
  if(['teacher','admin'].includes(role)&&p.type==='join'){state.students.set(p.from,p.name);renderStudents();if(window.MalawiHubNative)window.MalawiHubNative.nativeStudentJoined(p.from);await channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'join',id:p.from,name:p.name}});const pc=makePeer(p.from);if(localStream)localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});if(startedAt){const offer=await pc.createOffer();await pc.setLocalDescription(offer);await send({type:'offer',to:p.from,from:getMyId(),sdp:pc.localDescription})}}
- else if(role==='student'&&p.type==='offer'){const pc=makePeer(p.from);await pc.setRemoteDescription(p.sdp);if(localStream){const at=localStream.getAudioTracks()[0];const as=pc.__studentAudioTransceiver?.sender;if(at&&as)await as.replaceTrack(at);localStream.getVideoTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)})}await flushIce(p.from);const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:'answer',to:p.from,from:getMyId(),sdp:pc.localDescription})}
+ else if(role==='student'&&p.type==='offer'){const pc=makePeer(p.from);if(localStream)localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track?.kind===t.kind))pc.addTrack(t,localStream)});await pc.setRemoteDescription(p.sdp);await flushIce(p.from);const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:'answer',to:p.from,from:getMyId(),sdp:pc.localDescription})}
  else if(role==='student'&&p.type==='native-screen-offer'){const pc=makePeer('native-screen');await pc.setRemoteDescription(p.sdp);await flushIce('native-screen');const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:'native-screen-answer',to:p.from,from:getMyId(),sdp:pc.localDescription})}
  else if(role==='student'&&p.type==='native-screen-end'){const pc=peers.get('native-screen');if(pc){pc.close();peers.delete('native-screen')}const main=peers.get('teacher');if(main){const tracks=main.getReceivers().map(r=>r.track).filter(Boolean);if(tracks.length)$('remoteVideo').srcObject=new MediaStream(tracks)}msg('Screen sharing ended.');}
  else if(['teacher','admin'].includes(role)&&p.type==='native-screen-answer'){if(window.MalawiHubNative)window.MalawiHubNative.nativeSignal(JSON.stringify(p))}
@@ -150,13 +150,6 @@ async function handleSignal(p){
 function makePeer(id){
  if(peers.has(id))return peers.get(id);
  const pc=new RTCPeerConnection({iceServers:iceServers});
- let studentAudioTransceiver=null;
- if(role==='student'){
-   // Reserve the student audio sender before signaling starts. This avoids a
-   // second offer/answer exchange when the student turns the microphone on.
-   studentAudioTransceiver=pc.addTransceiver('audio',{direction:'sendrecv'});
-   pc.__studentAudioTransceiver=studentAudioTransceiver;
- }
  peers.set(id,pc);
  pc.onicecandidate=e=>{if(e.candidate)send({type:'ice',to:id,from:getMyId(),candidate:e.candidate})};
  pc.ontrack=e=>{
@@ -164,6 +157,7 @@ function makePeer(id){
      const stream=e.streams?.[0]||new MediaStream([e.track]);
      if(e.track.kind==='audio'){
        $('remoteAudio').srcObject=stream;
+       $('remoteAudio').muted=false;
        $('remoteAudio').play().catch(()=>{});
      }
      if(e.track.kind==='video')$('remoteVideo').srcObject=stream;
@@ -172,13 +166,12 @@ function makePeer(id){
      $('waiting').classList.add('hidden');
    }
  };
-pc.onconnectionstatechange=()=>{if(pc.connectionState==='failed'){if(['teacher','admin'].includes(role))setTimeout(()=>renegotiate(id),1000)}if(pc.connectionState==='disconnected'&&['teacher','admin'].includes(role)){setTimeout(()=>{const x=peers.get(id);if(x&&x.connectionState==='disconnected')renegotiate(id)},3000)}if(pc.connectionState==='closed')removePeer(id)};if(localStream){
-   if(role==='student' && studentAudioTransceiver){
-     const at=localStream.getAudioTracks()[0];
-     if(at)studentAudioTransceiver.sender.replaceTrack(at).catch(e=>console.warn('Student audio track attach failed',e));
-     localStream.getVideoTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});
-   }else localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});
- }
+ pc.onconnectionstatechange=()=>{
+   if(pc.connectionState==='failed'&&['teacher','admin'].includes(role))setTimeout(()=>renegotiate(id),1000);
+   if(pc.connectionState==='disconnected'&&['teacher','admin'].includes(role))setTimeout(()=>{const x=peers.get(id);if(x&&x.connectionState==='disconnected')renegotiate(id)},3000);
+   if(pc.connectionState==='closed')removePeer(id);
+ };
+ if(localStream)localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track?.kind===t.kind))pc.addTrack(t,localStream)});
  return pc;
 }
 function removePeer(id){const pc=peers.get(id);if(pc){pc.close();peers.delete(id)}}
@@ -210,17 +203,12 @@ async function toggleMic(){
  if(!localStream){
   try{
    localStream=['teacher','admin'].includes(role)?await getClassMedia():await getMicrophoneStream();
-$('micBtn').textContent='🎙 Microphone ON';
+   $('micBtn').textContent='🎙 Microphone ON';
    for(const [id,pc] of peers){
      const at=localStream.getAudioTracks()[0];
-     if(role==='student'){
-       const sender=pc.getSenders().find(s=>s.track?.kind==='audio'||(!s.track&&pc.getTransceivers().some(x=>x.sender===s&&x.receiver.track?.kind==='audio')));
-       if(sender) await sender.replaceTrack(at);
-       else {const tr=pc.addTransceiver('audio',{direction:'sendrecv'});await tr.sender.replaceTrack(at)}
-     }else{
-       if(!pc.getSenders().some(s=>s.track?.kind==='audio'))pc.addTrack(at,localStream);
-       await renegotiate(id);
-     }
+     if(!at)continue;
+     if(!pc.getSenders().some(s=>s.track?.kind==='audio'))pc.addTrack(at,localStream);
+     if(['teacher','admin'].includes(role)||role==='student')await renegotiate(id);
    }
    return;
   }catch(e){
@@ -233,31 +221,13 @@ $('micBtn').textContent='🎙 Microphone ON';
  if(t){
    t.enabled=!t.enabled;
    $('micBtn').textContent=t.enabled?'🎙 Microphone ON':'🔇 Microphone OFF';
-   if(role==='student'&&peers.has('teacher')){
-     const pc=peers.get('teacher');
-     const sender=pc.getSenders().find(s=>s.track?.kind==='audio'||(!s.track&&pc.getTransceivers().some(x=>x.sender===s&&x.receiver.track?.kind==='audio')));
-     if(sender)await sender.replaceTrack(t);
-     else {const tr=pc.addTransceiver('audio',{direction:'sendrecv'});await tr.sender.replaceTrack(t)}
+   if(t.enabled){
+     for(const [id,pc] of peers){
+       const sender=pc.getSenders().find(s=>s.track?.kind==='audio');
+       if(sender)await sender.replaceTrack(t);
+       else{pc.addTrack(t,localStream);await renegotiate(id)}
+     }
    }
  }
 }
-$('studentBtn').onclick=()=>{if(adminMode||teacherPortalMode||studentPortalMode)return;role='student';setupRoom()};$('teacherBtn').onclick=()=>{if(adminMode||studentPortalMode)return;role='teacher';setupRoom()};
-if(adminMode||teacherPortalMode||studentPortalMode)setupRoom();$('startBtn').onclick=startClass;$('screenBtn').onclick=shareScreen;$('micBtn').onclick=toggleMic;$('endBtn').onclick=()=>endRoom(true);
-$('sendChat').onclick=async()=>{const text=$('chatInput').value.trim();if(!text||!channel)return;addChat('You',text);$('chatInput').value='';await channel.send({type:'broadcast',event:'chat',payload:{code:roomCode,name:userName,text}})};$('chatInput').onkeydown=e=>{if(e.key==='Enter')$('sendChat').click()};
-$('notes').oninput=()=>{if(!['teacher','admin'].includes(role))return;clearTimeout(notesTimer);notesTimer=setTimeout(async()=>{await channel.send({type:'broadcast',event:'notes',payload:{code:roomCode,notes:$('notes').value}});await saveNotes()},300)};
-$('downloadNotes').onclick=()=>{const blob=new Blob([$('notes').value],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(roomCode||'malawihub-class')+'-notes.txt';a.click();URL.revokeObjectURL(a.href)};
-$('printNotes').onclick=()=>{const w=window.open('','_blank');if(!w)return;w.document.write('<pre style="white-space:pre-wrap;font:16px/1.6 Arial">'+esc($('notes').value)+'</pre>');w.document.close();w.print()};
-$('remoteVideo').addEventListener('click',()=>{$('remoteVideo').play().catch(()=>{});$('remoteAudio').play().catch(()=>{});$('waiting').classList.add('hidden')});
-$('remoteAudio').addEventListener('click',()=>{$('remoteAudio').play().catch(()=>{});$('remoteVideo').play().catch(()=>{});$('waiting').classList.add('hidden')});
-document.addEventListener('click',()=>{$('remoteAudio').play().catch(()=>{});$('remoteVideo').play().catch(()=>{})},{once:true});
-$('openPrivateNote').onclick=()=>$('privateNoteFile').click();
-$('privateNoteFile').addEventListener('change',e=>openPrivateNoteFile(e.target.files?.[0]));
-$('savePrivateNote').onclick=savePrivateNoteLocal;
-$('clearPrivateNote').onclick=()=>{if(confirm('Clear your private device note?')){$('privateNotes').value='';savePrivateNoteLocal();if(['teacher','admin'].includes(role))hidePrivateNoteFromStudents()}};
-$('showPrivateNote').onclick=showPrivateNoteToStudents;
-$('hidePrivateNote').onclick=hidePrivateNoteFromStudents;
-$('privateNotes').addEventListener('input',()=>{clearTimeout(window.__privateNoteTimer);window.__privateNoteTimer=setTimeout(savePrivateNoteLocal,400)});
-window.addEventListener('beforeunload',()=>{if(channel&&roomCode)channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'leave',id:getMyId(),name:userName}});if(resourceChannel)supabaseClient.removeChannel(resourceChannel)});
-</script>
-</body>
-</html>
+
