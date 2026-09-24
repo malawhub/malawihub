@@ -43,7 +43,7 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
 const storedStudentCode=sessionStorage.getItem('malawihub_class_code')||'';
-const pageVersion='20260924-classroom-audio4';
+const pageVersion='20260924-classroom-audio5';
 const adminMode=params.get('mode')==='admin'||params.get('admin')==='1'||params.get('role')==='admin'||location.hash==='#admin';
 const teacherPortalMode=!adminMode && (params.get('teacher')==='1');
 const studentPortalMode=!adminMode && !teacherPortalMode && (params.get('student')==='1'||params.get('role')==='student'||!!storedStudentCode);
@@ -138,18 +138,23 @@ async function handleSignal(p){
   await channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'join',id:p.from,name:p.name}});
   makePeer(p.from);
  }
- else if(role==='student'&&p.type==='offer'){
-  const pc=makePeer('teacher');
-  const polite=true;
+ else if(p.type==='offer'){
+  const peerId=['teacher','admin'].includes(role)?p.from:'teacher';
+  const pc=makePeer(peerId);
   const offerCollision=pc.makingOffer||pc.signalingState!=='stable';
-  pc.ignoreOffer=!polite&&offerCollision;
+  pc.ignoreOffer=!pc.polite&&offerCollision;
   if(pc.ignoreOffer)return;
   try{
    await pc.setRemoteDescription(p.sdp);
-   await flushIce('teacher');
+   await flushIce(peerId);
    await pc.setLocalDescription();
    await send({type:'answer',to:p.from,from:getMyId(),sdp:pc.localDescription});
-  }catch(e){console.warn('Student offer handling failed',e)}
+  }catch(e){console.warn('Offer handling failed',e)}
+ }
+ else if(p.type==='answer'){
+  const peerId=['teacher','admin'].includes(role)?p.from:'teacher';
+  const pc=peers.get(peerId);
+  if(pc){try{await pc.setRemoteDescription(p.sdp);await flushIce(peerId)}catch(e){console.warn('Answer handling failed',e)}}
  }
  else if(role==='student'&&p.type==='native-screen-offer'){
   const pc=makePeer('native-screen');await pc.setRemoteDescription(p.sdp);await flushIce('native-screen');const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:'native-screen-answer',to:p.from,from:getMyId(),sdp:pc.localDescription})
@@ -159,20 +164,12 @@ async function handleSignal(p){
   const main=peers.get('teacher');if(main){const tracks=main.getReceivers().map(r=>r.track).filter(Boolean);if(tracks.length)$('remoteVideo').srcObject=new MediaStream(tracks)}msg('Screen sharing ended.')
  }
  else if(['teacher','admin'].includes(role)&&p.type==='native-screen-answer'){if(window.MalawiHubNative)window.MalawiHubNative.nativeSignal(JSON.stringify(p))}
- else if(['teacher','admin'].includes(role)&&p.type==='answer'){
-  const pc=peers.get(p.from);if(pc){try{await pc.setRemoteDescription(p.sdp);await flushIce(p.from)}catch(e){console.warn('Teacher answer handling failed',e)}}
- }
- else if(['teacher','admin'].includes(role)&&p.type==='student-offer'){
-  const pc=makePeer(p.from);
-  if(pc.makingOffer||pc.signalingState!=='stable'){pc.ignoreOffer=true;return}
-  try{await pc.setRemoteDescription(p.sdp);await flushIce(p.from);await pc.setLocalDescription();await send({type:'student-answer',to:p.from,from:getMyId(),sdp:pc.localDescription})}catch(e){console.warn('Teacher student-offer handling failed',e)}
- }
  else if(role==='student'&&p.type==='native-screen-ice'){
   const pc=peers.get('native-screen');if(pc&&p.candidate){if(pc.remoteDescription)try{await pc.addIceCandidate(p.candidate)}catch(e){console.warn('Native ICE',e)}else{if(!iceQueues.has('native-screen'))iceQueues.set('native-screen',[]);iceQueues.get('native-screen').push(p.candidate)}}
  }
  else if(['teacher','admin'].includes(role)&&p.type==='native-screen-ice'){if(window.MalawiHubNative)window.MalawiHubNative.nativeSignal(JSON.stringify(p))}
  else if(p.type==='ice'){
-  const peerId=peerTarget(p.from);const pc=peers.get(peerId);if(pc&&p.candidate){if(pc.remoteDescription)try{await pc.addIceCandidate(p.candidate)}catch(e){if(!pc.ignoreOffer)console.warn('ICE',e)}else{if(!iceQueues.has(peerId))iceQueues.set(peerId,[]);iceQueues.get(peerId).push(p.candidate)}}
+  const peerId=['teacher','admin'].includes(role)?p.from:'teacher';const pc=peers.get(peerId);if(pc&&p.candidate){if(pc.remoteDescription)try{await pc.addIceCandidate(p.candidate)}catch(e){if(!pc.ignoreOffer)console.warn('ICE',e)}else{if(!iceQueues.has(peerId))iceQueues.set(peerId,[]);iceQueues.get(peerId).push(p.candidate)}}
  }
  else if(p.type==='start'){startedAt=p.startedAt;duration=Number(p.duration)||60;startTimer();$('waiting').classList.add('hidden');msg('LIVE');await loadNotes()}
  else if(p.type==='end'){await endRoom(false)}
