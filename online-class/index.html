@@ -47,7 +47,7 @@ const pageVersion='20260924-student-join1';
 const adminMode=params.get('mode')==='admin'||params.get('admin')==='1'||params.get('role')==='admin'||location.hash==='#admin';
 const explicitTeacherMode=params.get('teacher')==='1'||params.get('role')==='teacher';
 const explicitStudentMode=params.get('student')==='1'||params.get('role')==='student';
-const studentPortalMode=!adminMode && !teacherPortalMode && explicitStudentMode;
+const teacherPortalMode=explicitTeacherMode; const studentPortalMode=!adminMode && !teacherPortalMode && explicitStudentMode;
 const teacherPortalModeResolved=!adminMode && !studentPortalMode && (params.get('teacher')==='1'||params.get('role')==='teacher');
 if(studentPortalMode){const directCode=params.get('code')||storedStudentCode;if(directCode){$('code').value=directCode;}}
 if(adminMode){$('areaLabel').textContent='Admin Hub · Private Classroom';} else if(teacherPortalModeResolved){$('areaLabel').textContent='Teacher Portal · Private Classroom';} else if(studentPortalMode){$('areaLabel').textContent='Student Portal · Private Classroom';} else {$('areaLabel').textContent='MalawiHub Live Class';}
