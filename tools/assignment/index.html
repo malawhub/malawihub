@@ -607,22 +607,18 @@ Assignment Cover Preview
 
 <div class="cover-logos">
 <div class="cover-logo-box">
-<img class="cover-logo custom-left-logo" src="https://raw.githubusercontent.com/malawhub/malawihub/main/university-logos/unima.png" alt="UNIMA logo">
+<img class="cover-logo custom-left-logo" src="/tools/assignment/assets/left-logo.jpeg" alt="Left logo">
 </div>
 <div class="cover-logo-box">
-<img id="universityLogo" class="cover-logo university-logo" alt="University logo">
+<img id="universityLogo" class="cover-logo university-logo" src="/tools/assignment/assets/right-logo.jpeg" alt="Right logo">
 </div>
 </div>
 
-<h2 id="outInstitution">University / College</h2>
+<h2 id="outInstitution"></h2>
 
-<div class="school" id="outSchool">
-School / Faculty / College
-</div>
+<div class="school" id="outSchool"></div>
 
-<div class="department" id="outDepartment">
-Department
-</div>
+<div class="department" id="outDepartment"></div>
 
 
 
@@ -682,16 +678,16 @@ Assignment Title
 
 <div class="cover-logos">
 <div class="cover-logo-box">
-<img id="groupLeftLogo" class="cover-logo custom-left-logo" src="https://raw.githubusercontent.com/malawhub/malawihub/main/university-logos/unima.png" alt="UNIMA logo">
+<img id="groupLeftLogo" class="cover-logo custom-left-logo" src="/tools/assignment/assets/left-logo.jpeg" alt="Left logo">
 </div>
 <div class="cover-logo-box">
-<img id="groupUniversityLogo" class="cover-logo university-logo" alt="University logo">
+<img id="groupUniversityLogo" class="cover-logo university-logo" src="/tools/assignment/assets/right-logo.jpeg" alt="Right logo">
 </div>
 </div>
 
-<h2 id="groupInstitution">University / College</h2>
-<div class="school" id="groupSchool">School / Faculty / College</div>
-<div class="department" id="groupDepartment">Department</div>
+<h2 id="groupInstitution"></h2>
+<div class="school" id="groupSchool"></div>
+<div class="department" id="groupDepartment"></div>
 <div class="title" id="groupTitle">Assignment Title</div>
 
 <div class="info">
@@ -848,58 +844,16 @@ document.addEventListener("DOMContentLoaded", function(){
 async function updateUniversityLogo(institution){
 
     const logo=document.getElementById("universityLogo");
-
-    logo.style.display="none";
-    logo.removeAttribute("src");
     const groupLogo=document.getElementById("groupUniversityLogo");
+
+    // Both logos are bundled with MalawiHub so the cover does not depend on
+    // a remote image or Supabase branding lookup.
+    logo.src="/tools/assignment/assets/right-logo.jpeg";
+    logo.style.display="block";
+
     if(groupLogo){
-        groupLogo.style.display="none";
-        groupLogo.removeAttribute("src");
-    }
-
-    if(!institution){
-        return;
-    }
-
-    try{
-
-        const { data, error } = await supabaseClient
-            .from("university_branding")
-            .select("logo_url")
-            .eq("university_name", institution)
-            .eq("active", true)
-            .maybeSingle();
-
-        if(error){
-            console.error("University logo lookup failed:", error);
-            alert("Logo lookup error: " + error.message);
-            return;
-        }
-
-        console.log("University logo lookup:", institution, data);
-
-        if(data && data.logo_url){
-
-            logo.src=data.logo_url;
-            logo.style.display="block";
-
-            const groupLogo=document.getElementById("groupUniversityLogo");
-            if(groupLogo){
-                groupLogo.src=data.logo_url;
-                groupLogo.style.display="block";
-            }
-
-            logo.onerror=function(){
-                console.warn("University logo could not be loaded:", data.logo_url);
-                logo.style.display="none";
-            };
-
-        }
-
-    }catch(error){
-
-        console.error("University logo error:", error);
-
+        groupLogo.src="/tools/assignment/assets/right-logo.jpeg";
+        groupLogo.style.display="block";
     }
 }
 
