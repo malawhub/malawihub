@@ -25,7 +25,7 @@ import org.json.JSONObject;
 
 public class MainActivity extends Activity {
     private static final int SCREEN_CAPTURE_REQUEST=7001;
-    private static final String TEACHER_URL = "https://malawihub.pages.dev/teacher-portal/index.html?v=20260922-account-controls";
+    private static final String TEACHER_URL = "https://malawihub.pages.dev/teacher-portal/index.html?v=20260924-audio-duplex1";
     private WebView webView; private ProgressBar progress; private final Handler handler=new Handler(); private android.webkit.ValueCallback<android.net.Uri[]> fileCallback; private static final int FILE_PICK_REQUEST=8001;
     private NativeScreenShareManager nativeScreen;
     @Override protected void onCreate(Bundle state){super.onCreate(state);showBrandedSplash();handler.postDelayed(this::openTeacher,1200);}
@@ -39,7 +39,7 @@ public class MainActivity extends Activity {
     private TextView text(String s,float size,int color){TextView t=new TextView(this);t.setText(s);t.setTextSize(size);t.setTextColor(color);t.setGravity(Gravity.CENTER);return t;}
     private void openTeacher(){
         LinearLayout root=new LinearLayout(this);root.setOrientation(LinearLayout.VERTICAL);root.setBackgroundColor(Color.WHITE);progress=new ProgressBar(this);progress.setIndeterminate(true);root.addView(progress,new LinearLayout.LayoutParams(-1,6));webView=new WebView(this);root.addView(webView,new LinearLayout.LayoutParams(-1,0,1));setContentView(root);
-        WebSettings s=webView.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setDatabaseEnabled(true);s.setJavaScriptCanOpenWindowsAutomatically(true);s.setSupportMultipleWindows(false);s.setBuiltInZoomControls(false);s.setDisplayZoomControls(false);s.setAllowFileAccess(false);s.setAllowContentAccess(false);s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        WebSettings s=webView.getSettings();s.setJavaScriptEnabled(true);s.setDomStorageEnabled(true);s.setDatabaseEnabled(true);s.setJavaScriptCanOpenWindowsAutomatically(true);s.setSupportMultipleWindows(false);s.setBuiltInZoomControls(false);s.setDisplayZoomControls(false);s.setAllowFileAccess(false);s.setAllowContentAccess(false);s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);s.setMediaPlaybackRequiresUserGesture(false);
         CookieManager c=CookieManager.getInstance();c.setAcceptCookie(true);c.setAcceptThirdPartyCookies(webView,true);
         webView.setWebViewClient(new WebViewClient(){@Override public void onPageStarted(WebView v,String u,android.graphics.Bitmap b){progress.setVisibility(View.VISIBLE);}@Override public void onPageFinished(WebView v,String u){progress.setVisibility(View.GONE);}@Override public boolean shouldOverrideUrlLoading(WebView v,WebResourceRequest r){return false;}@Override public void onReceivedError(WebView v,WebResourceRequest r,android.webkit.WebResourceError e){if(r.isForMainFrame())showError();}});nativeScreen=new NativeScreenShareManager(this,new NativeScreenShareManager.SignalBridge(){
             @Override public void send(JSONObject payload){ runOnUiThread(()->{ if(webView!=null) webView.evaluateJavascript("window.__malawiNativeSend("+JSONObject.quote(payload.toString())+");",null); }); }
@@ -61,7 +61,7 @@ public class MainActivity extends Activity {
                 });
             }
         });
-        ((AudioManager)getSystemService(AUDIO_SERVICE)).setMode(AudioManager.MODE_IN_COMMUNICATION);
+        AudioManager audioManager=(AudioManager)getSystemService(AUDIO_SERVICE); audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION); audioManager.setSpeakerphoneOn(true);
         requestMediaPermissions();
         webView.addJavascriptInterface(new Object(){
             @android.webkit.JavascriptInterface public void requestNativeScreenShare(String roomCode,String nativeId){
