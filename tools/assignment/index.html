@@ -232,11 +232,7 @@ letter-spacing:1px
 }
 
 .cover .title{
-font-size:23px;
-font-weight:bold;
-margin:10px 0 70px;
-line-height:1.5;
-max-width:85%
+display:none
 }
 
 .info{
@@ -622,10 +618,6 @@ Assignment Cover Preview
 
 
 
-<div class="title" id="outTitle">
-Assignment Title
-</div>
-
 <div class="info">
 
 <div class="info-row">
@@ -647,7 +639,7 @@ Assignment Title
 </div>
 
 <div class="info-row">
-<div class="info-label">Course</div>
+<div class="info-label">Course Name</div>
 <div class="info-colon">:</div>
 <div class="info-value" id="outCourse"></div>
 </div>
@@ -656,6 +648,12 @@ Assignment Title
 <div class="info-label">Course Code</div>
 <div class="info-colon">:</div>
 <div class="info-value" id="outCode"></div>
+</div>
+
+<div class="info-row">
+<div class="info-label">Assignment Title</div>
+<div class="info-colon">:</div>
+<div class="info-value" id="outTitle"></div>
 </div>
 
 <div class="info-row">
@@ -688,14 +686,12 @@ Assignment Title
 <h2 id="groupInstitution"></h2>
 <div class="school" id="groupSchool"></div>
 <div class="department" id="groupDepartment"></div>
-<div class="title" id="groupTitle">Assignment Title</div>
-
 <div class="info">
-<div class="info-row"><div class="info-label">Lecturer</div><div class="info-colon">:</div><div class="info-value" id="groupLecturer"></div></div>
-<div class="info-row"><div class="info-label">Course</div><div class="info-colon">:</div><div class="info-value" id="groupCourse"></div></div>
-<div class="info-row"><div class="info-label">Course Code</div><div class="info-colon">:</div><div class="info-value" id="groupCode"></div></div>
-<div class="info-row"><div class="info-label">Assignment Number</div><div class="info-colon">:</div><div class="info-value" id="groupAssignmentNumber"></div></div>
-<div class="info-row"><div class="info-label">Submission Date</div><div class="info-colon">:</div><div class="info-value" id="groupDate"></div></div>
+
+<div class="info-row">
+<div class="info-label">Lecturer</div>
+<div class="info-colon">:</div>
+<div class="info-value" id="groupLecturer"></div>
 </div>
 
 <div class="group-members-wrap">
@@ -704,6 +700,38 @@ Assignment Title
 <thead><tr><th>No.</th><th>Group Member Name</th><th>Student ID / Registration Number</th></tr></thead>
 <tbody id="groupMembersTable"></tbody>
 </table>
+</div>
+
+<div class="info-row">
+<div class="info-label">Course Name</div>
+<div class="info-colon">:</div>
+<div class="info-value" id="groupCourse"></div>
+</div>
+
+<div class="info-row">
+<div class="info-label">Course Code</div>
+<div class="info-colon">:</div>
+<div class="info-value" id="groupCode"></div>
+</div>
+
+<div class="info-row">
+<div class="info-label">Assignment Title</div>
+<div class="info-colon">:</div>
+<div class="info-value" id="groupTitle"></div>
+</div>
+
+<div class="info-row">
+<div class="info-label">Assignment Number</div>
+<div class="info-colon">:</div>
+<div class="info-value" id="groupAssignmentNumber"></div>
+</div>
+
+<div class="info-row">
+<div class="info-label">Submission Date</div>
+<div class="info-colon">:</div>
+<div class="info-value" id="groupDate"></div>
+</div>
+
 </div>
 
 </div>
