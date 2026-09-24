@@ -135,7 +135,7 @@ async function renegotiate(id){
 }
 async function handleSignal(p){
  if(['teacher','admin'].includes(role)&&p.type==='join'){state.students.set(p.from,p.name);renderStudents();if(window.MalawiHubNative)window.MalawiHubNative.nativeStudentJoined(p.from);await channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'join',id:p.from,name:p.name}});const pc=makePeer(p.from);if(localStream)localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});if(startedAt){const offer=await pc.createOffer();await pc.setLocalDescription(offer);await send({type:'offer',to:p.from,from:getMyId(),sdp:pc.localDescription})}}
- else if(role==='student'&&p.type==='offer'){const pc=makePeer('teacher');if(localStream){const at=localStream.getAudioTracks()[0];const as=pc.getSenders().find(s=>s.track?.kind==='audio'||(!s.track&&pc.getTransceivers().some(t=>t.sender===s&&t.receiver.track?.kind==='audio')));if(at&&as)await as.replaceTrack(at);localStream.getVideoTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)})}await pc.setRemoteDescription(p.sdp);await flushIce('teacher');const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:'answer',to:p.from,from:getMyId(),sdp:pc.localDescription})}
+ else if(role==='student'&&p.type==='offer'){const pc=makePeer('teacher');await pc.setRemoteDescription(p.sdp);if(localStream){const at=localStream.getAudioTracks()[0];const as=pc.__studentAudioTransceiver?.sender;if(at&&as)await as.replaceTrack(at);localStream.getVideoTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)})}await flushIce('teacher');const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:'answer',to:p.from,from:getMyId(),sdp:pc.localDescription})}
  else if(role==='student'&&p.type==='native-screen-offer'){const pc=makePeer('native-screen');await pc.setRemoteDescription(p.sdp);await flushIce('native-screen');const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:'native-screen-answer',to:p.from,from:getMyId(),sdp:pc.localDescription})}
  else if(role==='student'&&p.type==='native-screen-end'){const pc=peers.get('native-screen');if(pc){pc.close();peers.delete('native-screen')}const main=peers.get('teacher');if(main){const tracks=main.getReceivers().map(r=>r.track).filter(Boolean);if(tracks.length)$('remoteVideo').srcObject=new MediaStream(tracks)}msg('Screen sharing ended.');}
  else if(['teacher','admin'].includes(role)&&p.type==='native-screen-answer'){if(window.MalawiHubNative)window.MalawiHubNative.nativeSignal(JSON.stringify(p))}
@@ -155,6 +155,7 @@ function makePeer(id){
    // Reserve the student audio sender before signaling starts. This avoids a
    // second offer/answer exchange when the student turns the microphone on.
    studentAudioTransceiver=pc.addTransceiver('audio',{direction:'sendrecv'});
+   pc.__studentAudioTransceiver=studentAudioTransceiver;
  }
  peers.set(id,pc);
  pc.onicecandidate=e=>{if(e.candidate)send({type:'ice',to:['teacher','admin'].includes(role)?id:'teacher',from:getMyId(),candidate:e.candidate})};
