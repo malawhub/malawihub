@@ -11,7 +11,7 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 <script>!function(){const p=new URLSearchParams(location.search);if(p.get("student")==="1"||p.get("role")==="student")document.documentElement.classList.add("student-entry")}();</script></head>
 <body>
 <div class="class-wrap">
-<div class="top"><div class="brand">🇲🇼 MalawiHub Live Class</div><span id="areaLabel" class="muted small">Private classroom</span></div>
+<div class="top"><div class="brand">🇲🇼 MalawiHub Live Class</div><span id="areaLabel" class="muted small">Private classroom</span></div><div id="entryStatus" class="panel notice hidden">Opening your class…</div>
 <div class="panel" id="modePanel">
 <h2 id="modeTitle">Join or start a class</h2>
 <div class="row">
@@ -49,7 +49,7 @@ const teacherPortalMode=!adminMode && (params.get('teacher')==='1');
 const studentPortalMode=!adminMode && !teacherPortalMode && (params.get('student')==='1'||params.get('role')==='student'||!!storedStudentCode||!!params.get('code'));
 if(studentPortalMode){const directCode=params.get('code')||storedStudentCode;if(directCode){$('code').value=directCode;}}
 if(adminMode){$('areaLabel').textContent='Admin Hub · Private Classroom';} else if(teacherPortalMode){$('areaLabel').textContent='Teacher Portal · Private Classroom';} else {$('areaLabel').textContent='Student Portal · Private Classroom';}
-if(adminMode||teacherPortalMode||studentPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent=adminMode?'Administrator Class':teacherPortalMode?'Teacher Class':'Student Class';$('modeHelp').textContent=adminMode?'Administrator mode. Only the administrator can control this class.':teacherPortalMode?'Teacher mode. Students join through the Student Portal using the class code.':'Student mode. Teacher and administrator controls are unavailable.';const codeFromUrl=params.get('code')||storedStudentCode;if(codeFromUrl)$('code').value=codeFromUrl;$('name').value=sessionStorage.getItem('malawihub_student_name')||'Student';$('modePanel').classList.add('hidden');}
+if(adminMode||teacherPortalMode||studentPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent=adminMode?'Administrator Class':teacherPortalMode?'Teacher Class':'Student Class';$('modeHelp').textContent=adminMode?'Administrator mode. Only the administrator can control this class.':teacherPortalMode?'Teacher mode. Students join through the Student Portal using the class code.':'Student mode. Teacher and administrator controls are unavailable.';const codeFromUrl=params.get('code')||storedStudentCode;if(codeFromUrl)$('code').value=codeFromUrl;$('name').value=sessionStorage.getItem('malawihub_student_name')||'Student';$('modePanel').classList.add('hidden');} if(studentPortalMode&&(params.get('code')||storedStudentCode)){$('entryStatus').classList.remove('hidden');$('entryStatus').textContent='Opening class '+cleanCode(params.get('code')||storedStudentCode)+'…';}
 let channel,resourceChannel,roomCode='',userName='',privateNoteShown=false,role=adminMode?'admin':(teacherPortalMode?'teacher':(studentPortalMode?'student':'')),localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null;
 const peers=new Map();const iceQueues=new Map();const state={students:new Map()};let myId='';
 // WebRTC connectivity: use public STUN plus the configured short-lived Cloudflare TURN relay.
@@ -86,12 +86,12 @@ function renderResources(rows){const el=$('videoResources');el.innerHTML='';if(!
 async function loadResources(){if(!classId)return;const {data,error}=await supabaseClient.from('class_video_resources').select('id,title,video_url,description,created_at').eq('class_id',classId).order('created_at',{ascending:true});if(error){console.warn('resources',error);return}renderResources(data);$('allVideosLink').href='./resources.html?code='+encodeURIComponent(roomCode);if(resourceChannel)return;resourceChannel=supabaseClient.channel('malawihub-resources-'+roomCode,{config:{private:true}}).on('postgres_changes',{event:'*',schema:'public',table:'class_video_resources',filter:'class_id=eq.'+classId},()=>loadResources()).subscribe()}
 async function setupRoom(){
  roomCode=cleanCode($('code').value);userName=$('name').value.trim()||(['teacher','admin'].includes(role)?'Teacher':'Student');
- if(!roomCode){alert('Enter a class code.');return}if(!window.supabaseClient){alert('Supabase is not available.');return}
+ if(!roomCode){showEntryError('No class code was supplied. Return to the Student Portal and enter the class code.');return}if(!window.supabaseClient){showEntryError('MalawiHub could not connect to Supabase. Refresh the page and try again.');return}
  if(['teacher','admin'].includes(role)){authUser=await getAuthUser();if(!authUser){$('loginNotice').classList.remove('hidden');alert('Please sign in to MalawiHub before starting a teacher class.');return}const {data:profile}=await supabaseClient.from('profiles').select('role').eq('id',authUser.id).maybeSingle();if(!profile||!['teacher','admin'].includes(profile.role)){alert('Teacher or administrator access is required.');return}if(adminMode&&profile.role!=='admin'){alert('Administrator access is required for this class.');return}if(teacherPortalMode&&profile.role!=='teacher'&&profile.role!=='admin'){alert('Teacher access is required for this class.');return}role=adminMode?'admin':(profile.role==='admin'?'admin':'teacher')}
- if(role==='student'){authUser=await getAuthUser();if(!authUser){alert('Please sign in through the Student Portal before joining a class.');return}}
+ if(role==='student'){authUser=await getAuthUser();if(!authUser){showEntryError('Your student session has expired. Return to the Student Portal, log in again and join the class.');return}}
  let data,error;
  if(role==='student'){const joined=await supabaseClient.rpc('join_online_class',{p_join_code:roomCode});error=joined.error;data=Array.isArray(joined.data)?(joined.data[0]||null):(joined.data||null);if(error)console.error('join_online_class failed',error)}else{let result;if(role==='admin'){result=await supabaseClient.from('online_classes').select('*').eq('join_code',roomCode).maybeSingle()}else{result=await supabaseClient.from('online_classes').select('*').eq('join_code',roomCode).eq('teacher_id',authUser.id).maybeSingle()}data=result.data;error=result.error}
- if(error||!data){console.error('Class join failed',{roomCode,error,data});alert(error?.message||'Class not found. Check the class code.');return}classData=data;classId=data.id;loadPrivateNoteLocal();duration=data.duration_minutes||60;
+ if(error||!data){console.error('Class join failed',{roomCode,error,data});showEntryError(error?.message||'Class not found. Check the class code.');return}classData=data;classId=data.id;loadPrivateNoteLocal();duration=data.duration_minutes||60;
  $('room').classList.remove('hidden');$('roleText').textContent=role==='admin'?'Administrator · Teacher controls':role==='teacher'?'Teacher mode':'Student mode';$('classTitle').textContent=data.title||('Class: '+roomCode);$('allVideosLink').href='./resources.html?code='+encodeURIComponent(roomCode);$('whiteboardBtn').href='./whiteboard.html?code='+encodeURIComponent(roomCode);await loadNotes();await loadResources();
  const {data:sessionData}=await supabaseClient.auth.getSession();if(sessionData?.session?.access_token&&supabaseClient.realtime?.setAuth)await supabaseClient.realtime.setAuth(sessionData.session.access_token); await loadTurnServers();channel=supabaseClient.channel('malawihub-class-'+roomCode,{config:{private:true,broadcast:{self:false,ack:true}}});
  channel.on('broadcast',{event:'class'},async({payload})=>{if(payload.code!==roomCode)return;if(!payload.to||payload.to==='*'||payload.to===getMyId())await handleSignal(payload)})
@@ -99,7 +99,7 @@ async function setupRoom(){
  .on('broadcast',{event:'private-note'},({payload})=>{if(payload.code!==roomCode||['teacher','admin'].includes(role))return;if(payload.action==='show'){privateNoteShown=true;$('studentSharedNoteText').textContent=payload.content||'';$('studentSharedNote').classList.remove('hidden');$('privateNoteState').textContent='Teacher has shared a note';}else if(payload.action==='hide'){privateNoteShown=false;$('studentSharedNote').classList.add('hidden');$('studentSharedNoteText').textContent='';$('privateNoteState').textContent='Private — not shared';}})
  .on('broadcast',{event:'chat'},({payload})=>{if(payload.code===roomCode)addChat(payload.name,payload.text)})
  .on('broadcast',{event:'presence'},({payload})=>{if(payload.code!==roomCode)return;if(payload.action==='join'){state.students.set(payload.id,payload.name);renderStudents()}if(payload.action==='leave'){state.students.delete(payload.id);removePeer(payload.id);renderStudents()}});
- await new Promise((resolve,reject)=>channel.subscribe((s,e)=>{if(s==='SUBSCRIBED')resolve();else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT')reject(e||Error('Class realtime connection failed.'))}));msg('Connected');
+ await new Promise((resolve,reject)=>channel.subscribe((s,e)=>{if(s==='SUBSCRIBED')resolve();else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT')reject(e||Error('Class realtime connection failed.'))}));$('entryStatus').classList.add('hidden');msg('Connected');
  if(role==='student'){
   $('startBtn').classList.add('hidden');$('screenBtn').classList.add('hidden');$('endBtn').classList.add('hidden');
   $('micBtn').classList.remove('hidden');$('micBtn').textContent='🎙 Microphone ON';
@@ -116,6 +116,7 @@ async function setupRoom(){
 }
 window.__malawiNativeSend=async function(json){try{const p=typeof json==='string'?JSON.parse(json):json;await send(p)}catch(e){console.warn('native signal send',e)}};
 window.__malawiNativeStatus=function(text){msg(text);if(String(text).includes('Screen sharing is active')){ $('screenBtn').textContent='⏹ Stop Sharing'; if(window.MalawiHubNative)state.students.forEach((n,id)=>window.MalawiHubNative.nativeStudentJoined(id)); }else if(String(text).includes('stopped')){$('screenBtn').textContent='🖥 Share Screen';}};
+function showEntryError(text){const box=$('entryStatus');if(box){box.classList.remove('hidden');box.classList.add('error');box.textContent=text;}console.error('MalawiHub class entry:',text)}
 async function send(payload){payload.code=roomCode;await channel.send({type:'broadcast',event:'class',payload})}
 async function flushIce(peerId){
  const pc=peers.get(peerId);
@@ -236,7 +237,7 @@ async function toggleMic(){
 
 // Classroom controls and automatic entry.
 $('studentBtn').addEventListener('click',()=>setupRoom().catch(e=>{console.error('Student classroom setup',e);alert(e.message||'Could not join the class.')}));
-$('teacherBtn').addEventListener('click',async()=>{role='teacher';teacherPortalMode=true;try{await setupRoom()}catch(e){console.error('Teacher classroom setup',e);alert(e.message||'Could not open the teacher class.')}});
+$('teacherBtn').addEventListener('click',async()=>{role='teacher';try{await setupRoom()}catch(e){console.error('Teacher classroom setup',e);alert(e.message||'Could not open the teacher class.')}});
 $('startBtn').addEventListener('click',startClass);
 $('screenBtn').addEventListener('click',shareScreen);
 $('micBtn').addEventListener('click',toggleMic);
@@ -256,5 +257,5 @@ $('hidePrivateNote').addEventListener('click',hidePrivateNoteFromStudents);
 // Student Portal opens this page with student=1, role=student and a validated class code.
 // Enter the classroom immediately; do not show the legacy "Join or start a class" screen.
 if(studentPortalMode && (params.get('code')||storedStudentCode)){
-  setupRoom().catch(e=>{console.error('Automatic student classroom setup',e);alert(e.message||'Could not open the class. Please return to the Student Portal and try again.')});
+  const openStudentClass=()=>setupRoom().catch(e=>{console.error('Automatic student classroom setup',e);showEntryError(e.message||'Could not open the class. Please return to the Student Portal and try again.')});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',openStudentClass,{once:true});else openStudentClass();
 }
