@@ -256,8 +256,14 @@ $('clearPrivateNote').addEventListener('click',()=>{$('privateNotes').value='';s
 $('showPrivateNote').addEventListener('click',showPrivateNoteToStudents);
 $('hidePrivateNote').addEventListener('click',hidePrivateNoteFromStudents);
 
-// Student Portal opens this page with student=1, role=student and a validated class code.
-// Enter the classroom immediately; do not show the legacy "Join or start a class" screen.
-if(studentPortalMode && (params.get('code')||storedStudentCode)){
-  const openStudentClass=()=>setupRoom().catch(e=>{console.error('Automatic student classroom setup',e);showEntryError(e.message||'Could not open the class. Please return to the Student Portal and try again.')});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',openStudentClass,{once:true});else openStudentClass();
+// Role-specific portals enter the same full classroom engine.
+// Open automatically when the portal supplies a class code.
+const portalHasCode=Boolean(params.get('code')||storedStudentCode);
+if((adminMode||teacherPortalModeResolved||studentPortalMode) && portalHasCode){
+  const openPortalClass=()=>setupRoom().catch(e=>{
+    console.error('Automatic portal classroom setup',e);
+    showEntryError(e.message||'Could not open the class. Return to your portal and try again.');
+  });
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',openPortalClass,{once:true});
+  else openPortalClass();
 }
