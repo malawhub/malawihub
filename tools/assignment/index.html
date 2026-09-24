@@ -340,79 +340,48 @@ font-size:25px;
 }
 
 .group-cover{
-margin-top:30px;
-padding:55px 45px;
-border:2px solid #222;
-min-height:1000px;
-text-align:center;
-background:#fff;
-position:relative;
 page-break-before:always;
-break-before:page
+break-before:page;
 }
 
-.group-cover h3{
-font-size:25px;
-margin:90px 0 18px
-}
-
-.group-cover .group-subtitle{
-font-size:18px;
-margin-bottom:35px;
-line-height:1.5
-}
-
-.group-info{
+.group-members-wrap{
 width:92%;
 max-width:760px;
-margin:0 auto 35px;
-text-align:left
+margin:28px auto 0;
+text-align:left;
 }
 
-.group-info-row{
-display:grid;
-grid-template-columns:190px 25px minmax(0,1fr);
-font-size:16px;
-margin:10px 0
-}
-
-.group-info-row strong{
-font-weight:bold
+.group-members-title{
+font-weight:bold;
+font-size:17px;
+margin-bottom:8px;
 }
 
 .members-table{
 width:100%;
 border-collapse:collapse;
-margin-top:25px;
-font-size:14px
+font-size:14px;
 }
 
 .members-table th,
 .members-table td{
 border:1px solid #222;
-padding:10px 8px;
-height:34px
+padding:9px 8px;
+height:34px;
 }
 
 .members-table th{
 font-weight:bold;
-text-align:center
+text-align:center;
 }
 
 .members-table td:first-child{
 width:55px;
-text-align:center
+text-align:center;
 }
 
 .members-table td:nth-child(3){
-width:220px
-}
-
-.group-note{
-margin-top:18px;
-font-size:12px;
-color:#555;
-text-align:left
+width:220px;
 }
 
 @media print{
@@ -557,11 +526,13 @@ id="school"
 placeholder="Enter your school, faculty or college"
 >
 
+<div id="individualStudentFields">
 <label for="student">Student Name</label>
 <input id="student" placeholder="e.g. John Banda">
 
 <label for="studentId">Student ID / Registration Number</label>
 <input id="studentId" placeholder="e.g. BSC/2024/001">
+</div>
 
 <label for="department">Department</label>
 <input id="department" placeholder="e.g. Chemistry">
@@ -671,37 +642,39 @@ Assignment Title
 
 </div>
 
-<div class="group-cover" id="groupCover" style="display:none">
+<div class="cover group-cover" id="groupCover" style="display:none">
+
 <div class="cover-logos">
 <div class="cover-logo-box">
-<img class="cover-logo custom-left-logo" src="data:image/jpeg;base64,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" alt="UNIMA 60th Anniversary logo">
+<img id="groupLeftLogo" class="cover-logo custom-left-logo" alt="UNIMA logo">
 </div>
 <div class="cover-logo-box">
 <img id="groupUniversityLogo" class="cover-logo university-logo" alt="University logo">
 </div>
 </div>
 
-<h3>GROUP ASSIGNMENT</h3>
-<div class="group-subtitle" id="groupAssignmentTitle">Assignment Title</div>
+<h2 id="groupInstitution">University / College</h2>
+<div class="school" id="groupSchool">School / Faculty / College</div>
+<div class="department" id="groupDepartment">Department</div>
+<div class="title" id="groupTitle">Assignment Title</div>
 
-<div class="group-info">
-<div class="group-info-row"><strong>University / College</strong><span>:</span><span id="groupInstitution"></span></div>
-<div class="group-info-row"><strong>School / Faculty / College</strong><span>:</span><span id="groupSchool"></span></div>
-<div class="group-info-row"><strong>Department</strong><span>:</span><span id="groupDepartment"></span></div>
-<div class="group-info-row"><strong>Course</strong><span>:</span><span id="groupCourse"></span></div>
-<div class="group-info-row"><strong>Course Code</strong><span>:</span><span id="groupCode"></span></div>
+<div class="info">
+<div class="info-row"><div class="info-label">Lecturer</div><div class="info-colon">:</div><div class="info-value" id="groupLecturer"></div></div>
+<div class="info-row"><div class="info-label">Course</div><div class="info-colon">:</div><div class="info-value" id="groupCourse"></div></div>
+<div class="info-row"><div class="info-label">Course Code</div><div class="info-colon">:</div><div class="info-value" id="groupCode"></div></div>
+<div class="info-row"><div class="info-label">Assignment Number</div><div class="info-colon">:</div><div class="info-value" id="groupAssignmentNumber"></div></div>
+<div class="info-row"><div class="info-label">Submission Date</div><div class="info-colon">:</div><div class="info-value" id="groupDate"></div></div>
 </div>
 
+<div class="group-members-wrap">
+<div class="group-members-title">Group Members</div>
 <table class="members-table">
-<thead>
-<tr><th>No.</th><th>Group Member Name</th><th>Student ID / Registration Number</th></tr>
-</thead>
+<thead><tr><th>No.</th><th>Group Member Name</th><th>Student ID / Registration Number</th></tr></thead>
 <tbody id="groupMembersTable"></tbody>
 </table>
-
-<div class="group-note">Group members are listed for identification of the students who contributed to this assignment.</div>
 </div>
 
+</div>
 <button class="download" onclick="downloadPDF()">
 ⬇️ Download Cover as PDF
 </button>
@@ -898,12 +871,15 @@ function handleAssignmentTypeChange(){
 
     const type=document.getElementById("assignmentType").value;
     const options=document.getElementById("groupOptions");
+    const individualFields=document.getElementById("individualStudentFields");
 
     if(type==="group"){
         options.style.display="block";
+        individualFields.style.display="none";
         buildMemberTable();
     }else{
         options.style.display="none";
+        individualFields.style.display="block";
     }
 }
 
@@ -957,119 +933,100 @@ async function generateCover(){
 
 const institution=get("institution");
 const template=document.getElementById("template").value;
-
-await updateUniversityLogo(institution);
-
-if(!institution){
-alert("Please select your university or college.");
-return;
-}
-
-if(!get("school")){
-alert("Please enter your school, faculty or college.");
-return;
-}
-
-if(!get("student")){
-alert("Please enter your student name.");
-return;
-}
-
-if(!get("title")){
-alert("Please enter the assignment title.");
-return;
-}
-
 const assignmentType=document.getElementById("assignmentType").value;
 
+if(!institution){ alert("Please select your university or college."); return; }
+if(!get("school")){ alert("Please enter your school, faculty or college."); return; }
+if(!get("title")){ alert("Please enter the assignment title."); return; }
+
+if(assignmentType==="individual" && !get("student")){
+    alert("Please enter your student name.");
+    return;
+}
+
 if(assignmentType==="group"){
-
     const members=getGroupMembers();
-
     if(members.some(function(member){ return !member.name || !member.id; })){
         alert("Please enter the name and Student ID / Registration Number for every group member.");
         return;
     }
-
-    document.getElementById("groupAssignmentTitle").textContent=get("title");
-    document.getElementById("groupInstitution").textContent=institution;
-    document.getElementById("groupSchool").textContent=get("school");
-    document.getElementById("groupDepartment").textContent=get("department");
-    document.getElementById("groupCourse").textContent=get("course");
-    document.getElementById("groupCode").textContent=get("code");
-
-    const memberRows=members.map(function(member,index){
-        return "<tr><td>"+(index+1)+"</td><td>"+escapeHtml(member.name)+"</td><td>"+escapeHtml(member.id)+"</td></tr>";
-    }).join("");
-
-    document.getElementById("groupMembersTable").innerHTML=memberRows;
-
-    const universityLogo=document.getElementById("universityLogo");
-    const groupUniversityLogo=document.getElementById("groupUniversityLogo");
-
-    if(universityLogo.src){
-        groupUniversityLogo.src=universityLogo.src;
-        groupUniversityLogo.style.display=universityLogo.style.display==="none"?"none":"block";
-    }
-
-    document.getElementById("groupCover").style.display="block";
-
-}else{
-
-    document.getElementById("groupCover").style.display="none";
-
 }
 
-document.getElementById("outInstitution").textContent=institution;
-document.getElementById("outSchool").textContent=get("school");
-document.getElementById("outDepartment").textContent=get("department");
-document.getElementById("outAssignmentNumber").textContent=get("assignmentNumber");
-document.getElementById("outStudent").textContent=get("student");
-document.getElementById("outStudentId").textContent=get("studentId");
-document.getElementById("outCourse").textContent=get("course");
-document.getElementById("outCode").textContent=get("code");
-document.getElementById("outTitle").textContent=get("title");
-document.getElementById("outLecturer").textContent=get("lecturer");
+await updateUniversityLogo(institution);
 
 const date=get("date");
-
+let formattedDate="";
 if(date){
-
-const d=new Date(date+"T00:00:00");
-
-document.getElementById("outDate").textContent=
-d.toLocaleDateString(undefined,{
-day:"numeric",
-month:"long",
-year:"numeric"
-});
-
-}else{
-
-document.getElementById("outDate").textContent="";
-
+    const d=new Date(date+"T00:00:00");
+    formattedDate=d.toLocaleDateString(undefined,{day:"numeric",month:"long",year:"numeric"});
 }
 
 const cover=document.getElementById("cover");
-
-cover.classList.remove(
-    "template-professional",
-    "template-academic",
-    "template-modern"
-);
+const groupCover=document.getElementById("groupCover");
+cover.classList.remove("template-professional","template-academic","template-modern");
+groupCover.classList.remove("template-professional","template-academic","template-modern");
 
 if(template !== "basic"){
     cover.classList.add("template-" + template);
+    groupCover.classList.add("template-" + template);
+}
+
+if(assignmentType==="group"){
+
+    const members=getGroupMembers();
+    document.getElementById("groupInstitution").textContent=institution;
+    document.getElementById("groupSchool").textContent=get("school");
+    document.getElementById("groupDepartment").textContent=get("department");
+    document.getElementById("groupTitle").textContent=get("title");
+    document.getElementById("groupLecturer").textContent=get("lecturer");
+    document.getElementById("groupCourse").textContent=get("course");
+    document.getElementById("groupCode").textContent=get("code");
+    document.getElementById("groupAssignmentNumber").textContent=get("assignmentNumber");
+    document.getElementById("groupDate").textContent=formattedDate;
+
+    document.getElementById("groupMembersTable").innerHTML=members.map(function(member,index){
+        return "<tr><td>"+(index+1)+"</td><td>"+escapeHtml(member.name)+"</td><td>"+escapeHtml(member.id)+"</td></tr>";
+    }).join("");
+
+    const leftLogo=document.querySelector("#cover .custom-left-logo");
+    const groupLeftLogo=document.getElementById("groupLeftLogo");
+    if(leftLogo && groupLeftLogo){
+        groupLeftLogo.src=leftLogo.src;
+        groupLeftLogo.style.display=leftLogo.src ? "block" : "none";
+    }
+
+    const universityLogo=document.getElementById("universityLogo");
+    const groupUniversityLogo=document.getElementById("groupUniversityLogo");
+    if(universityLogo && groupUniversityLogo){
+        groupUniversityLogo.src=universityLogo.src;
+        groupUniversityLogo.style.display=universityLogo.style.display==="none" ? "none" : "block";
+    }
+
+    groupCover.style.display="block";
+    cover.style.display="none";
+
+}else{
+
+    document.getElementById("outInstitution").textContent=institution;
+    document.getElementById("outSchool").textContent=get("school");
+    document.getElementById("outDepartment").textContent=get("department");
+    document.getElementById("outAssignmentNumber").textContent=get("assignmentNumber");
+    document.getElementById("outStudent").textContent=get("student");
+    document.getElementById("outStudentId").textContent=get("studentId");
+    document.getElementById("outCourse").textContent=get("course");
+    document.getElementById("outCode").textContent=get("code");
+    document.getElementById("outTitle").textContent=get("title");
+    document.getElementById("outLecturer").textContent=get("lecturer");
+    document.getElementById("outDate").textContent=formattedDate;
+
+    cover.style.display="block";
+    groupCover.style.display="none";
 }
 
 document.getElementById("preview").style.display="block";
-
-document.getElementById("preview").scrollIntoView({
-behavior:"smooth"
-});
+document.getElementById("preview").scrollIntoView({behavior:"smooth"});
 
 }
-
 function downloadPDF(){
 
 window.print();
@@ -1087,8 +1044,10 @@ field.value="";
 document.getElementById("institution").value="";
 document.getElementById("assignmentType").value="individual";
 document.getElementById("groupOptions").style.display="none";
+document.getElementById("individualStudentFields").style.display="block";
 document.getElementById("memberInputs").innerHTML="";
 document.getElementById("groupCover").style.display="none";
+document.getElementById("cover").style.display="block";
 
 
 
