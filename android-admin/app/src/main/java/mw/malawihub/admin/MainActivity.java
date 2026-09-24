@@ -2,6 +2,7 @@ package mw.malawihub.admin;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.Gravity;
@@ -19,7 +20,7 @@ import android.widget.TextView;
 import org.json.JSONObject;
 
 public class MainActivity extends Activity {
-    private static final String ADMIN_URL = "https://malawihub.pages.dev/admin/login.html?v=20260922-account-controls";
+    private static final String ADMIN_URL = "https://malawihub.pages.dev/admin/login.html?v=20260924-audio-duplex1";
     private WebView webView;
     private ProgressBar progress;
     private android.webkit.ValueCallback<android.net.Uri[]> fileCallback;
@@ -98,6 +99,7 @@ public class MainActivity extends Activity {
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        settings.setMediaPlaybackRequiresUserGesture(false);
         settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         webView.clearCache(true);
         webView.clearHistory();
@@ -134,6 +136,9 @@ public class MainActivity extends Activity {
             @android.webkit.JavascriptInterface public void nativeStudentJoined(String id){if(nativeScreen!=null)nativeScreen.studentJoined(id);}
             @android.webkit.JavascriptInterface public void nativeSignal(String json){try{if(nativeScreen!=null)nativeScreen.signal(new JSONObject(json));}catch(Exception ignored){}}
         },"MalawiHubNative");
+        AudioManager audioManager=(AudioManager)getSystemService(AUDIO_SERVICE);
+        audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+        audioManager.setSpeakerphoneOn(true);
         loadAdminUrlAfterPermissions();
     }
 
