@@ -6,7 +6,7 @@
 <title>MalawiHub Shared Whiteboard</title>
 <link rel="stylesheet" href="../css/style.css">
 <style>
-body{margin:0;background:#eef3ef;color:#17251d;font-family:Arial,sans-serif}.wrap{max-width:1200px;margin:auto;padding:12px}.top,.toolbar,.access{background:#fff;border:1px solid #d7e0da;border-radius:14px;padding:12px;margin-bottom:10px;box-shadow:0 3px 14px #00000010}.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.top strong{font-size:20px}.top a{margin-left:auto;color:#087f3f;font-weight:700;text-decoration:none}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.toolbar button,.toolbar input,.toolbar select{padding:9px;border:1px solid #cfd8d2;border-radius:8px;background:#fff}.toolbar button{cursor:pointer;font-weight:700}.toolbar .primary{background:#087f3f;color:#fff;border-color:#087f3f}.toolbar .danger{background:#fff0f0;color:#a22;border-color:#e5bcbc}.board-wrap{background:#fff;border:1px solid #d7e0da;border-radius:14px;padding:8px;box-shadow:0 4px 18px #00000012}.board{width:100%;height:min(72vh,720px);display:block;background:#fff;border-radius:9px;touch-action:none;cursor:crosshair}.status{font-size:13px;color:#53625a;margin-top:8px}.hidden{display:none!important}.access{max-width:620px;margin:40px auto}.input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccd3df;border-radius:10px;margin:8px 0}.join{padding:12px 16px;border:0;border-radius:10px;background:#087f3f;color:#fff;font-weight:800;cursor:pointer}.legend{font-size:13px;color:#66756d}.role{font-size:13px;padding:5px 9px;border-radius:999px;background:#eef7f1;color:#087f3f;font-weight:700}
+body{margin:0;background:#eef3ef;color:#17251d;font-family:Arial,sans-serif}.wrap{max-width:1200px;margin:auto;padding:12px}.top,.toolbar,.access{background:#fff;border:1px solid #d7e0da;border-radius:14px;padding:12px;margin-bottom:10px;box-shadow:0 3px 14px #00000010}.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.top strong{font-size:20px}.top a{margin-left:auto;color:#087f3f;font-weight:700;text-decoration:none}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.toolbar button,.toolbar input,.toolbar select{padding:9px;border:1px solid #cfd8d2;border-radius:8px;background:#fff}.toolbar button{cursor:pointer;font-weight:700}.toolbar button.smart-on{background:#eef7f1;color:#087f3f;border-color:#9bc9ad}.smart-help{font-size:12px;color:#66756d}.toolbar .primary{background:#087f3f;color:#fff;border-color:#087f3f}.toolbar .danger{background:#fff0f0;color:#a22;border-color:#e5bcbc}.board-wrap{background:#fff;border:1px solid #d7e0da;border-radius:14px;padding:8px;box-shadow:0 4px 18px #00000012}.board{width:100%;height:min(72vh,720px);display:block;background:#fff;border-radius:9px;touch-action:none;cursor:crosshair}.status{font-size:13px;color:#53625a;margin-top:8px}.hidden{display:none!important}.access{max-width:620px;margin:40px auto}.input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccd3df;border-radius:10px;margin:8px 0}.join{padding:12px 16px;border:0;border-radius:10px;background:#087f3f;color:#fff;font-weight:800;cursor:pointer}.legend{font-size:13px;color:#66756d}.role{font-size:13px;padding:5px 9px;border-radius:999px;background:#eef7f1;color:#087f3f;font-weight:700}
 </style>
 </head>
 <body>
@@ -19,11 +19,11 @@ body{margin:0;background:#eef3ef;color:#17251d;font-family:Arial,sans-serif}.wra
 </div>
 <div id="boardArea" class="hidden">
 <div class="toolbar">
-<button type="button" class="primary" id="pen">✏️ Pen</button><button type="button" id="eraser">🧽 Eraser</button>
+<button type="button" class="primary" id="pen">✏️ Pen</button><button type="button" id="eraser">🧽 Eraser</button><button type="button" id="smart">✨ Smart ink: ON</button>
 <label>Size <input id="size" type="range" min="1" max="20" value="4"></label>
 <label>Colour <input id="color" type="color" value="#111111"></label>
 <button type="button" id="undo">↶ Undo</button><button type="button" class="danger" id="clear">🧹 Clear board</button>
-<span class="legend">Both teacher and students can write, draw, solve maths, chemistry structures and diagrams.</span>
+<span class="legend">Both teacher and students can write, draw, solve maths, chemistry structures and diagrams.</span><span class="smart-help">Smart ink straightens lines and recognizes simple shapes without changing handwriting.</span>
 </div>
 <div class="board-wrap"><canvas id="board" class="board"></canvas></div>
 <div id="status" class="status">Connecting…</div>
@@ -32,7 +32,7 @@ body{margin:0;background:#eef3ef;color:#17251d;font-family:Arial,sans-serif}.wra
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase.js"></script>
 <script>
-const $=id=>document.getElementById(id);const canvas=$('board'),ctx=canvas.getContext('2d');let channel=null,code='',role='',user=null,drawing=false,tool='pen',current=null,strokes=[],lastSend=0;
+const $=id=>document.getElementById(id);const canvas=$('board'),ctx=canvas.getContext('2d');let channel=null,code='',role='',user=null,drawing=false,tool='pen',current=null,strokes=[],lastSend=0,smartInk=true;
 function clean(v){return v.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,32)}
 function setMsg(t,error=false){$('msg').textContent=t;$('status').textContent=t;$('msg').style.color=error?'#a22':'#53625a'}
 function resize(){if(!$('boardArea').classList.contains('hidden')){const old=canvas.width?canvas.toDataURL():null;const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;canvas.width=r.width*d;canvas.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);ctx.lineCap='round';ctx.lineJoin='round';if(old){const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,r.width,r.height);img.src=old}}}
@@ -40,14 +40,43 @@ function pos(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.lef
 function drawStroke(s){if(!s.points?.length)return;const w=canvas.clientWidth,h=canvas.clientHeight;ctx.save();ctx.strokeStyle=s.eraser?'#fff':s.color;ctx.lineWidth=s.size;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();s.points.forEach((p,i)=>{const x=p.x*w,y=p.y*h;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke();ctx.restore()}
 function redraw(){ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);strokes.forEach(drawStroke)}
 function addOrReplace(s){const i=strokes.findIndex(x=>x.id===s.id);if(i>=0)strokes[i]=s;else strokes.push(s);drawStroke(s)}
+function dist(a,b){const dx=a.x-b.x,dy=a.y-b.y;return Math.hypot(dx,dy)}
+function smartShape(s){
+  if(!smartInk||s.eraser||s.points.length<8)return s;
+  const pts=s.points,first=pts[0],last=pts[pts.length-1],w=canvas.clientWidth,h=canvas.clientHeight;
+  const span=Math.max(dist(first,last),0.0001), total=pts.slice(1).reduce((sum,p,i)=>sum+dist(pts[i],p),0);
+  const straight=span/Math.max(total,0.0001);
+  if(straight>0.985){
+    return {...s,points:[first,last],smart:'line'};
+  }
+  const closed=dist(first,last)<0.08;
+  if(closed){
+    let minX=1,maxX=0,minY=1,maxY=0;pts.forEach(p=>{minX=Math.min(minX,p.x);maxX=Math.max(maxX,p.x);minY=Math.min(minY,p.y);maxY=Math.max(maxY,p.y)});
+    const bw=maxX-minX,bh=maxY-minY;
+    if(bw>0.04&&bh>0.04){
+      const ratio=bw/Math.max(bh,0.0001);
+      const cornerCount=pts.reduce((n,p,i)=>{if(i<2||i>pts.length-3)return n;const a=pts[i-2],b=pts[i],c=pts[i+2];const v1={x:a.x-b.x,y:a.y-b.y},v2={x:c.x-b.x,y:c.y-b.y};const den=Math.hypot(v1.x,v1.y)*Math.hypot(v2.x,v2.y);if(!den)return n;const ang=Math.acos(Math.max(-1,Math.min(1,(v1.x*v2.x+v1.y*v2.y)/den)));return n+(Math.abs(ang-Math.PI/2)<0.35?1:0)},0);
+      if(cornerCount>pts.length*0.08){
+        const x1=minX,y1=minY,x2=maxX,y2=maxY;
+        return {...s,points:[{x:x1,y:y1},{x:x2,y:y1},{x:x2,y:y2},{x:x1,y:y2},{x:x1,y:y1}],smart:'rectangle'};
+      }
+      if(Math.abs(ratio-1)<0.25){
+        const cx=(minX+maxX)/2,cy=(minY+maxY)/2,rx=bw/2,ry=bh/2,out=[];
+        for(let i=0;i<=40;i++){const a=i/40*Math.PI*2;out.push({x:cx+rx*Math.cos(a),y:cy+ry*Math.sin(a)})}
+        return {...s,points:out,smart:'ellipse'};
+      }
+    }
+  }
+  return s;
+}
 async function send(event,payload){if(channel)await channel.send({type:'broadcast',event,payload})}
 const adminRequested=new URLSearchParams(location.search).get('role')==='admin'||new URLSearchParams(location.search).get('admin')==='1'; const portalLink=$('portalLink'); if(adminRequested){portalLink.href='../admin/';portalLink.textContent='← Admin Portal'} async function openBoard(){code=clean($('code').value);if(!code){setMsg('Enter the class code.',true);return}$('join').disabled=true;setMsg('Checking class access…');try{const {data:u}=await supabaseClient.auth.getUser();user=u?.user;if(!user){location.href=adminRequested?'../admin/login.html':'./login.html';return}const {data:p}=await supabaseClient.from('profiles').select('role').eq('id',user.id).maybeSingle();if(!p)throw Error('Your MalawiHub profile was not found.');if(p.role==='student'){const j=await supabaseClient.rpc('join_online_class',{p_join_code:code});if(j.error)throw j.error;if(!j.data?.length)throw Error('You are not registered in this class.')}else if(p.role==='teacher'||p.role==='admin'){const q=adminRequested&&p.role==='admin'?await supabaseClient.from('online_classes').select('id').eq('join_code',code).maybeSingle():await supabaseClient.from('online_classes').select('id').eq('join_code',code).eq('teacher_id',user.id).maybeSingle();if(q.error)throw q.error;if(!q.data)throw Error('This class does not belong to your teacher account.')}else throw Error('Only a registered administrator, teacher or student can use the class whiteboard.');role=(p.role==='admin'?'teacher':p.role);$('role').textContent=p.role==='admin'?'Administrator / Teacher':role==='teacher'?'Teacher':'Student';$('access').classList.add('hidden');$('boardArea').classList.remove('hidden');resize();const {data:sessionData}=await supabaseClient.auth.getSession();if(sessionData?.session?.access_token&&supabaseClient.realtime?.setAuth)await supabaseClient.realtime.setAuth(sessionData.session.access_token);channel=supabaseClient.channel('malawihub-whiteboard-'+code,{config:{private:true,broadcast:{self:false,ack:true}}});channel.on('broadcast',{event:'stroke'},({payload:s})=>{if(s?.code===code)addOrReplace(s)}).on('broadcast',{event:'clear'},({payload:p})=>{if(p?.code===code){strokes=[];redraw()}}).on('broadcast',{event:'sync-request'},({payload:p})=>{if(p?.code===code&&role==='teacher')send('sync',{code,strokes})}).on('broadcast',{event:'sync'},({payload:p})=>{if(p?.code===code&&Array.isArray(p.strokes)){strokes=p.strokes;redraw()}});await new Promise((resolve,reject)=>channel.subscribe((s,e)=>{if(s==='SUBSCRIBED')resolve();else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT')reject(e||Error('Realtime whiteboard connection failed.'))}));setMsg('🟢 Whiteboard connected. '+(role==='teacher'?'Students can write with you.':'Your teacher and other students can see your writing live.'));await send('sync-request',{code,from:user.id})}catch(e){$('join').disabled=false;setMsg(e.message||'Could not open the whiteboard.',true)}}
 function down(e){drawing=true;canvas.setPointerCapture?.(e.pointerId);const p=pos(e);current={id:(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random()),code,color:$('color').value,size:Number($('size').value),eraser:tool==='eraser',points:[p]};addOrReplace(current)}
 function move(e){if(!drawing||!current)return;current.points.push(pos(e));drawStrokeSegment(current);const now=Date.now();if(now-lastSend>70){lastSend=now;send('stroke',current)}}
 function drawStrokeSegment(s){const pts=s.points;if(pts.length<2)return;const w=canvas.clientWidth,h=canvas.clientHeight,a=pts[pts.length-2],b=pts[pts.length-1];ctx.save();ctx.strokeStyle=s.eraser?'#fff':s.color;ctx.lineWidth=s.size;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(a.x*w,a.y*h);ctx.lineTo(b.x*w,b.y*h);ctx.stroke();ctx.restore()}
-function up(){if(!drawing)return;drawing=false;if(current){send('stroke',current);current=null}}
+function up(){if(!drawing)return;drawing=false;if(current){const original=current;const cleaned=smartShape(original);const i=strokes.findIndex(x=>x.id===original.id);if(i>=0)strokes[i]=cleaned;redraw();send('stroke',cleaned);current=null}}
 canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);
-$('pen').onclick=()=>{tool='pen';$('pen').classList.add('primary');$('eraser').classList.remove('primary')};$('eraser').onclick=()=>{tool='eraser';$('eraser').classList.add('primary');$('pen').classList.remove('primary')};$('clear').onclick=async()=>{if(!channel)return;strokes=[];redraw();await send('clear',{code})};$('undo').onclick=async()=>{if(!strokes.length)return;strokes.pop();redraw();await send('sync',{code,strokes})};$('join').onclick=openBoard;$('code').onkeydown=e=>{if(e.key==='Enter')openBoard()};const q=new URLSearchParams(location.search).get('code');if(q)$('code').value=clean(q);window.addEventListener('resize',resize);
+$('smart').onclick=()=>{smartInk=!smartInk;$('smart').textContent='✨ Smart ink: '+(smartInk?'ON':'OFF');$('smart').classList.toggle('smart-on',smartInk)};$('smart').classList.add('smart-on');$('pen').onclick=()=>{tool='pen';$('pen').classList.add('primary');$('eraser').classList.remove('primary')};$('eraser').onclick=()=>{tool='eraser';$('eraser').classList.add('primary');$('pen').classList.remove('primary')};$('clear').onclick=async()=>{if(!channel)return;strokes=[];redraw();await send('clear',{code})};$('undo').onclick=async()=>{if(!strokes.length)return;strokes.pop();redraw();await send('sync',{code,strokes})};$('join').onclick=openBoard;$('code').onkeydown=e=>{if(e.key==='Enter')openBoard()};const q=new URLSearchParams(location.search).get('code');if(q)$('code').value=clean(q);window.addEventListener('resize',resize);
 </script>
 </body>
 </html>
