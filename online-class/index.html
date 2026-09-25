@@ -43,12 +43,13 @@ body{background:#f5f7fb}.class-wrap{max-width:1120px;margin:auto;padding:16px}.t
 </div></div>
 </div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
 <script src="../js/supabase.js"></script>
 <script>
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
 const storedStudentCode=sessionStorage.getItem('malawihub_class_code')||'';
-const pageVersion='20260925-admin-symbol-display9';
+const pageVersion='20260925-admin-symbol-display10';
 const adminMode=params.get('mode')==='admin'||params.get('admin')==='1'||params.get('role')==='admin'||location.hash==='#admin';
 const teacherPortalMode=!adminMode && (params.get('teacher')==='1');
 const studentPortalMode=!adminMode && !teacherPortalMode && (params.get('student')==='1'||params.get('role')==='student'||!!storedStudentCode);
@@ -99,15 +100,35 @@ async function renderClassFile(file){
  $('classFilePanel').classList.remove('hidden');if(adminMode)adminShowDisplay('adminFileView','📄');
  $('classFileTitle').textContent='📄 '+(file.name||'Classroom File');
  $('classFileMeta').textContent=((file.mime||'File')+' · '+Math.max(0,Math.round((Number(file.size)||0)/1024))+' KB');
- $('classFileView').innerHTML='';
- const mime=String(file.mime||'').toLowerCase();
- if(mime.startsWith('image/')){
-  const img=document.createElement('img');img.src=file.url;img.alt=file.name||'Classroom file';img.loading='eager';$('classFileView').appendChild(img);
- }else if(mime.startsWith('text/')||/\.(txt|md|csv|log|json|xml|html|css|js)$/i.test(file.name||'')){
-  const pre=document.createElement('pre');pre.className='class-file-text';pre.textContent='Loading file…';$('classFileView').appendChild(pre);
-  try{const r=await fetch(file.url);if(!r.ok)throw Error('HTTP '+r.status);pre.textContent=await r.text()}catch(e){pre.textContent='This text file could not be previewed directly inside the classroom.';console.warn('class file text preview',e)}
+ const box=$('classFileView');box.innerHTML='';
+ const mime=String(file.mime||'').toLowerCase(),name=String(file.name||'');
+ if(mime==='application/pdf'||/\.pdf$/i.test(name)){
+  box.innerHTML='<div style="padding:18px;text-align:center;color:#667085">Loading PDF inside classroom…</div>';
+  try{
+   const pdfjs=await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs');
+   pdfjs.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+   const res=await fetch(file.url,{mode:'cors'});if(!res.ok)throw Error('HTTP '+res.status);
+   const data=await res.arrayBuffer();
+   const pdf=await pdfjs.getDocument({data}).promise;
+   box.innerHTML='';
+   for(let n=1;n<=pdf.numPages;n++){
+    const page=await pdf.getPage(n),viewport=page.getViewport({scale:1.35});
+    const wrap=document.createElement('div');wrap.style.cssText='background:#fff;margin:0 0 10px;padding:8px;box-sizing:border-box;text-align:center';
+    const canvas=document.createElement('canvas');canvas.style.cssText='display:block;width:100%;height:auto;margin:auto';
+    canvas.width=viewport.width;canvas.height=viewport.height;wrap.appendChild(canvas);box.appendChild(wrap);
+    await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
+   }
+  }catch(e){
+   box.innerHTML='<div style="padding:18px;color:#b42318;text-align:center">This PDF could not be rendered inside the classroom.</div>';
+   console.warn('classroom PDF render failed',e);
+  }
+ }else if(mime.startsWith('image/')){
+  const img=document.createElement('img');img.src=file.url;img.alt=name||'Classroom file';img.loading='eager';box.appendChild(img);
+ }else if(mime.startsWith('text/')||/\.(txt|md|csv|log|json|xml|html|css|js)$/i.test(name)){
+  const pre=document.createElement('pre');pre.className='class-file-text';pre.textContent='Loading file…';box.appendChild(pre);
+  try{const res=await fetch(file.url);if(!res.ok)throw Error('HTTP '+res.status);pre.textContent=await res.text()}catch(e){pre.textContent='This text file could not be previewed directly inside the classroom.';console.warn('class file text preview',e)}
  }else{
-  const frame=document.createElement('iframe');frame.src=file.url;frame.title=file.name||'Classroom document';frame.setAttribute('allow','fullscreen');frame.setAttribute('allowfullscreen','');frame.setAttribute('loading','eager');$('classFileView').appendChild(frame);
+  box.innerHTML='<div style="padding:18px;text-align:center;color:#667085">This file type is not supported for direct classroom display.</div>';
  }
  $('classFileStop').classList.toggle('hidden',role!=='admin');
 }
