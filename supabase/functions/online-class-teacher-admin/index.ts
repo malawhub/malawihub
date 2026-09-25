@@ -20,6 +20,20 @@ if(action==="unregister_self"){
   if(deleteError)throw deleteError;
   return json({ok:true});
 }
+if(action==="list_class_students"){
+  if(!isAdmin)return json({error:"Administrator access required"},403);
+  const classId=String(body.class_id||"");
+  if(!classId)return json({error:"Class ID is required."},400);
+  const {data:enrollments,error:ee}=await admin.from("online_class_enrollments").select("student_id,joined_at").eq("class_id",classId).order("joined_at",{ascending:true});
+  if(ee)throw ee;
+  const ids=(enrollments||[]).map((x:any)=>x.student_id).filter(Boolean);
+  if(!ids.length)return json({students:[]});
+  const {data:profiles,error:pe2}=await admin.from("profiles").select("id,email,username,full_name,role").in("id",ids).eq("role","student");
+  if(pe2)throw pe2;
+  const byId=new Map((profiles||[]).map((p:any)=>[p.id,p]));
+  const students=(enrollments||[]).map((e:any)=>{const p=byId.get(e.student_id);return {id:e.student_id,name:p?.full_name||p?.username||p?.email||"Student",email:p?.email||"",username:p?.username||"",joined_at:e.joined_at};}).filter((x:any)=>x.id);
+  return json({students});
+}
 if(action==="list_students"){
   if(!isAdmin)return json({error:"Administrator access required"},403);
   const {data,error}=await admin.from("profiles").select("id,email,username,role,full_name,created_at").eq("role","student").order("created_at",{ascending:false});
