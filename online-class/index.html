@@ -58,7 +58,7 @@ const studentPortalMode=!adminMode && !teacherPortalMode && (params.get('student
 if(adminMode){$('areaLabel').textContent='';} else if(teacherPortalMode){$('areaLabel').textContent='Teacher Portal · Private Classroom';} else {$('areaLabel').textContent='Student Portal · Private Classroom';}
 if(adminMode||teacherPortalMode||studentPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent=adminMode?'Administrator Class':teacherPortalMode?'Teacher Class':'Student Class';$('modeHelp').textContent=adminMode?'Administrator mode. Only the administrator can control this class.':teacherPortalMode?'Teacher mode. Students join through the Student Portal using the class code.':'Student mode. Teacher and administrator controls are unavailable.';const codeFromUrl=params.get('code')||storedStudentCode;if(codeFromUrl)$('code').value=codeFromUrl;$('name').value=sessionStorage.getItem('malawihub_student_name')||'Student';$('modePanel').classList.add('hidden');}
 let channel,resourceChannel,roomCode='',userName='',privateNoteShown=false,sharedFile=null,role=adminMode?'admin':(teacherPortalMode?'teacher':(studentPortalMode?'student':'')),localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null,paused=false,pausedAt=0,pausedTotalMs=0;
-const peers=new Map();const iceQueues=new Map();const state={students:new Map(),joined:new Map()};let myId='';
+let controllerPeerId='teacher';const peers=new Map();const iceQueues=new Map();const state={students:new Map(),joined:new Map()};let myId='';
 // WebRTC connectivity: use public STUN plus the configured short-lived Cloudflare TURN relay.
 let iceServers=[
  {urls:'stun:stun.l.google.com:19302'},
@@ -211,7 +211,7 @@ if(controlMode)prepareAdminDisplay(); $('room').classList.remove('hidden');$('ro
   prepareStudentDisplay();
   if(data.status==='ended'){msg('Class ended');return}
   msg('Joined class · teacher display connected · tap 🎙 to speak');
-  await send({type:'join',from:getMyId(),name:userName,to:'teacher'});
+  await send({type:'join',from:getMyId(),name:userName,to:'*'});
   wakeStudentMedia();
 }
  else {$('adminControls').classList.toggle('hidden',!controlMode);$('startBtn').classList.toggle('hidden',controlMode);$('screenBtn').classList.toggle('hidden',controlMode);$('micBtn').classList.toggle('hidden',controlMode);$('whiteboardBtn').classList.toggle('hidden',controlMode);$('endBtn').classList.toggle('hidden',controlMode);$('notes').readOnly=false;$('showPrivateNote').classList.remove('hidden');$('hidePrivateNote').classList.remove('hidden');if(data.status==='live'&&data.starts_at){startedAt=data.starts_at;startTimer();msg('LIVE');await loadNotes()} updateAdminPauseUI()}
@@ -219,7 +219,7 @@ if(controlMode)prepareAdminDisplay(); $('room').classList.remove('hidden');$('ro
 window.__malawiNativeSend=async function(json){try{const p=typeof json==='string'?JSON.parse(json):json;await send(p)}catch(e){console.warn('native signal send',e)}};
 window.__malawiNativeStatus=function(text){msg(text);if(String(text).includes('Screen sharing is active')){ $('screenBtn').textContent='⏹'; if(window.MalawiHubNative)state.students.forEach((n,id)=>window.MalawiHubNative.nativeStudentJoined(id)); }else if(String(text).includes('stopped')){$('screenBtn').textContent='🖥';}};
 async function send(payload){payload.code=roomCode;await channel.send({type:'broadcast',event:'class',payload})}
-function peerTarget(id){return ['teacher','admin'].includes(role)?id:'teacher'}
+function peerTarget(id){return ['teacher','admin'].includes(role)?id:(controllerPeerId||'teacher')}
 async function flushIce(peerId){
  const pc=peers.get(peerId);
  const queued=iceQueues.get(peerId)||[];
@@ -242,7 +242,7 @@ async function handleSignal(p){
   makePeer(p.from); if(controlMode&&paused)await send({type:'pause',from:getMyId(),to:p.from,at:pausedAt});if(controlMode&&sharedFile)await send({type:'class-file',from:getMyId(),to:p.from,file:sharedFile});
  }
  else if(p.type==='offer'){
-  const peerId=['teacher','admin'].includes(role)?p.from:'teacher';
+  const peerId=['teacher','admin'].includes(role)?p.from:(controllerPeerId=p.from,p.from);
   const pc=makePeer(peerId);
   const offerCollision=pc.makingOffer||pc.signalingState!=='stable';
   pc.ignoreOffer=!pc.polite&&offerCollision;
