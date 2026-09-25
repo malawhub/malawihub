@@ -50,7 +50,7 @@ const studentPortalMode=!adminMode && !teacherPortalMode && (params.get('student
 if(adminMode){$('areaLabel').textContent='Admin Hub · Private Classroom';} else if(teacherPortalMode){$('areaLabel').textContent='Teacher Portal · Private Classroom';} else {$('areaLabel').textContent='Student Portal · Private Classroom';}
 if(adminMode||teacherPortalMode||studentPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent=adminMode?'Administrator Class':teacherPortalMode?'Teacher Class':'Student Class';$('modeHelp').textContent=adminMode?'Administrator mode. Only the administrator can control this class.':teacherPortalMode?'Teacher mode. Students join through the Student Portal using the class code.':'Student mode. Teacher and administrator controls are unavailable.';const codeFromUrl=params.get('code')||storedStudentCode;if(codeFromUrl)$('code').value=codeFromUrl;$('name').value=sessionStorage.getItem('malawihub_student_name')||'Student';$('modePanel').classList.add('hidden');}
 let channel,resourceChannel,roomCode='',userName='',privateNoteShown=false,role=adminMode?'admin':(teacherPortalMode?'teacher':(studentPortalMode?'student':'')),localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null,paused=false,pausedAt=0,pausedTotalMs=0;
-const peers=new Map();const iceQueues=new Map();const state={students:new Map()};let myId='';
+const peers=new Map();const iceQueues=new Map();const state={students:new Map(),joined:new Map()};let myId='';
 // WebRTC connectivity: use public STUN plus the configured short-lived Cloudflare TURN relay.
 let iceServers=[
  {urls:'stun:stun.l.google.com:19302'},
@@ -77,7 +77,7 @@ function cleanCode(v){return v.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'').s
 function msg(text){$('status').textContent=text}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
 function addChat(name,text){const d=document.createElement('div');d.innerHTML='<b>'+esc(name)+'</b>: '+esc(text);$('chat').appendChild(d);$('chat').scrollTop=$('chat').scrollHeight}
-function renderStudents(){const el=$('students');el.innerHTML='';if(!state.students.size){el.innerHTML='<span class="muted">No students yet</span>';return}state.students.forEach(n=>{const x=document.createElement('span');x.className='student';x.textContent='👤 '+n;el.appendChild(x)})}
+function renderStudents(){const el=$('students');el.innerHTML='';const all=new Map(state.joined);state.students.forEach((n,id)=>all.set(id,n));if(!all.size){el.innerHTML='<span class="muted">No students have joined yet</span>';return}all.forEach((n,id)=>{const x=document.createElement('span');x.className='student';x.textContent='👤 '+n;el.appendChild(x)});const h=el.closest('.panel')?.querySelector('h3');if(h)h.textContent='👥 Joined Students ('+all.size+')'}
 function getMyId(){if(!myId)myId=crypto.randomUUID();return myId}
 async function getAuthUser(){try{const {data}=await supabaseClient.auth.getUser();return data?.user||null}catch(e){return null}}
 function youtubeEmbed(u){try{const x=new URL(u);if(x.hostname.includes('youtu.be'))return 'https://www.youtube.com/embed/'+x.pathname.slice(1).split('?')[0];if(x.hostname.includes('youtube.com')){const id=x.searchParams.get('v');if(id)return 'https://www.youtube.com/embed/'+id;const m=x.pathname.match(/\/shorts\/([^/]+)/);if(m)return 'https://www.youtube.com/embed/'+m[1]}}catch(e){}return null}
@@ -98,7 +98,7 @@ async function setupRoom(){
  .on('broadcast',{event:'private-note'},({payload})=>{if(payload.code!==roomCode||['teacher','admin'].includes(role))return;if(payload.action==='show'){privateNoteShown=true;$('studentSharedNoteText').textContent=payload.content||'';$('studentSharedNote').classList.remove('hidden');$('privateNoteState').textContent='Teacher has shared a note';}else if(payload.action==='hide'){privateNoteShown=false;$('studentSharedNote').classList.add('hidden');$('studentSharedNoteText').textContent='';$('privateNoteState').textContent='Private — not shared';}})
  .on('broadcast',{event:'chat'},({payload})=>{if(payload.code===roomCode)addChat(payload.name,payload.text)})
  .on('broadcast',{event:'presence'},({payload})=>{if(payload.code!==roomCode)return;if(payload.action==='join'){state.students.set(payload.id,payload.name);renderStudents()}if(payload.action==='leave'){state.students.delete(payload.id);removePeer(payload.id);renderStudents()}});
- await new Promise((resolve,reject)=>channel.subscribe((s,e)=>{if(s==='SUBSCRIBED')resolve();else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT')reject(e||Error('Class realtime connection failed.'))}));msg('Connected');
+ await new Promise((resolve,reject)=>channel.subscribe((s,e)=>{if(s==='SUBSCRIBED')resolve();else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT')reject(e||Error('Class realtime connection failed.'))}));msg('Connected');if(role==='admin')await loadAdminStudents();
  if(role==='student'){
   $('adminControls').classList.add('hidden');
   $('startBtn').classList.add('hidden');$('screenBtn').classList.add('hidden');$('endBtn').classList.add('hidden');
@@ -203,6 +203,7 @@ function makePeer(id){
  return pc;
 }
 function removePeer(id){const pc=peers.get(id);if(pc){pc.close();peers.delete(id)}const audio=document.querySelector('[data-peer-id="'+String(id).replace(/"/g,'')+'"]');if(audio)audio.remove()}
+async function loadAdminStudents(){if(role!=='admin'||!classId)return;try{const {data,error}=await supabaseClient.functions.invoke('online-class-teacher-admin',{body:{action:'list_class_students',class_id:classId}});if(error)throw error;state.joined.clear();(data?.students||[]).forEach(s=>state.joined.set(s.id,s.name||s.username||s.email||'Student'));renderStudents()}catch(e){console.warn('loadAdminStudents',e)}}
 async function loadNotes(){if(!classId)return;try{const {data,error}=await supabaseClient.from('class_notes').select('content').eq('class_id',classId).maybeSingle();if(error)throw error;if(data){$('notes').value=data.content||'';$('saveState').textContent='Loaded'}}catch(e){console.warn('loadNotes',e)}}
 async function saveNotes(){if(!classId||!['teacher','admin'].includes(role))return;try{const {error}=await supabaseClient.from('class_notes').upsert({class_id:classId,content:$('notes').value,updated_at:new Date().toISOString()});if(error)throw error;$('saveState').textContent='Saved'}catch(e){console.warn('saveNotes',e);$('saveState').textContent='Live only'}}
 function privateNoteKey(){return 'malawihub-private-notes-'+(roomCode||'default')}
