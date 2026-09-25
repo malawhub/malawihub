@@ -56,15 +56,58 @@ function redrawStrokes(){ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeigh
 function strokeBox(s){const xs=s.points.map(p=>p.x),ys=s.points.map(p=>p.y);return{minX:Math.min(...xs),maxX:Math.max(...xs),minY:Math.min(...ys),maxY:Math.max(...ys),w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys),base:Math.max(...ys)}}
 function normalizeRecentWord(seed){
  if(!smartHandwriting||!seed||seed.points.length<3)return;
- const list=pageStrokes.get(currentPage)||[],cut=Date.now()-1500,seedBox=strokeBox(seed);
- const candidates=list.filter(s=>s.createdAt>=cut&&s.color===seed.color&&Math.abs(s.size-seed.size)<=1&&s.points.length>=3&&s.points.length<=220).map(s=>({s,b:strokeBox(s)}));
- const group=candidates.filter(x=>x.b.w<=110&&x.b.h<=140&&x.b.h>=3&&Math.abs(x.b.base-seedBox.base)<=95);
- if(group.length<3)return;
- group.sort((a,b)=>a.b.minX-b.b.minX);const kept=[group[0]];
- for(let i=1;i<group.length;i++){const prev=kept[kept.length-1].b,g=group[i];if(g.b.minX-prev.maxX<=75&&Math.abs(g.b.base-seedBox.base)<=65)kept.push(g)}
- if(kept.length<3)return;
- const bases=kept.map(x=>x.b.base).sort((a,b)=>a-b),heights=kept.map(x=>x.b.h).sort((a,b)=>a-b),median=a=>a[Math.floor(a.length/2)],targetBase=median(bases),targetH=median(heights);
- kept.forEach(({s,b})=>{const shift=Math.max(-28,Math.min(28,targetBase-b.base)),scale=Math.max(.88,Math.min(1.12,targetH/Math.max(b.h,1)));s.points=s.points.map(p=>({x:p.x,y:Math.max(0,Math.min(canvas.clientHeight,p.y+(p.y-b.base)*(scale-1)+shift))}))});
+ const list=pageStrokes.get(currentPage)||[],now=Date.now(),cut=now-2400,seedBox=strokeBox(seed);
+ const candidates=list.filter(s=>s.createdAt>=cut&&s.color===seed.color&&Math.abs(s.size-seed.size)<=2&&s.points.length>=3&&s.points.length<=320).map(s=>({s,b:strokeBox(s)}));
+ const small=candidates.filter(x=>x.b.w<=180&&x.b.h<=180&&x.b.h>=2&&Math.abs(x.b.base-seedBox.base)<=120);
+ if(small.length<2)return;
+
+ /* Build a word from strokes that are close in time and space. This is deliberately
+    stronger than simple baseline shifting: it corrects slant, height and uneven
+    vertical position while preserving every handwritten point. */
+ small.sort((a,b)=>a.b.minX-b.b.minX);
+ const group=[small[0]];
+ for(let i=1;i<small.length;i++){
+   const prev=group[group.length-1].b,g=small[i];
+   const gap=g.b.minX-prev.maxX;
+   const baselineGap=Math.abs(g.b.base-seedBox.base);
+   if(gap<=115&&baselineGap<=100)group.push(g);
+ }
+ if(!group.some(x=>x.s===seed))return;
+ if(group.length<2)return;
+
+ const heights=group.map(x=>x.b.h).sort((a,b)=>a-b);
+ const bases=group.map(x=>x.b.base).sort((a,b)=>a-b);
+ const median=a=>a[Math.floor(a.length/2)];
+ const targetH=Math.max(4,median(heights));
+ const targetBase=median(bases);
+
+ /* Estimate the natural writing baseline slope, then remove most of it.
+    This makes a word written uphill/downhill become visually level. */
+ const ordered=group.slice().sort((a,b)=>a.b.minX-b.b.minX);
+ const xs=ordered.map(x=>(x.b.minX+x.b.maxX)/2);
+ const ys=ordered.map(x=>x.b.base);
+ const mean=a=>a.reduce((v,n)=>v+n,0)/Math.max(a.length,1);
+ const mx=mean(xs),my=mean(ys);
+ let num=0,den=0;
+ for(let i=0;i<xs.length;i++){num+=(xs[i]-mx)*(ys[i]-my);den+=(xs[i]-mx)*(xs[i]-mx)}
+ const slope=den?num/den:0;
+ const safeSlope=Math.max(-0.22,Math.min(0.22,slope));
+ const baselineAt=x=>targetBase+safeSlope*(x-mx);
+
+ group.forEach(({s,b})=>{
+   const centerX=(b.minX+b.maxX)/2;
+   const desiredBase=baselineAt(centerX);
+   const scale=Math.max(0.72,Math.min(1.28,targetH/Math.max(b.h,1)));
+   const shift=Math.max(-55,Math.min(55,desiredBase-b.base));
+   const top=b.minY;
+   s.points=s.points.map(p=>{
+     const relY=p.y-top;
+     return {
+       x:p.x,
+       y:Math.max(0,Math.min(canvas.clientHeight,top+relY*scale+shift))
+     };
+   });
+ });
  redrawStrokes();snapshot();
 }
 function drawDown(e){drawing=true;canvas.setPointerCapture?.(e.pointerId);const p=point(e);currentStroke={points:[p],color:$('penColor').value,size:Number($('size').value),createdAt:Date.now()};pageStrokes.get(currentPage).push(currentStroke);drawStroke(currentStroke)}
