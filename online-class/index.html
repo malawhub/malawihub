@@ -93,7 +93,7 @@ function renderResources(rows){const el=$('videoResources');el.innerHTML='';if(!
 async function loadResources(){if(!classId)return;const {data,error}=await supabaseClient.from('class_video_resources').select('id,title,video_url,description,created_at').eq('class_id',classId).order('created_at',{ascending:true});if(error){console.warn('resources',error);return}renderResources(data);$('allVideosLink').href='./resources.html?code='+encodeURIComponent(roomCode);if(resourceChannel)return;resourceChannel=supabaseClient.channel('malawihub-resources-'+roomCode,{config:{private:true}}).on('postgres_changes',{event:'*',schema:'public',table:'class_video_resources',filter:'class_id=eq.'+classId},()=>loadResources()).subscribe()}
 function prepareStudentDisplay(){
  if(role!=='student')return;
- $('room').classList.add('student-room');
+ document.body.classList.add('student-room');
  const stage=document.querySelector('.stage');
  if(stage&&!$('studentLiveView').contains(stage))$('studentLiveView').appendChild(stage);
  const filePanel=$('classFilePanel');
