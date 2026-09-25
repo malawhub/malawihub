@@ -210,7 +210,7 @@ if(controlMode)prepareAdminDisplay(); $('room').classList.remove('hidden');$('ro
   $('notes').readOnly=true;$('showPrivateNote').classList.add('hidden');$('hidePrivateNote').classList.add('hidden');
   prepareStudentDisplay();
   if(data.status==='ended'){msg('Class ended');return}
-  msg('Joined class · teacher display connected · tap 🎙 to speak');
+  msg('Joined class · classroom display connected · tap 🎙 to speak');
   await send({type:'join',from:getMyId(),name:userName,to:'*'});
   wakeStudentMedia();
 }
@@ -242,7 +242,7 @@ async function handleSignal(p){
   makePeer(p.from); if(controlMode&&paused)await send({type:'pause',from:getMyId(),to:p.from,at:pausedAt});if(controlMode&&sharedFile)await send({type:'class-file',from:getMyId(),to:p.from,file:sharedFile});
  }
  else if(p.type==='offer'){
-  const peerId=['teacher','admin'].includes(role)?p.from:(controllerPeerId=p.from,p.from);
+  const peerId=['teacher','admin'].includes(role)?p.from:(controllerPeerId=controllerPeerId||p.from,p.from);
   const pc=makePeer(peerId);
   const offerCollision=pc.makingOffer||pc.signalingState!=='stable';
   pc.ignoreOffer=!pc.polite&&offerCollision;
@@ -254,8 +254,7 @@ async function handleSignal(p){
    await send({type:'answer',to:p.from,from:getMyId(),sdp:pc.localDescription});
   }catch(e){console.warn('Offer handling failed',e)}
  }
- else if(p.type==='answer'){
-  const peerId=['teacher','admin'].includes(role)?p.from:'teacher';
+ else if(p.type==='answer'){\n  const peerId=['teacher','admin'].includes(role)?p.from:(controllerPeerId||p.from||'teacher');
   const pc=peers.get(peerId);
   if(pc){try{await pc.setRemoteDescription(p.sdp);await flushIce(peerId)}catch(e){console.warn('Answer handling failed',e)}}
  }
@@ -271,8 +270,7 @@ async function handleSignal(p){
   const pc=peers.get('native-screen');if(pc&&p.candidate){if(pc.remoteDescription)try{await pc.addIceCandidate(p.candidate)}catch(e){console.warn('Native ICE',e)}else{if(!iceQueues.has('native-screen'))iceQueues.set('native-screen',[]);iceQueues.get('native-screen').push(p.candidate)}}
  }
  else if(['teacher','admin'].includes(role)&&p.type==='native-screen-ice'){if(window.MalawiHubNative)window.MalawiHubNative.nativeSignal(JSON.stringify(p))}
- else if(p.type==='ice'){
-  const peerId=['teacher','admin'].includes(role)?p.from:'teacher';const pc=peers.get(peerId);if(pc&&p.candidate){if(pc.remoteDescription)try{await pc.addIceCandidate(p.candidate)}catch(e){if(!pc.ignoreOffer)console.warn('ICE',e)}else{if(!iceQueues.has(peerId))iceQueues.set(peerId,[]);iceQueues.get(peerId).push(p.candidate)}}
+ else if(p.type==='ice'){\n  const peerId=['teacher','admin'].includes(role)?p.from:(controllerPeerId||p.from||'teacher');const pc=peers.get(peerId);if(pc&&p.candidate){if(pc.remoteDescription)try{await pc.addIceCandidate(p.candidate)}catch(e){if(!pc.ignoreOffer)console.warn('ICE',e)}else{if(!iceQueues.has(peerId))iceQueues.set(peerId,[]);iceQueues.get(peerId).push(p.candidate)}}
  }
  else if(p.type==='start'){startedAt=p.startedAt;duration=Number(p.duration)||60;paused=false;pausedAt=0;pausedTotalMs=0;startTimer();$('waiting').classList.add('hidden');msg('LIVE');await loadNotes()} else if(p.type==='pause'){paused=true;pausedAt=Number(p.at)||Date.now();clearInterval(timerInt);if(controlMode)updateAdminPauseUI();else msg('PAUSED · waiting for class to resume');} else if(p.type==='resume'){if(paused&&pausedAt)pausedTotalMs+=Date.now()-pausedAt;paused=false;pausedAt=0;startTimer();if(controlMode)updateAdminPauseUI();else msg('LIVE');} 
  else if(p.type==='end'){await endRoom(false)}
@@ -296,7 +294,7 @@ function makePeer(id){
   }
   if(e.track.kind==='video'){$('remoteVideo').srcObject=stream;$('remoteVideo').autoplay=true;$('remoteVideo').playsInline=true;$('remoteVideo').play().catch(()=>{})}
   if(role==='student')prepareStudentDisplay();
-  $('waiting').classList.add('hidden');msg(e.track.kind==='audio'?'Teacher audio connected':'Teacher display connected')
+  $('waiting').classList.add('hidden');msg(e.track.kind==='audio'?'Classroom audio connected':'Classroom display connected')
  };
  pc.onconnectionstatechange=()=>{
   if(pc.connectionState==='failed'){try{pc.restartIce()}catch(e){console.warn('ICE restart failed',e)}}
@@ -349,7 +347,7 @@ $('micBtn').textContent='🎙 Microphone ON';
   }
  }
  const t=localStream.getAudioTracks()[0];
- if(t){t.enabled=!t.enabled;$('micBtn').textContent=t.enabled?'🎙':'🔇';if(t.enabled&&role==='student'&&peers.has('teacher')&&!peers.get('teacher').getSenders().some(s=>s.track?.kind==='audio'))peers.get('teacher').addTrack(t,localStream)}
+ if(t){t.enabled=!t.enabled;$('micBtn').textContent=t.enabled?'🎙 Microphone ON':'🔇 Microphone OFF';if(t.enabled&&role==='student'){for(const [id,pc] of peers){if(!pc.getSenders().some(s=>s.track?.kind==='audio'))pc.addTrack(t,localStream)}}}
 }
 $('adminStartBtn').onclick=startClass;$('adminPauseBtn').onclick=pauseClass;$('adminMicBtn').onclick=toggleMic;$('adminScreenBtn').onclick=()=>{shareScreen();adminShowDisplay('adminLiveView','🖥')};$('adminFileBtn').onclick=()=>{if(!startedAt){alert('Start the class before sharing a file.');return}$('classFileInput').click()};$('classFileInput').addEventListener('change',e=>{const f=e.target.files?.[0];if(f)shareClassFile(f);e.target.value=''});$('classFileStop').onclick=stopClassFile;$('adminEndBtn').onclick=()=>endRoom(true);$('adminWhiteboardBtn').onclick=()=>{prepareAdminDisplay();adminShowDisplay('adminWhiteboardView','🧑‍🏫');$('adminMore').classList.add('hidden')};$('adminMoreBtn').onclick=()=>{$('adminMore').classList.toggle('hidden')};$('adminNotesBtn').onclick=()=>{prepareAdminDisplay();adminShowDisplay('adminNotesView','📝');$('adminMore').classList.add('hidden')};$('adminStudentsBtn').onclick=()=>{$('adminMore').classList.add('hidden');$('students')?.closest('.panel')?.scrollIntoView({behavior:'smooth',block:'start'})};$('adminChatBtn').onclick=()=>{$('adminMore').classList.add('hidden');alert('💬 Chat is available from the chat function when needed. It does not occupy the main display.')};$('adminResourcesBtn').onclick=()=>{$('adminMore').classList.add('hidden');$('videoResources')?.closest('.panel')?.scrollIntoView({behavior:'smooth',block:'start'})};$('adminPrivateBtn').onclick=()=>{prepareAdminDisplay();adminShowDisplay('adminPrivateView','🔒');$('adminMore').classList.add('hidden')};
 $('studentBtn').onclick=()=>{if(adminMode||teacherPortalMode||studentPortalMode)return;role='student';setupRoom()};$('teacherBtn').onclick=()=>{if(adminMode||studentPortalMode)return;role='teacher';setupRoom()};
