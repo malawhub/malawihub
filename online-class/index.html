@@ -93,12 +93,12 @@ async function loadResources(){if(!classId)return;const {data,error}=await supab
 function adminShowDisplay(view,title){if(!controlMode)return;document.querySelectorAll('#adminClassDisplay .admin-view').forEach(v=>v.classList.remove('active'));$(view)?.classList.add('active');$('adminDisplayTitle').textContent=(view==='adminLiveView'?'🎥':view==='adminWhiteboardView'?'🧑‍🏫':view==='adminFileView'?'📄':view==='adminNotesView'?'📝':view==='adminChatView'?'💬':view==='adminPrivateView'?'🔒':'');$('adminDisplayStatus').textContent=''}
 function prepareAdminDisplay(){if(!controlMode)return;const stage=document.querySelector('.stage');const filePanel=$('classFilePanel');const notesPanel=$('notes')?.closest('.panel');if(stage&&!$('adminLiveView').contains(stage))$('adminLiveView').appendChild(stage);if(filePanel&&!$('adminFileView').contains(filePanel))$('adminFileView').appendChild(filePanel);if(notesPanel&&!$('adminNotesView').contains(notesPanel))$('adminNotesView').appendChild(notesPanel);
   const chatPanel=$('chat')?.closest('.panel');
-  if(chatPanel&&!$('adminChatView').contains(chatPanel))$('adminChatView').appendChild(chatPanel); const privatePanel=$('privateNotes')?.closest('.private-note-panel'); if(privatePanel&&!$('adminPrivateView').contains(privatePanel))$('adminPrivateView').appendChild(privatePanel);const frame=$('adminWhiteboardView')?.querySelector('iframe');if(frame&&!frame.src)frame.src='./whiteboard.html?code='+encodeURIComponent(roomCode)+'&role=admin';adminShowDisplay('adminLiveView','🎥')}
-function clearClassFile(){sharedFile=null;$('classFilePanel').classList.add('hidden');$('classFileView').innerHTML='';$('classFileMeta').textContent='';$('classFileTitle').textContent='📄 Classroom File';$('classFileDownload').removeAttribute('href');$('classFileDownload').onclick=null;$('classFileStop').classList.add('hidden')}
+  if(chatPanel&&!$('adminChatView').contains(chatPanel))$('adminChatView').appendChild(chatPanel); const privatePanel=$('privateNotes')?.closest('.private-note-panel'); if(privatePanel&&!$('adminPrivateView').contains(privatePanel))$('adminPrivateView').appendChild(privatePanel);const frame=$('adminWhiteboardView')?.querySelector('iframe');if(frame&&!frame.src)frame.src='./whiteboard.html?code='+encodeURIComponent(roomCode)+'&role='+encodeURIComponent(role);adminShowDisplay('adminLiveView','🎥')}
+function clearClassFile(){sharedFile=null;$('classFilePanel').classList.add('hidden');$('classFileView').innerHTML='';$('classFileMeta').textContent='';$('classFileTitle').textContent='📄 Classroom File';$('classFileStop').classList.add('hidden')}
 async function renderClassFile(file){
  if(!file?.url)return;
  sharedFile=file;
- $('classFilePanel').classList.remove('hidden');if(adminMode)adminShowDisplay('adminFileView','📄');
+ $('classFilePanel').classList.remove('hidden');if(controlMode)adminShowDisplay('adminFileView','📄');
  $('classFileTitle').textContent='📄 '+(file.name||'Classroom File');
  $('classFileMeta').textContent=((file.mime||'File')+' · '+Math.max(0,Math.round((Number(file.size)||0)/1024))+' KB');
  const box=$('classFileView');box.innerHTML='';
@@ -189,7 +189,7 @@ if(controlMode)prepareAdminDisplay(); $('room').classList.remove('hidden');$('ro
   msg('Joined class · tap Microphone to speak');
   await send({type:'join',from:getMyId(),name:userName,to:'teacher'})
 }
- else {$('adminControls').classList.toggle('hidden',role!=='admin');$('startBtn').classList.toggle('hidden',controlMode);$('screenBtn').classList.toggle('hidden',controlMode);$('micBtn').classList.toggle('hidden',controlMode);$('whiteboardBtn').classList.toggle('hidden',controlMode);$('endBtn').classList.toggle('hidden',controlMode);$('notes').readOnly=false;$('showPrivateNote').classList.remove('hidden');$('hidePrivateNote').classList.remove('hidden');if(data.status==='live'&&data.starts_at){startedAt=data.starts_at;startTimer();msg('LIVE');await loadNotes()} updateAdminPauseUI()}
+ else {$('adminControls').classList.toggle('hidden',!controlMode);$('startBtn').classList.toggle('hidden',controlMode);$('screenBtn').classList.toggle('hidden',controlMode);$('micBtn').classList.toggle('hidden',controlMode);$('whiteboardBtn').classList.toggle('hidden',controlMode);$('endBtn').classList.toggle('hidden',controlMode);$('notes').readOnly=false;$('showPrivateNote').classList.remove('hidden');$('hidePrivateNote').classList.remove('hidden');if(data.status==='live'&&data.starts_at){startedAt=data.starts_at;startTimer();msg('LIVE');await loadNotes()} updateAdminPauseUI()}
 }
 window.__malawiNativeSend=async function(json){try{const p=typeof json==='string'?JSON.parse(json):json;await send(p)}catch(e){console.warn('native signal send',e)}};
 window.__malawiNativeStatus=function(text){msg(text);if(String(text).includes('Screen sharing is active')){ $('screenBtn').textContent='⏹'; if(window.MalawiHubNative)state.students.forEach((n,id)=>window.MalawiHubNative.nativeStudentJoined(id)); }else if(String(text).includes('stopped')){$('screenBtn').textContent='🖥';}};
@@ -249,7 +249,7 @@ async function handleSignal(p){
  else if(p.type==='ice'){
   const peerId=['teacher','admin'].includes(role)?p.from:'teacher';const pc=peers.get(peerId);if(pc&&p.candidate){if(pc.remoteDescription)try{await pc.addIceCandidate(p.candidate)}catch(e){if(!pc.ignoreOffer)console.warn('ICE',e)}else{if(!iceQueues.has(peerId))iceQueues.set(peerId,[]);iceQueues.get(peerId).push(p.candidate)}}
  }
- else if(p.type==='start'){startedAt=p.startedAt;duration=Number(p.duration)||60;paused=false;pausedAt=0;pausedTotalMs=0;startTimer();$('waiting').classList.add('hidden');msg('LIVE');await loadNotes()} else if(p.type==='pause'){paused=true;pausedAt=Number(p.at)||Date.now();clearInterval(timerInt);if(controlMode)updateAdminPauseUI();else msg('PAUSED · waiting for class to resume');} else if(p.type==='resume'){if(paused&&pausedAt)pausedTotalMs+=Date.now()-pausedAt;paused=false;pausedAt=0;startTimer();if(role==='admin')updateAdminPauseUI();else msg('LIVE');} 
+ else if(p.type==='start'){startedAt=p.startedAt;duration=Number(p.duration)||60;paused=false;pausedAt=0;pausedTotalMs=0;startTimer();$('waiting').classList.add('hidden');msg('LIVE');await loadNotes()} else if(p.type==='pause'){paused=true;pausedAt=Number(p.at)||Date.now();clearInterval(timerInt);if(controlMode)updateAdminPauseUI();else msg('PAUSED · waiting for class to resume');} else if(p.type==='resume'){if(paused&&pausedAt)pausedTotalMs+=Date.now()-pausedAt;paused=false;pausedAt=0;startTimer();if(controlMode)updateAdminPauseUI();else msg('LIVE');} 
  else if(p.type==='end'){await endRoom(false)}
 }
 function makePeer(id){
