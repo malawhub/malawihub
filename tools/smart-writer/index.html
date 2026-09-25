@@ -16,6 +16,7 @@ header{background:var(--green);color:#fff;padding:14px 18px;display:flex;justify
 #book{background:var(--paper);border:1px solid var(--line);min-height:720px;height:auto;position:relative;overflow:visible;box-shadow:0 5px 20px #00000012}.page{position:relative;width:100%;height:720px;min-height:720px;background:#fff;display:block;break-after:page}.page canvas{width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}.text-page{height:720px;padding:60px 55px 55px;font:20px/1.75 Arial,sans-serif;white-space:pre-wrap;overflow:auto;outline:none}.page-number{position:absolute;bottom:9px;right:16px;color:#89958e;font-size:12px;pointer-events:none}
 .voice{display:none;background:#fff;border:1px solid var(--line);border-radius:0 0 12px 12px;padding:15px}.voice textarea{width:100%;min-height:240px;border:1px solid var(--line);border-radius:10px;padding:14px;font:18px/1.6 Arial;resize:vertical}.voice-actions{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}.voice button{padding:11px 15px;border:0;border-radius:9px;background:var(--green);color:#fff;font-weight:700;cursor:pointer}.voice button:disabled{opacity:.55;cursor:not-allowed}.voice button.secondary{background:#eef2ef;color:#17251d}.status{margin-top:10px;color:#53625a;font-size:14px}.live{min-height:24px;margin:8px 0;padding:8px 10px;background:#f5f8f6;border-radius:8px;color:#53625a;font-size:14px}.hidden{display:none!important}
 .books{margin-top:15px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px}.books input{padding:10px;border:1px solid var(--line);border-radius:8px;width:min(100%,420px)}footer{text-align:center;color:#68756e;padding:25px}.notice{font-size:13px;color:#68756e;margin-top:10px}
+.freehand-keyboard{margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;box-shadow:0 4px 16px #00000012}.fk-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:7px}.fk-head span{font-size:12px;color:#68756e}.freehand-keyboard canvas{width:100%;height:130px;display:block;background:#fbfdfb;border:1px dashed #aebdb4;border-radius:9px;touch-action:none;cursor:crosshair}.fk-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}.fk-actions button{padding:8px 11px;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer}.fk-actions .primary{background:var(--green);color:#fff;border-color:var(--green)}
 @media(max-width:600px){.wrap{padding:10px}.page{height:600px;min-height:600px}.text-page{height:600px;padding:35px 25px 45px}.toolbar{position:sticky;top:57px;z-index:4}}
 </style>
 </head>
@@ -28,6 +29,16 @@ header{background:var(--green);color:#fff;padding:14px 18px;display:flex;justify
 <div id="handPanel">
 <div class="toolbar"><button type="button" class="primary" id="newPage">＋ New Page</button><button type="button" class="smart-on" id="smartHandwriting">✍️ Smart handwriting: ON</button><button type="button" id="undo">↶ Undo</button><button type="button" id="redo">↷ Redo</button><button type="button" id="clear">🧹 Clear</button><button type="button" id="save">💾 Save</button><button type="button" id="download">📄 PDF / Print</button><label>Pen <input id="size" type="range" min="1" max="12" value="3"></label><input id="penColor" type="color" value="#111111" title="Pen colour"><span class="notice" id="smartHelp">Write naturally. Smart Writer gently straightens finished handwriting without changing it into typed text.</span></div>
 <div id="book"><div class="page" data-page="1"><canvas></canvas><span class="page-number">Page 1</span></div></div>
+<div id="freehandKeyboard" class="freehand-keyboard">
+  <div class="fk-head"><strong>✍️ Freehand Keyboard</strong><span id="fkStatus">Write a word below</span></div>
+  <canvas id="fkCanvas"></canvas>
+  <div class="fk-actions">
+    <button type="button" id="fkUndo">↶ Undo</button>
+    <button type="button" id="fkClear">🧹 Clear</button>
+    <button type="button" id="fkSpace">SPACE</button>
+    <button type="button" class="primary" id="fkAdd">✓ Add to page</button>
+  </div>
+</div>
 </div>
 <div id="voicePanel" class="voice">
 <div class="voice-actions"><button type="button" id="startVoice">🎙️ Start speaking</button><button type="button" id="stopVoice" class="secondary" disabled>⏹ Stop</button><button type="button" id="addToBook" class="secondary">📖 Add to book</button></div>
@@ -110,6 +121,32 @@ function normalizeRecentWord(seed){
  });
  redrawStrokes();snapshot();
 }
+// Freehand Keyboard: a small handwriting pad whose finished strokes are placed directly on the book page.
+let fkCanvas=$('fkCanvas'),fkCtx,fkDrawing=false,fkStroke=null,fkStrokes=[];
+function fitKeyboard(){const r=fkCanvas.getBoundingClientRect(),d=window.devicePixelRatio||1;fkCanvas.width=r.width*d;fkCanvas.height=r.height*d;fkCtx=fkCanvas.getContext('2d');fkCtx.setTransform(d,0,0,d,0,0);fkCtx.lineCap='round';fkCtx.lineJoin='round';fkCtx.lineWidth=3;fkCtx.strokeStyle='#111'}
+function fkPoint(e){const r=fkCanvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}}
+function drawFKStroke(s){if(!s?.length)return;fkCtx.beginPath();fkCtx.moveTo(s[0].x,s[0].y);for(let i=1;i<s.length;i++)fkCtx.lineTo(s[i].x,s[i].y);fkCtx.stroke()}
+function redrawFK(){fkCtx.clearRect(0,0,fkCanvas.clientWidth,fkCanvas.clientHeight);fkStrokes.forEach(drawFKStroke)}
+function fkDown(e){fkDrawing=true;fkCanvas.setPointerCapture?.(e.pointerId);fkStroke=[fkPoint(e)];fkStrokes.push(fkStroke);drawFKStroke(fkStroke)}
+function fkMove(e){if(!fkDrawing)return;fkStroke.push(fkPoint(e));redrawFK()}
+function fkUp(){fkDrawing=false;fkStroke=null;$('fkStatus').textContent=fkStrokes.length?'Ready to add':'Write a word below'}
+function fkClear(){fkStrokes=[];redrawFK();$('fkStatus').textContent='Write a word below'}
+function addKeyboardToPage(){if(!fkStrokes.length)return;
+ const target=pageStrokes.get(currentPage)||[];const pageW=canvas.clientWidth;
+ const existing=target.length?Math.max(...target.flatMap(s=>s.points.map(p=>p.x)))+35:70;
+ const base=90+(target.length?Math.min(500,Math.max(...target.flatMap(s=>s.points.map(p=>p.y)))):0);
+ const all=fkStrokes.flat();const minX=Math.min(...all.map(p=>p.x)),minY=Math.min(...all.map(p=>p.y)),maxY=Math.max(...all.map(p=>p.y));
+ const scale=Math.min(1,Math.max(.45,260/Math.max(maxY-minY,1)));
+ const startX=Math.min(existing,pageW-40),startY=Math.min(Math.max(60,base),canvas.clientHeight-80);
+ const newStrokes=fkStrokes.map(points=>({points:points.map(p=>({x:startX+(p.x-minX)*scale,y:startY+(p.y-minY)*scale})),color:$('penColor').value,size:Number($('size').value),createdAt:Date.now()}));
+ target.push(...newStrokes);pageStrokes.set(currentPage,target);redrawStrokes();snapshot();fkClear();$('fkStatus').textContent='Added to the page';
+ canvas.scrollIntoView({behavior:'smooth',block:'center'});
+}
+fkCanvas.addEventListener('pointerdown',fkDown);fkCanvas.addEventListener('pointermove',fkMove);fkCanvas.addEventListener('pointerup',fkUp);fkCanvas.addEventListener('pointercancel',fkUp);
+$('fkUndo').onclick=()=>{fkStrokes.pop();redrawFK();$('fkStatus').textContent=fkStrokes.length?'Ready to add':'Write a word below'};
+$('fkClear').onclick=fkClear;$('fkSpace').onclick=()=>{$('fkStatus').textContent='Space added — write the next word';};$('fkAdd').onclick=addKeyboardToPage;
+setTimeout(fitKeyboard,0);window.addEventListener('resize',fitKeyboard);
+
 function drawDown(e){drawing=true;canvas.setPointerCapture?.(e.pointerId);const p=point(e);currentStroke={points:[p],color:$('penColor').value,size:Number($('size').value),createdAt:Date.now()};pageStrokes.get(currentPage).push(currentStroke);drawStroke(currentStroke)}
 function drawMove(e){if(!drawing||!currentStroke)return;currentStroke.points.push(point(e));redrawStrokes()}
 function drawUp(){if(!drawing)return;drawing=false;const finished=currentStroke;currentStroke=null;redrawStrokes();setTimeout(()=>normalizeRecentWord(finished),350);if(!smartHandwriting)snapshot()}
