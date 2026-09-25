@@ -6,7 +6,7 @@
 <title>MalawiHub Shared Whiteboard</title>
 <link rel="stylesheet" href="../css/style.css">
 <style>
-body{margin:0;background:#eef3ef;color:#17251d;font-family:Arial,sans-serif}.wrap{max-width:1200px;margin:auto;padding:12px}.top,.toolbar,.access{background:#fff;border:1px solid #d7e0da;border-radius:14px;padding:12px;margin-bottom:10px;box-shadow:0 3px 14px #00000010}.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.top strong{font-size:20px}.top a{margin-left:auto;color:#087f3f;font-weight:700;text-decoration:none}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.toolbar button,.toolbar input,.toolbar select{padding:9px;border:1px solid #cfd8d2;border-radius:8px;background:#fff}.toolbar button{cursor:pointer;font-weight:700}.toolbar button.smart-on{background:#eef7f1;color:#087f3f;border-color:#9bc9ad}.smart-help{font-size:12px;color:#66756d}.toolbar .primary{background:#087f3f;color:#fff;border-color:#087f3f}.toolbar .danger{background:#fff0f0;color:#a22;border-color:#e5bcbc}.board-wrap{background:#fff;border:1px solid #d7e0da;border-radius:14px;padding:8px;box-shadow:0 4px 18px #00000012}.board{width:100%;height:min(72vh,720px);display:block;background:#fff;border-radius:9px;touch-action:none;cursor:crosshair}.status{font-size:13px;color:#53625a;margin-top:8px}.hidden{display:none!important}.access{max-width:620px;margin:40px auto}.input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccd3df;border-radius:10px;margin:8px 0}.join{padding:12px 16px;border:0;border-radius:10px;background:#087f3f;color:#fff;font-weight:800;cursor:pointer}.legend{font-size:13px;color:#66756d}.role{font-size:13px;padding:5px 9px;border-radius:999px;background:#eef7f1;color:#087f3f;font-weight:700}
+body{margin:0;background:#eef3ef;color:#17251d;font-family:Arial,sans-serif}.wrap{max-width:1200px;margin:auto;padding:12px}.top,.toolbar,.access{background:#fff;border:1px solid #d7e0da;border-radius:14px;padding:12px;margin-bottom:10px;box-shadow:0 3px 14px #00000010}.top{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.top strong{font-size:20px}.top a{margin-left:auto;color:#087f3f;font-weight:700;text-decoration:none}.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.toolbar button,.toolbar input,.toolbar select{padding:9px;border:1px solid #cfd8d2;border-radius:8px;background:#fff}.toolbar button{cursor:pointer;font-weight:700}.toolbar button.smart-on{background:#eef7f1;color:#087f3f;border-color:#9bc9ad}.smart-help{font-size:12px;color:#66756d}.guide-on{background:#f4f8ff;color:#245a9b;border-color:#a9c4e8}.toolbar .primary{background:#087f3f;color:#fff;border-color:#087f3f}.toolbar .danger{background:#fff0f0;color:#a22;border-color:#e5bcbc}.board-wrap{background:#fff;border:1px solid #d7e0da;border-radius:14px;padding:8px;box-shadow:0 4px 18px #00000012}.board{width:100%;height:min(72vh,720px);display:block;background:#fff;border-radius:9px;touch-action:none;cursor:crosshair}.status{font-size:13px;color:#53625a;margin-top:8px}.hidden{display:none!important}.access{max-width:620px;margin:40px auto}.input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccd3df;border-radius:10px;margin:8px 0}.join{padding:12px 16px;border:0;border-radius:10px;background:#087f3f;color:#fff;font-weight:800;cursor:pointer}.legend{font-size:13px;color:#66756d}.role{font-size:13px;padding:5px 9px;border-radius:999px;background:#eef7f1;color:#087f3f;font-weight:700}
 </style>
 </head>
 <body>
@@ -19,7 +19,7 @@ body{margin:0;background:#eef3ef;color:#17251d;font-family:Arial,sans-serif}.wra
 </div>
 <div id="boardArea" class="hidden">
 <div class="toolbar">
-<button type="button" class="primary" id="pen">✏️ Pen</button><button type="button" id="eraser">🧽 Eraser</button><button type="button" id="smart">✨ Smart ink: ON</button>
+<button type="button" class="primary" id="pen">✏️ Pen</button><button type="button" id="eraser">🧽 Eraser</button><button type="button" id="smart">✨ Smart ink: ON</button><button type="button" id="guide">📏 Writing guide: OFF</button>
 <label>Size <input id="size" type="range" min="1" max="20" value="4"></label>
 <label>Colour <input id="color" type="color" value="#111111"></label>
 <button type="button" id="undo">↶ Undo</button><button type="button" class="danger" id="clear">🧹 Clear board</button>
@@ -32,13 +32,27 @@ body{margin:0;background:#eef3ef;color:#17251d;font-family:Arial,sans-serif}.wra
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase.js"></script>
 <script>
-const $=id=>document.getElementById(id);const canvas=$('board'),ctx=canvas.getContext('2d');let channel=null,code='',role='',user=null,drawing=false,tool='pen',current=null,strokes=[],lastSend=0,smartInk=true;
+const $=id=>document.getElementById(id);const canvas=$('board'),ctx=canvas.getContext('2d');let channel=null,code='',role='',user=null,drawing=false,tool='pen',current=null,strokes=[],lastSend=0,smartInk=true,writingGuide=false;
 function clean(v){return v.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,32)}
 function setMsg(t,error=false){$('msg').textContent=t;$('status').textContent=t;$('msg').style.color=error?'#a22':'#53625a'}
 function resize(){if(!$('boardArea').classList.contains('hidden')){const old=canvas.width?canvas.toDataURL():null;const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;canvas.width=r.width*d;canvas.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);ctx.lineCap='round';ctx.lineJoin='round';if(old){const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,r.width,r.height);img.src=old}}}
 function pos(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width,y:(e.clientY-r.top)/r.height}}
-function drawStroke(s){if(!s.points?.length)return;const w=canvas.clientWidth,h=canvas.clientHeight;ctx.save();ctx.strokeStyle=s.eraser?'#fff':s.color;ctx.lineWidth=s.size;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();s.points.forEach((p,i)=>{const x=p.x*w,y=p.y*h;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke();ctx.restore()}
-function redraw(){ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);strokes.forEach(drawStroke)}
+function drawGuide(){
+  if(!writingGuide)return;
+  const w=canvas.clientWidth,h=canvas.clientHeight;ctx.save();ctx.strokeStyle='#d7e5f5';ctx.lineWidth=1;ctx.setLineDash([7,7]);
+  for(let y=0.18;y<1;y+=0.12){ctx.beginPath();ctx.moveTo(0,y*h);ctx.lineTo(w,y*h);ctx.stroke()}ctx.restore();
+}
+function drawStroke(s){
+  if(!s.points?.length)return;
+  const w=canvas.clientWidth,h=canvas.clientHeight,pts=s.points;
+  ctx.save();ctx.strokeStyle=s.eraser?'#fff':s.color;ctx.lineWidth=s.size;ctx.lineCap='round';ctx.lineJoin='round';ctx.beginPath();
+  if(pts.length===1){const p=pts[0];ctx.arc(p.x*w,p.y*h,Math.max(1,s.size/2),0,Math.PI*2);ctx.fillStyle=s.eraser?'#fff':s.color;ctx.fill();ctx.restore();return}
+  ctx.moveTo(pts[0].x*w,pts[0].y*h);
+  for(let i=1;i<pts.length-1;i++){const p=pts[i],q=pts[i+1];ctx.quadraticCurveTo(p.x*w,p.y*h,(p.x+q.x)/2*w,(p.y+q.y)/2*h)}
+  const last=pts[pts.length-1],prev=pts[pts.length-2];ctx.quadraticCurveTo(prev.x*w,prev.y*h,last.x*w,last.y*h);
+  ctx.stroke();ctx.restore();
+}
+function redraw(){ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);drawGuide();strokes.forEach(drawStroke)}
 function addOrReplace(s){const i=strokes.findIndex(x=>x.id===s.id);if(i>=0)strokes[i]=s;else strokes.push(s);drawStroke(s)}
 function dist(a,b){const dx=a.x-b.x,dy=a.y-b.y;return Math.hypot(dx,dy)}
 function smartShape(s){
@@ -76,7 +90,7 @@ function move(e){if(!drawing||!current)return;current.points.push(pos(e));drawSt
 function drawStrokeSegment(s){const pts=s.points;if(pts.length<2)return;const w=canvas.clientWidth,h=canvas.clientHeight,a=pts[pts.length-2],b=pts[pts.length-1];ctx.save();ctx.strokeStyle=s.eraser?'#fff':s.color;ctx.lineWidth=s.size;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(a.x*w,a.y*h);ctx.lineTo(b.x*w,b.y*h);ctx.stroke();ctx.restore()}
 function up(){if(!drawing)return;drawing=false;if(current){const original=current;const cleaned=smartShape(original);const i=strokes.findIndex(x=>x.id===original.id);if(i>=0)strokes[i]=cleaned;redraw();send('stroke',cleaned);current=null}}
 canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);
-$('smart').onclick=()=>{smartInk=!smartInk;$('smart').textContent='✨ Smart ink: '+(smartInk?'ON':'OFF');$('smart').classList.toggle('smart-on',smartInk)};$('smart').classList.add('smart-on');$('pen').onclick=()=>{tool='pen';$('pen').classList.add('primary');$('eraser').classList.remove('primary')};$('eraser').onclick=()=>{tool='eraser';$('eraser').classList.add('primary');$('pen').classList.remove('primary')};$('clear').onclick=async()=>{if(!channel)return;strokes=[];redraw();await send('clear',{code})};$('undo').onclick=async()=>{if(!strokes.length)return;strokes.pop();redraw();await send('sync',{code,strokes})};$('join').onclick=openBoard;$('code').onkeydown=e=>{if(e.key==='Enter')openBoard()};const q=new URLSearchParams(location.search).get('code');if(q)$('code').value=clean(q);window.addEventListener('resize',resize);
+$('smart').onclick=()=>{smartInk=!smartInk;$('smart').textContent='✨ Smart ink: '+(smartInk?'ON':'OFF');$('smart').classList.toggle('smart-on',smartInk)};$('smart').classList.add('smart-on');$('guide').onclick=()=>{writingGuide=!writingGuide;$('guide').textContent='📏 Writing guide: '+(writingGuide?'ON':'OFF');$('guide').classList.toggle('guide-on',writingGuide);redraw()};$('pen').onclick=()=>{tool='pen';$('pen').classList.add('primary');$('eraser').classList.remove('primary')};$('eraser').onclick=()=>{tool='eraser';$('eraser').classList.add('primary');$('pen').classList.remove('primary')};$('clear').onclick=async()=>{if(!channel)return;strokes=[];redraw();await send('clear',{code})};$('undo').onclick=async()=>{if(!strokes.length)return;strokes.pop();redraw();await send('sync',{code,strokes})};$('join').onclick=openBoard;$('code').onkeydown=e=>{if(e.key==='Enter')openBoard()};const q=new URLSearchParams(location.search).get('code');if(q)$('code').value=clean(q);window.addEventListener('resize',resize);
 </script>
 </body>
 </html>
