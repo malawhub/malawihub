@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MalawiHub Student Classroom</title>
+</head>
+<body>
+<p style="font-family:Arial,sans-serif;padding:20px">Opening your classroom…</p>
+<script>
+(function(){
+  const p=new URLSearchParams(location.search);
+  const code=(p.get('code')||sessionStorage.getItem('malawihub_class_code')||'').trim().toUpperCase();
+  if(!code){
+    location.replace('./');
+    return;
+  }
+  sessionStorage.setItem('malawihub_class_code',code);
+  sessionStorage.setItem('malawihub_student_portal','1');
+  location.replace('../online-class/index.html?student=1&role=student&code='+encodeURIComponent(code)+'&v=20260925-student-classroom-route2');
+})();
+</script>
+</body>
+</html>
