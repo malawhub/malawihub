@@ -254,7 +254,8 @@ async function handleSignal(p){
    await send({type:'answer',to:p.from,from:getMyId(),sdp:pc.localDescription});
   }catch(e){console.warn('Offer handling failed',e)}
  }
- else if(p.type==='answer'){\n  const peerId=['teacher','admin'].includes(role)?p.from:(controllerPeerId||p.from||'teacher');
+ else if(p.type==='answer'){
+  const peerId=['teacher','admin'].includes(role)?p.from:(controllerPeerId||p.from||'teacher');
   const pc=peers.get(peerId);
   if(pc){try{await pc.setRemoteDescription(p.sdp);await flushIce(peerId)}catch(e){console.warn('Answer handling failed',e)}}
  }
@@ -270,7 +271,8 @@ async function handleSignal(p){
   const pc=peers.get('native-screen');if(pc&&p.candidate){if(pc.remoteDescription)try{await pc.addIceCandidate(p.candidate)}catch(e){console.warn('Native ICE',e)}else{if(!iceQueues.has('native-screen'))iceQueues.set('native-screen',[]);iceQueues.get('native-screen').push(p.candidate)}}
  }
  else if(['teacher','admin'].includes(role)&&p.type==='native-screen-ice'){if(window.MalawiHubNative)window.MalawiHubNative.nativeSignal(JSON.stringify(p))}
- else if(p.type==='ice'){\n  const peerId=['teacher','admin'].includes(role)?p.from:(controllerPeerId||p.from||'teacher');const pc=peers.get(peerId);if(pc&&p.candidate){if(pc.remoteDescription)try{await pc.addIceCandidate(p.candidate)}catch(e){if(!pc.ignoreOffer)console.warn('ICE',e)}else{if(!iceQueues.has(peerId))iceQueues.set(peerId,[]);iceQueues.get(peerId).push(p.candidate)}}
+ else if(p.type==='ice'){
+  const peerId=['teacher','admin'].includes(role)?p.from:(controllerPeerId||p.from||'teacher');const pc=peers.get(peerId);if(pc&&p.candidate){if(pc.remoteDescription)try{await pc.addIceCandidate(p.candidate)}catch(e){if(!pc.ignoreOffer)console.warn('ICE',e)}else{if(!iceQueues.has(peerId))iceQueues.set(peerId,[]);iceQueues.get(peerId).push(p.candidate)}}
  }
  else if(p.type==='start'){startedAt=p.startedAt;duration=Number(p.duration)||60;paused=false;pausedAt=0;pausedTotalMs=0;startTimer();$('waiting').classList.add('hidden');msg('LIVE');await loadNotes()} else if(p.type==='pause'){paused=true;pausedAt=Number(p.at)||Date.now();clearInterval(timerInt);if(controlMode)updateAdminPauseUI();else msg('PAUSED · waiting for class to resume');} else if(p.type==='resume'){if(paused&&pausedAt)pausedTotalMs+=Date.now()-pausedAt;paused=false;pausedAt=0;startTimer();if(controlMode)updateAdminPauseUI();else msg('LIVE');} 
  else if(p.type==='end'){await endRoom(false)}
