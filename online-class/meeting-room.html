@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MalawiHub Staff Meeting Room</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#101714;color:#fff}.top{height:64px;background:#087f3f;display:flex;align-items:center;justify-content:space-between;padding:0 14px;gap:10px}.brand{font-weight:800}.tools{display:flex;gap:7px;align-items:center}.btn{border:1px solid #ffffff35;background:#ffffff12;color:#fff;border-radius:9px;padding:9px 12px;font-weight:700;cursor:pointer}.btn:hover{background:#ffffff22}.danger{background:#c92a3a;border-color:#c92a3a}.room{color:#d9efe2;font-size:12px}.stage{min-height:calc(100vh - 64px);padding:12px;display:flex;flex-direction:column;gap:10px}.status{background:#18221e;border:1px solid #2d3a33;border-radius:12px;padding:10px;color:#c9d7cf;font-size:13px}.grid{flex:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px;align-content:center}.tile{position:relative;background:#18221e;border:1px solid #2d3a33;border-radius:14px;min-height:210px;overflow:hidden;display:flex;align-items:center;justify-content:center}.tile video{width:100%;height:100%;object-fit:cover;background:#0b100d}.tile .name{position:absolute;left:9px;bottom:8px;background:#0009;padding:5px 8px;border-radius:7px;font-size:12px}.tile .mic{position:absolute;right:9px;bottom:8px;background:#0009;padding:5px 7px;border-radius:7px;font-size:12px}.empty{color:#7e8c84;text-align:center}.notice{color:#9bb0a5;font-size:12px}@media(max-width:600px){.top{height:auto;min-height:64px;flex-wrap:wrap;padding:10px}.stage{min-height:calc(100vh - 84px)}.grid{grid-template-columns:1fr}.tile{min-height:190px}.tools{flex-wrap:wrap}}
+</style>
+</head>
+<body>
+<header class="top"><div><div class="brand">🇲🇼 MalawiHub Staff Meeting</div><div class="room" id="roomLabel">Connecting…</div></div><div class="tools"><button class="btn" id="mic">🎙️ Mute</button><button class="btn" id="camera">📷 Camera</button><button class="btn danger" id="leave">↩ Leave</button></div></header>
+<main class="stage"><div class="status" id="status">Checking your staff access…</div><div class="grid" id="grid"><div class="empty">Waiting for participants…</div></div><div class="notice">Private room for MalawiHub administrators and registered teachers. Students cannot join.</div></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);let user=null,role='',code='',channel=null,localStream=null;
+const peers=new Map(),tiles=new Map();let micOn=true,cameraOn=true,leaving=false;
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[c]))}
+function myId(){return user?.id||('staff-'+Math.random().toString(36).slice(2))}
+function setStatus(s){$('status').textContent=s}
+function peer(id){if(peers.has(id))return peers.get(id);const pc=new RTCPeerConnection({iceServers:window.turnServers||[{urls:['stun:stun.cloudflare.com:3478']} ]});localStream?.getTracks().forEach(t=>pc.addTrack(t,localStream));pc.onicecandidate=e=>{if(e.candidate)send({type:'ice',from:myId(),to:id,candidate:e.candidate})};pc.ontrack=e=>showRemote(id,e.streams[0]);pc.onconnectionstatechange=()=>{if(['failed','closed','disconnected'].includes(pc.connectionState)){setTimeout(()=>{if(peers.get(id)===pc){pc.close();peers.delete(id);removeTile(id)}},2500)}};peers.set(id,pc);return pc}
+function send(p){if(channel)channel.send({type:'broadcast',event:'signal',payload:p})}
+function addTile(id,name,stream,local){let t=tiles.get(id);if(!t){t=document.createElement('div');t.className='tile';t.innerHTML='<video autoplay playsinline></video><span class="name"></span><span class="mic">🎙️</span>';tiles.set(id,t);$('grid').appendChild(t)}t.querySelector('.name').textContent=name+(local?' (You)':'');const v=t.querySelector('video');if(v.srcObject!==stream)v.srcObject=stream;if(local)v.muted=true;v.play?.().catch(()=>{});return t}
+function showRemote(id,stream){const p=participants.get(id)||{};addTile(id,p.name||'Staff member',stream,false)}
+function removeTile(id){tiles.get(id)?.remove();tiles.delete(id)}
+const participants=new Map();
+async function loadTurn(){try{const {data:{session}}=await supabaseClient.auth.getSession();const r=await supabaseClient.functions.invoke('online-class-turn',{headers:{Authorization:'Bearer '+session.access_token}});if(!r.error&&r.data?.iceServers)window.turnServers=r.data.iceServers}catch(e){}}
+async function makeOffer(id){const pc=peer(id);const offer=await pc.createOffer();await pc.setLocalDescription(offer);send({type:'offer',from:myId(),to:id,description:pc.localDescription})}
+async function join(){
+ const params=new URLSearchParams(location.search);code=(params.get('code')||'').trim().toUpperCase();if(!code){setStatus('No meeting room code was provided.');return}
+ const {data:{session}}=await supabaseClient.auth.getSession();if(!session){location.replace('/teacher-portal/');return}
+ const {data:u}=await supabaseClient.auth.getUser(session.access_token);user=u.user;if(!user){location.replace('/teacher-portal/');return}
+ const {data:p,error}=await supabaseClient.from('profiles').select('role,full_name,email').eq('id',user.id).maybeSingle();if(error||!p||!['admin','teacher'].includes(p.role)){setStatus('Access denied. Only administrators and registered teachers can enter this room.');return}
+ role=p.role;$('roomLabel').textContent='Meeting code: '+code+' · '+role;
+ const {data:r,error:re}=await supabaseClient.from('meeting_rooms').select('id,title,status').eq('room_code',code).eq('status','live').maybeSingle();if(re||!r){setStatus('This meeting room does not exist or has ended.');return}
+ $('roomLabel').textContent=r.title+' · Code: '+code;
+ await loadTurn();
+ try{localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:true})}catch(e){try{localStream=await navigator.mediaDevices.getUserMedia({audio:true}) ;cameraOn=false;$('camera').textContent='📷 Camera unavailable'}catch(_){setStatus('Microphone access is required for the meeting room. Check browser permissions.');return}}
+ addTile(myId(),p.full_name||p.email||role,localStream,true);localStream.getVideoTracks().forEach(t=>t.enabled=cameraOn);
+ channel=supabaseClient.channel('malawihub-meeting-'+code,{config:{private:true,broadcast:{self:false,ack:true}}});
+ channel.on('broadcast',{event:'signal'},async({payload:x})=>{
+   if(!x||x.to===myId()||x.from===myId())return;
+   if(x.type==='join'){participants.set(x.from,{name:x.name||'Staff member'});addTile(x.from,x.name||'Staff member',null,false);await makeOffer(x.from)}
+   else if(x.type==='offer'){participants.set(x.from,{name:x.name||'Staff member'});const pc=peer(x.from);await pc.setRemoteDescription(x.description);const answer=await pc.createAnswer();await pc.setLocalDescription(answer);send({type:'answer',from:myId(),to:x.from,description:pc.localDescription})}
+   else if(x.type==='answer'){const pc=peer(x.from);if(pc.signalingState!=='stable')await pc.setRemoteDescription(x.description)}
+   else if(x.type==='ice'){try{await peer(x.from).addIceCandidate(x.candidate)}catch(e){}}
+   else if(x.type==='leave'){participants.delete(x.from);removeTile(x.from);peers.get(x.from)?.close();peers.delete(x.from)}
+ });
+ await channel.subscribe();
+ send({type:'join',from:myId(),name:p.full_name||p.email||role});
+ setStatus('Meeting room is live. '+(role==='admin'?'You are the administrator.':'You are a teacher.')+' Staff members can speak and use their cameras.');
+}
+$('mic').onclick=()=>{if(!localStream)return;micOn=!micOn;localStream.getAudioTracks().forEach(t=>t.enabled=micOn);$('mic').textContent=micOn?'🎙️ Mute':'🔇 Unmute'};
+$('camera').onclick=()=>{if(!localStream)return;const tracks=localStream.getVideoTracks();if(!tracks.length)return;cameraOn=!cameraOn;tracks.forEach(t=>t.enabled=cameraOn);$('camera').textContent=cameraOn?'📷 Camera':'📷 Camera off'};
+$('leave').onclick=()=>{if(leaving)return;leaving=true;send({type:'leave',from:myId()});channel?.unsubscribe();localStream?.getTracks().forEach(t=>t.stop());peers.forEach(p=>p.close());location.replace(role==='admin'?'/admin/':'/teacher-portal/dashboard.html')};
+window.addEventListener('beforeunload',()=>{if(!leaving)send({type:'leave',from:myId()})});
+join();
+})();
+</script>
+</body></html>
