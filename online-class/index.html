@@ -60,7 +60,7 @@ const studentPortalMode=!adminMode && !teacherPortalMode && (params.get('student
 if(adminMode){$('areaLabel').textContent='';} else if(teacherPortalMode){$('areaLabel').textContent='Teacher Portal · Private Classroom';} else {$('areaLabel').textContent='Student Portal · Private Classroom';}
 if(adminMode||teacherPortalMode||studentPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent=adminMode?'Administrator Class':teacherPortalMode?'Teacher Class':'Student Class';$('modeHelp').textContent=adminMode?'Administrator mode. Only the administrator can control this class.':teacherPortalMode?'Teacher mode. Students join through the Student Portal using the class code.':'Student mode. Teacher and administrator controls are unavailable.';const codeFromUrl=params.get('code')||storedStudentCode;if(codeFromUrl)$('code').value=codeFromUrl;$('name').value=sessionStorage.getItem('malawihub_student_name')||'Student';$('modePanel').classList.add('hidden');}
 let channel,resourceChannel,roomCode='',userName='',privateNoteShown=false,sharedFile=null,role=adminMode?'admin':(teacherPortalMode?'teacher':(studentPortalMode?'student':'')),localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null,paused=false,pausedAt=0,pausedTotalMs=0;
-let controllerPeerId='teacher';const peers=new Map();const iceQueues=new Map();const state={students:new Map(),joined:new Map()};let myId='';
+let controllerPeerId='';const peers=new Map();const iceQueues=new Map();const state={students:new Map(),joined:new Map()};let myId='';
 // WebRTC connectivity: use public STUN plus the configured short-lived Cloudflare TURN relay.
 let iceServers=[
  {urls:'stun:stun.l.google.com:19302'},
@@ -244,7 +244,7 @@ async function handleSignal(p){
   makePeer(p.from); if(controlMode&&paused)await send({type:'pause',from:getMyId(),to:p.from,at:pausedAt});if(controlMode&&sharedFile)await send({type:'class-file',from:getMyId(),to:p.from,file:sharedFile});
  }
  else if(p.type==='offer'){
-  const peerId=['teacher','admin'].includes(role)?p.from:(controllerPeerId=controllerPeerId||p.from,p.from);
+  const peerId=['teacher','admin'].includes(role)?p.from:(controllerPeerId=p.from,p.from);
   const pc=makePeer(peerId);
   const offerCollision=pc.makingOffer||pc.signalingState!=='stable';
   pc.ignoreOffer=!pc.polite&&offerCollision;
@@ -257,7 +257,7 @@ async function handleSignal(p){
   }catch(e){console.warn('Offer handling failed',e)}
  }
  else if(p.type==='answer'){
-  const peerId=['teacher','admin'].includes(role)?p.from:(controllerPeerId||p.from||'teacher');
+  const peerId=['teacher','admin'].includes(role)?p.from:(controllerPeerId||p.from);
   const pc=peers.get(peerId);
   if(pc){try{await pc.setRemoteDescription(p.sdp);await flushIce(peerId)}catch(e){console.warn('Answer handling failed',e)}}
  }
