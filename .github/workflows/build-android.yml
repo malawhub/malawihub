@@ -105,11 +105,18 @@ jobs:
       - name: Install Bubblewrap
         if: steps.signing.outputs.enabled == 'true'
         run: npm install -g @bubblewrap/cli
-      - name: Initialise Android project
+      - name: Configure Bubblewrap toolchain
         if: steps.signing.outputs.enabled == 'true'
-        env:
-          CI: 'true'
-        run: printf 'n\n' | bubblewrap init --manifest ./manifest.json --directory android-app --skipPwaValidation
+        run: |
+          bubblewrap updateConfig --jdkPath="$JAVA_HOME" --androidSdkPath="$ANDROID_HOME"
+      - name: Prepare Main Hub Android project
+        if: steps.signing.outputs.enabled == 'true'
+        run: |
+          rm -rf android-app
+          mkdir -p android-app
+          cp android/twa-manifest.json android-app/twa-manifest.json
+          cd android-app
+          bubblewrap update --skipVersionUpgrade --manifest=twa-manifest.json
       - name: Restore signing key
         if: steps.signing.outputs.enabled == 'true'
         env:
