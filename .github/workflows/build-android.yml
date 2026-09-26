@@ -147,6 +147,13 @@ jobs:
         run: |
           sed -i '/splashScreenFadeOutDuration:/d' app/build.gradle
           sed -i 's/jcenter()/mavenCentral()/g' build.gradle
+          cat >> app/build.gradle <<'EOF'
+          
+          configurations.all {
+              resolutionStrategy.force 'androidx.core:core:1.13.1'
+              resolutionStrategy.force 'androidx.core:core-ktx:1.13.1'
+          }
+          EOF
           gradle :app:bundleRelease --no-daemon
           apksigner sign --ks "$BUBBLEWRAP_KEYSTORE" --ks-pass pass:"$BUBBLEWRAP_KEYSTORE_PASSWORD" --ks-key-alias "$BUBBLEWRAP_KEY_ALIAS" --key-pass pass:"$BUBBLEWRAP_KEY_PASSWORD" --out app-release-signed.apk app/build/outputs/apk/release/app-release-unsigned.apk
       - name: Prepare APK output
