@@ -109,14 +109,11 @@ jobs:
         if: steps.signing.outputs.enabled == 'true'
         run: |
           SDK="/usr/local/lib/android/sdk"
-          # Bubblewrap's current SDK validator expects the SDK root to expose tools/ or bin/.
-          # GitHub's runner exposes sdkmanager under cmdline-tools/latest/bin instead.
           if [[ ! -d "$SDK/bin" ]]; then
             ln -s "$SDK/cmdline-tools/latest/bin" "$SDK/bin"
           fi
           mkdir -p "$HOME/.bubblewrap"
-          printf '%s\n' '{' '  "jdkPath": "'"$JAVA_HOME"'",' '  "androidSdkPath": "'"$SDK"'"' '}' > "$HOME/.bubblewrap/config.json"
-          cat "$HOME/.bubblewrap/config.json"
+          printf '%s\n' '{' '  "jdkPath": "'$JAVA_HOME'",' '  "androidSdkPath": "'$SDK'"' '}' > "$HOME/.bubblewrap/config.json"
           test -x "$JAVA_HOME/bin/java"
           test -x "$SDK/platform-tools/adb"
           test -x "$SDK/bin/sdkmanager"
@@ -144,6 +141,7 @@ jobs:
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           sed -i '/splashScreenFadeOutDuration:/d' app/build.gradle
+          sed -i 's/jcenter()/mavenCentral()/g' build.gradle
           gradle :app:bundleRelease --no-daemon
           apksigner sign --ks "$BUBBLEWRAP_KEYSTORE" --ks-pass pass:"$BUBBLEWRAP_KEYSTORE_PASSWORD" --ks-key-alias "$BUBBLEWRAP_KEY_ALIAS" --key-pass pass:"$BUBBLEWRAP_KEY_PASSWORD" --out app-release-signed.apk app/build/outputs/apk/release/app-release-unsigned.apk
       - name: Prepare APK output
