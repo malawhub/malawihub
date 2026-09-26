@@ -26,7 +26,36 @@ document.querySelectorAll('[data-cmd]').forEach(b=>b.onclick=()=>cmd(b.dataset.c
 document.getElementById('pages').addEventListener('focusin',e=>{if(e.target.classList.contains('page')){current=e.target;e.target.setAttribute('inputmode','none');scheduleCaret()}});
 document.getElementById('pages').addEventListener('click',scheduleCaret);
 document.getElementById('pages').addEventListener('keyup',scheduleCaret);
-document.getElementById('pages').addEventListener('input',scheduleCaret);
+document.getElementById('pages').addEventListener('input',scheduleCaret);document.getElementById('pages').addEventListener('input',e=>{
+  if(!e.target.classList.contains('page'))return;
+  const el=e.target;
+  const text=el.innerText||'';
+  if(/  $/.test(text)){
+    const before=text.slice(0,-2);
+    el.innerText=before+'. ';
+    placeCaretAtEnd(el);
+  }else{
+    autoCapitalizeSentence(el);
+  }
+});
+function placeCaretAtEnd(el){
+  el.focus();
+  const r=document.createRange(),s=getSelection();
+  r.selectNodeContents(el);r.collapse(false);s.removeAllRanges();s.addRange(r);saveRange();
+}
+function autoCapitalizeSentence(el){
+  const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);
+  let n;
+  while(n=walker.nextNode()){
+    let v=n.nodeValue;
+    const m=v.match(/(^|[.!?]\s+)([a-z])/);
+    if(m){
+      const p=m.index+(m[1]?m[1].length:0);
+      n.nodeValue=v.slice(0,p)+v[p].toUpperCase()+v.slice(p+1);
+    }
+  }
+}
+
 window.addEventListener('resize',scheduleCaret);window.addEventListener('orientationchange',()=>{document.body.classList.toggle('landscape',window.innerWidth>window.innerHeight);setTimeout(scheduleCaret,150)});
 if(window.visualViewport)window.visualViewport.addEventListener('resize',scheduleCaret);
 $('newPage').onclick=()=>{let n=document.querySelectorAll('.page').length+1,p=document.createElement('div');p.className='page';p.dataset.page=n;p.contentEditable='true';p.innerHTML='';document.getElementById('pages').appendChild(p);current=p;p.focus();p.scrollIntoView({behavior:'smooth'});scheduleCaret()};$('print').onclick=()=>window.print();$('save').onclick=()=>{localStorage.setItem('malawihub-smart-office',JSON.stringify([...document.querySelectorAll('.page')].map(p=>p.innerHTML)));$('status').textContent='Saved on this device.'};
