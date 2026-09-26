@@ -1,0 +1,20 @@
+{
+  "name": "MalawiHub Business Hub",
+  "short_name": "Business Hub",
+  "id": "/business/",
+  "start_url": "/business/",
+  "scope": "/business/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#1266f1",
+  "background_color": "#f4f7fb",
+  "description": "MalawiHub Business Hub for registered employers and employees.",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
