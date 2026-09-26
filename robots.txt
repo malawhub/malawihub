@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
 Disallow: /online-class/admin.html
 Disallow: /supabase/
 
