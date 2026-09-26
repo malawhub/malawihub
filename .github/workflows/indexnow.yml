@@ -40,7 +40,7 @@ jobs:
             [ -z "$file" ] && continue
 
             case "$file" in
-              admin/*|online-class/*|business/*/admin/*|supabase/*|.github/*)
+              admin/*|online-class/*|business/employee.html|business/employer.html|business/users/*|supabase/*|.github/*)
                 continue
                 ;;
             esac
