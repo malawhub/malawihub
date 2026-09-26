@@ -105,6 +105,11 @@ jobs:
       - name: Install Bubblewrap
         if: steps.signing.outputs.enabled == 'true'
         run: npm install -g @bubblewrap/cli
+      - name: Setup Gradle
+        if: steps.signing.outputs.enabled == 'true'
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
       - name: Configure Bubblewrap toolchain
         if: steps.signing.outputs.enabled == 'true'
         run: |
