@@ -42,6 +42,7 @@ function placeCaretAtEnd(el){
   el.focus();
   const r=document.createRange(),s=getSelection();
   r.selectNodeContents(el);r.collapse(false);s.removeAllRanges();s.addRange(r);saveRange();
+  requestAnimationFrame(()=>{try{const q=s.getRangeAt(0).getBoundingClientRect();if(q.right>window.innerWidth-24)window.scrollBy({left:q.right-(window.innerWidth-24),behavior:'smooth'});}catch(_){} });
 }
 function autoCapitalizeSentence(el){
   const walker=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);
