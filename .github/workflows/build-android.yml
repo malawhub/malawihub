@@ -142,7 +142,14 @@ jobs:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           BUBBLEWRAP_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: bubblewrap build --signingKeyPath "$BUBBLEWRAP_KEYSTORE" --signingKeyAlias "$BUBBLEWRAP_KEY_ALIAS"
+        run: |
+          sed -i '/splashScreenFadeOutDuration:/d' app/build.gradle
+          gradle :app:bundleRelease --no-daemon
+          apksigner sign --ks "$BUBBLEWRAP_KEYSTORE" --ks-pass pass:"$BUBBLEWRAP_KEYSTORE_PASSWORD" --ks-key-alias "$BUBBLEWRAP_KEY_ALIAS" --key-pass pass:"$BUBBLEWRAP_KEY_PASSWORD" --out app-release-signed.apk app/build/outputs/apk/release/app-release-unsigned.apk
+      - name: Prepare APK output
+        if: steps.signing.outputs.enabled == 'true'
+        working-directory: android-app
+        run: cp app/build/outputs/bundle/release/app-release.aab app-release-bundle.aab
       - name: Upload Android App Bundle
         if: steps.signing.outputs.enabled == 'true'
         uses: actions/upload-artifact@v4
