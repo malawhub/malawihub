@@ -1,0 +1,31 @@
+# MalawiHub
+
+MalawiHub is a student-focused learning and utility hub built for learners in Malawi and accessible worldwide.
+
+## Public website
+https://malawihub.pages.dev/
+
+## Main features
+- GPA Calculator: https://malawihub.pages.dev/tools/gpa/
+- Grade Calculator: https://malawihub.pages.dev/tools/grade/
+- Study Timetable: https://malawihub.pages.dev/tools/timetable/
+- Assignment Cover: https://malawihub.pages.dev/tools/assignment/
+- Smart Writer: https://malawihub.pages.dev/tools/smart-writer/
+- Chemistry Calculator: https://malawihub.pages.dev/tools/chemistry/
+- Percentage Calculator: https://malawihub.pages.dev/tools/percentage/
+- Currency Calculator: https://malawihub.pages.dev/tools/currency/
+- Profit Calculator: https://malawihub.pages.dev/tools/profit/
+- Study Resources: https://malawihub.pages.dev/resources/
+- Subject areas: Chemistry, Mathematics, Physics, Biology and Education
+- Past Papers: https://malawihub.pages.dev/papers/
+- Tutorial: https://malawihub.pages.dev/tutorial/
+
+## Audience
+Students, learners, teachers and everyday users looking for practical study tools, calculators and learning resources.
+
+## Focus
+Malawi is the primary focus, while the public tools and resources are available to learners and users everywhere.
+
+## Discovery
+Sitemap: https://malawihub.pages.dev/sitemap.xml
+Robots: https://malawihub.pages.dev/robots.txt
