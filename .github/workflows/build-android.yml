@@ -107,7 +107,9 @@ jobs:
         run: npm install -g @bubblewrap/cli
       - name: Initialise Android project
         if: steps.signing.outputs.enabled == 'true'
-        run: bubblewrap init --manifest ./manifest.json --directory android-app --skipPwaValidation
+        env:
+          CI: 'true'
+        run: printf 'n\n' | bubblewrap init --manifest ./manifest.json --directory android-app --skipPwaValidation
       - name: Restore signing key
         if: steps.signing.outputs.enabled == 'true'
         env:
