@@ -158,14 +158,15 @@ jobs:
               resolutionStrategy.force 'androidx.core:core-ktx:1.12.0'
           }
           EOF
-          gradle :app:bundleRelease --no-daemon --stacktrace --info
+          gradle :app:bundleRelease :app:assembleRelease --no-daemon --stacktrace --info
+          JARSIGNER="$JAVA_HOME/bin/jarsigner"
+          test -x "$JARSIGNER"
+          "$JARSIGNER" -keystore "$BUBBLEWRAP_KEYSTORE" -storepass "$BUBBLEWRAP_KEYSTORE_PASSWORD" -keypass "$BUBBLEWRAP_KEY_PASSWORD" app/build/outputs/bundle/release/app-release.aab "$BUBBLEWRAP_KEY_ALIAS"
+          "$JARSIGNER" -verify -verbose -certs app/build/outputs/bundle/release/app-release.aab
           APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           test -x "$APKSIGNER"
-          if ! "$APKSIGNER" sign --ks "$BUBBLEWRAP_KEYSTORE" --ks-pass pass:"$BUBBLEWRAP_KEYSTORE_PASSWORD" --ks-key-alias "$BUBBLEWRAP_KEY_ALIAS" --key-pass pass:"$BUBBLEWRAP_KEY_PASSWORD" --out app-release-signed.apk app/build/outputs/apk/release/app-release-unsigned.apk; then
-            echo "Configured key password did not unlock the signing key; retrying with the keystore password."
-            rm -f app-release-signed.apk
-            "$APKSIGNER" sign --ks "$BUBBLEWRAP_KEYSTORE" --ks-pass pass:"$BUBBLEWRAP_KEYSTORE_PASSWORD" --ks-key-alias "$BUBBLEWRAP_KEY_ALIAS" --key-pass pass:"$BUBBLEWRAP_KEYSTORE_PASSWORD" --out app-release-signed.apk app/build/outputs/apk/release/app-release-unsigned.apk
-          fi
+          "$APKSIGNER" sign --ks "$BUBBLEWRAP_KEYSTORE" --ks-pass pass:"$BUBBLEWRAP_KEYSTORE_PASSWORD" --ks-key-alias "$BUBBLEWRAP_KEY_ALIAS" --key-pass pass:"$BUBBLEWRAP_KEY_PASSWORD" --out app-release-signed.apk app/build/outputs/apk/release/app-release-unsigned.apk
+          "$APKSIGNER" verify --verbose app-release-signed.apk
       - name: Diagnose Main Hub merged resources
         if: always() && steps.signing.outputs.enabled == 'true'
         working-directory: android-app
