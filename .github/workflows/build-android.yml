@@ -108,12 +108,18 @@ jobs:
       - name: Configure Bubblewrap toolchain
         if: steps.signing.outputs.enabled == 'true'
         run: |
+          SDK="/usr/local/lib/android/sdk"
+          # Bubblewrap's current SDK validator expects the SDK root to expose tools/ or bin/.
+          # GitHub's runner exposes sdkmanager under cmdline-tools/latest/bin instead.
+          if [[ ! -d "$SDK/bin" ]]; then
+            ln -s "$SDK/cmdline-tools/latest/bin" "$SDK/bin"
+          fi
           mkdir -p "$HOME/.bubblewrap"
-          printf '%s\n' '{' '  "jdkPath": "'"$JAVA_HOME"'",' '  "androidSdkPath": "/usr/local/lib/android/sdk"' '}' > "$HOME/.bubblewrap/config.json"
+          printf '%s\n' '{' '  "jdkPath": "'"$JAVA_HOME"'",' '  "androidSdkPath": "'"$SDK"'"' '}' > "$HOME/.bubblewrap/config.json"
           cat "$HOME/.bubblewrap/config.json"
           test -x "$JAVA_HOME/bin/java"
-          test -x "/usr/local/lib/android/sdk/platform-tools/adb"
-          test -x "/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager"
+          test -x "$SDK/platform-tools/adb"
+          test -x "$SDK/bin/sdkmanager"
       - name: Prepare Main Hub Android project
         if: steps.signing.outputs.enabled == 'true'
         run: |
