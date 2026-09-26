@@ -1,0 +1,89 @@
+name: Publish MalawiHub Main Hub Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "Successful Build MalawiHub Android App run ID"
+        required: true
+        default: "36256483402"
+      tag:
+        description: "Release tag"
+        required: true
+        default: "main-hub-v1.0.0"
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    name: Publish signed Main Hub APK and AAB
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download signed Main Hub APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release/apk
+          gh run download "$RUN_ID" -R "$GITHUB_REPOSITORY" -n malawihub-android-apk -D release/apk
+          test -s release/apk/app-release-signed.apk
+          ls -lh release/apk/app-release-signed.apk
+
+      - name: Download Main Hub AAB
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.run_id }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p release/aab
+          gh run download "$RUN_ID" -R "$GITHUB_REPOSITORY" -n malawihub-android-release -D release/aab
+          test -s release/aab/app-release-bundle.aab
+          ls -lh release/aab/app-release-bundle.aab
+
+      - name: Verify APK signature
+        shell: bash
+        run: |
+          set -euo pipefail
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          test -x "$APKSIGNER"
+          "$APKSIGNER" verify --verbose release/apk/app-release-signed.apk
+
+      - name: Create checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum release/apk/app-release-signed.apk | tee release/malawihub-main-hub.apk.sha256
+          sha256sum release/aab/app-release-bundle.aab | tee release/malawihub-main-hub.aab.sha256
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; replacing its assets."
+            gh release upload "$TAG" \
+              release/apk/app-release-signed.apk \
+              release/aab/app-release-bundle.aab \
+              release/malawihub-main-hub.apk.sha256 \
+              release/malawihub-main-hub.aab.sha256 \
+              -R "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" \
+              release/apk/app-release-signed.apk \
+              release/aab/app-release-bundle.aab \
+              release/malawihub-main-hub.apk.sha256 \
+              release/malawihub-main-hub.aab.sha256 \
+              -R "$GITHUB_REPOSITORY" \
+              --title "MalawiHub Main Hub v1.0.0" \
+              --notes "Official signed MalawiHub Main Hub Android v1.0.0. The APK is provided for direct Android installation and the AAB is provided for Play distribution." \
+              --target main
+          fi
+          echo "Main Hub release published: $TAG"
