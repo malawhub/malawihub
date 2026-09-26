@@ -15,9 +15,5 @@
   "maskableIconUrl": "https://malawihub.pages.dev/icons/icon.svg",
   "fallbackType": "customtabs",
   "enableNotifications": false,
-  "webManifestUrl": "https://malawihub.pages.dev/manifest.json",
-  "signingKey": {
-    "path": "malawihub-release.keystore",
-    "alias": "malawihub"
-  }
+  "webManifestUrl": "https://malawihub.pages.dev/manifest.json"
 }
