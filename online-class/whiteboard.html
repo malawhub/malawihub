@@ -32,7 +32,7 @@ body{margin:0;background:#eef3ef;color:#17251d;font-family:Arial,sans-serif}.wra
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../js/supabase.js"></script>
 <script>
-const $=id=>document.getElementById(id);const canvas=$('board'),ctx=canvas.getContext('2d');let channel=null,code='',role='',user=null,drawing=false,tool='pen',current=null,strokes=[],lastSend=0,smartInk=true,writingGuide=false;
+const $=id=>document.getElementById(id);const canvas=$('board'),ctx=canvas.getContext('2d');let channel=null,code='',role='',user=null,drawing=false,tool='pen',current=null,strokes=[],lastSend=0,smartInk=true,smartHandwriting=true,writingGuide=false;
 function clean(v){return v.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,32)}
 function setMsg(t,error=false){$('msg').textContent=t;$('status').textContent=t;$('msg').style.color=error?'#a22':'#53625a'}
 function resize(){if(!$('boardArea').classList.contains('hidden')){const old=canvas.width?canvas.toDataURL():null;const r=canvas.getBoundingClientRect(),d=window.devicePixelRatio||1;canvas.width=r.width*d;canvas.height=r.height*d;ctx.setTransform(d,0,0,d,0,0);ctx.lineCap='round';ctx.lineJoin='round';if(old){const img=new Image();img.onload=()=>ctx.drawImage(img,0,0,r.width,r.height);img.src=old}}}
