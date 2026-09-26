@@ -155,8 +155,24 @@ jobs:
               resolutionStrategy.force 'androidx.core:core-ktx:1.12.0'
           }
           EOF
-          gradle :app:bundleRelease --no-daemon
+          gradle :app:bundleRelease --no-daemon --stacktrace --info
           apksigner sign --ks "$BUBBLEWRAP_KEYSTORE" --ks-pass pass:"$BUBBLEWRAP_KEYSTORE_PASSWORD" --ks-key-alias "$BUBBLEWRAP_KEY_ALIAS" --key-pass pass:"$BUBBLEWRAP_KEY_PASSWORD" --out app-release-signed.apk app/build/outputs/apk/release/app-release-unsigned.apk
+      - name: Diagnose Main Hub merged resources
+        if: always() && steps.signing.outputs.enabled == 'true'
+        working-directory: android-app
+        shell: bash
+        run: |
+          FILE="app/build/intermediates/incremental/release/mergeReleaseResources/merged.dir/values/values.xml"
+          if [[ -f "$FILE" ]]; then
+            echo "===== merged values.xml lines 70-100 ====="
+            nl -ba "$FILE" | sed -n '70,100p'
+            echo "===== integer resources ====="
+            grep -nE '<integer|type="integer"' "$FILE" || true
+          else
+            echo "Merged values.xml was not produced."
+            find app/build/intermediates -path '*/mergeReleaseResources/merged.dir/values/values.xml' -print || true
+          fi
+
       - name: Prepare APK output
         if: steps.signing.outputs.enabled == 'true'
         working-directory: android-app
