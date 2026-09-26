@@ -1,0 +1,14 @@
+{
+  "name": "MalawiHub Smart Writer",
+  "short_name": "Smart Writer",
+  "id": "/tools/smart-writer/",
+  "start_url": "/tools/smart-writer/",
+  "scope": "/tools/smart-writer/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#087f3f",
+  "background_color": "#f7faf8",
+  "description": "MalawiHub Smart Writer with a mobile-friendly writing keyboard and document tools.",
+  "categories": ["education","productivity"],
+  "icons": [{"src":"/icons/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}
