@@ -142,7 +142,7 @@ jobs:
           BUBBLEWRAP_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           BUBBLEWRAP_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           BUBBLEWRAP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: bubblewrap build --signingKey "$BUBBLEWRAP_KEYSTORE" --signingKeyPassword "$BUBBLEWRAP_KEYSTORE_PASSWORD" --signingKeyAlias "$BUBBLEWRAP_KEY_ALIAS" --signingKeyAliasPassword "$BUBBLEWRAP_KEY_PASSWORD"
+        run: bubblewrap build --signingKeyPath "$BUBBLEWRAP_KEYSTORE" --signingKeyAlias "$BUBBLEWRAP_KEY_ALIAS"
       - name: Upload Android App Bundle
         if: steps.signing.outputs.enabled == 'true'
         uses: actions/upload-artifact@v4
