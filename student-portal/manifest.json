@@ -1,0 +1,20 @@
+{
+  "name": "MalawiHub Student Portal",
+  "short_name": "Student Portal",
+  "id": "/student-portal/",
+  "start_url": "/student-portal/",
+  "scope": "/student-portal/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#087f3f",
+  "background_color": "#f5f7fb",
+  "description": "MalawiHub private student portal for registered learners.",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
