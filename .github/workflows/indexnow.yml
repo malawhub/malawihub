@@ -1,0 +1,83 @@
+name: MalawiHub IndexNow
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  notify-indexnow:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Notify IndexNow
+        shell: bash
+        env:
+          SITE: https://malawihub.pages.dev
+          KEY: 9b6f2e4a7c1d8f35b0e6a2c9d4f7e1ab
+        run: |
+          set -euo pipefail
+
+          BEFORE="${{ github.event.before }}"
+          AFTER="${{ github.sha }}"
+
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            FILES="$(git ls-tree -r --name-only "$AFTER")"
+          else
+            FILES="$(git diff --name-only "$BEFORE" "$AFTER")"
+          fi
+
+          URLS=()
+
+          while IFS= read -r file; do
+            [ -z "$file" ] && continue
+
+            case "$file" in
+              admin/*|online-class/*|business/*/admin/*|supabase/*|.github/*)
+                continue
+                ;;
+            esac
+
+            case "$file" in
+              index.html)
+                URLS+=("$SITE/")
+                ;;
+              *.html|*.xml|*.txt)
+                URLS+=("$SITE/$file")
+                ;;
+            esac
+          done <<< "$FILES"
+
+          if [ "${#URLS[@]}" -eq 0 ]; then
+            echo "No public HTML/XML/TXT URL changed; nothing to submit."
+            exit 0
+          fi
+
+          printf '%s\n' "${URLS[@]}" | sort -u > /tmp/indexnow-urls.txt
+
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          urls = [x.strip() for x in Path("/tmp/indexnow-urls.txt").read_text().splitlines() if x.strip()]
+          payload = {
+              "host": "malawihub.pages.dev",
+              "key": "9b6f2e4a7c1d8f35b0e6a2c9d4f7e1ab",
+              "keyLocation": "https://malawihub.pages.dev/9b6f2e4a7c1d8f35b0e6a2c9d4f7e1ab.txt",
+              "urlList": urls[:10000],
+          }
+          Path("/tmp/indexnow.json").write_text(json.dumps(payload))
+          print("Submitting", len(payload["urlList"]), "public URLs")
+          print("\n".join(payload["urlList"]))
+          PY
+
+          curl --fail-with-body -sS \
+            -X POST "https://api.indexnow.org/indexnow" \
+            -H "Content-Type: application/json; charset=utf-8" \
+            --data-binary @/tmp/indexnow.json
