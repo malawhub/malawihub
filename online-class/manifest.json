@@ -1,0 +1,20 @@
+{
+  "name": "MalawiHub Live Class",
+  "short_name": "Live Class",
+  "id": "/online-class/",
+  "start_url": "/online-class/",
+  "scope": "/online-class/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#087f3f",
+  "background_color": "#f5f7fb",
+  "description": "MalawiHub live classroom for authorized students, teachers and administrators.",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
