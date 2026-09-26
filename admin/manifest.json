@@ -1,0 +1,20 @@
+{
+  "name": "MalawiHub Admin",
+  "short_name": "Admin",
+  "id": "/admin/",
+  "start_url": "/admin/login.html",
+  "scope": "/admin/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#087f3f",
+  "background_color": "#f5f7fb",
+  "description": "MalawiHub administrator application.",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
