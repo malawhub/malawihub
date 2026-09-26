@@ -1,0 +1,18 @@
+/* MalawiHub shared orientation layer for pages with their own styles */
+*{box-sizing:border-box}
+html,body{max-width:100%;overflow-x:hidden}
+img,video,canvas,iframe{max-width:100%}
+@media (orientation:landscape) and (max-width:900px){
+  body{min-width:0}
+  header{max-width:100%}
+  main,.container,.wrap,.app,.page,.content{max-width:100%;width:100%}
+  .grid,.cards,.tools-grid,.feature-grid,.form-grid,.columns,.row-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .card,.panel,.box,.section,.container{padding:clamp(12px,2vw,22px)}
+  h1{font-size:clamp(25px,5vw,40px)}
+  h2{font-size:clamp(21px,4vw,30px)}
+}
+@media (orientation:portrait) and (max-width:650px){
+  body{min-width:0}
+  .grid,.cards,.tools-grid,.feature-grid,.form-grid,.columns,.row-grid{grid-template-columns:1fr}
+  input,select,textarea,button{max-width:100%}
+}
