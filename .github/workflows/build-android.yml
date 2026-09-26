@@ -147,6 +147,7 @@ jobs:
         run: |
           sed -i '/splashScreenFadeOutDuration:/d' app/build.gradle
           sed -i 's/jcenter()/mavenCentral()/g' build.gradle
+          sed -i -E 's/compileSdkVersion [0-9]+/compileSdkVersion 35/g; s/compileSdk [0-9]+/compileSdk 35/g; s/targetSdkVersion [0-9]+/targetSdkVersion 35/g; s/targetSdk [0-9]+/targetSdk 35/g; s/buildToolsVersion "[0-9.]+"/buildToolsVersion "35.0.0"/g' app/build.gradle build.gradle
           cat >> app/build.gradle <<'EOF'
           
           configurations.all {
