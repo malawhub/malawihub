@@ -6,6 +6,8 @@ on:
     paths:
       - 'android/**'
       - 'android-connector/**'
+      - 'android-student/**'
+      - 'android-teacher/**'
       - 'manifest.json'
       - 'icons/**'
 
@@ -28,6 +30,44 @@ jobs:
         with:
           name: malawihub-business-connector-apk
           path: android-connector/app/build/outputs/apk/debug/app-debug.apk
+
+  student:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build Student debug APK
+        working-directory: android-student
+        run: gradle :app:assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: malawihub-student-portal-apk
+          path: android-student/app/build/outputs/apk/debug/app-debug.apk
+
+  teacher:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build Teacher debug APK
+        working-directory: android-teacher
+        run: gradle :app:assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: malawihub-teacher-portal-apk
+          path: android-teacher/app/build/outputs/apk/debug/app-debug.apk
 
   build:
     runs-on: ubuntu-latest
