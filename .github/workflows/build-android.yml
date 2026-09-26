@@ -9,6 +9,7 @@ on:
       - 'android-student/**'
       - 'android-teacher/**'
       - 'manifest.json'
+      - '.github/workflows/build-android.yml'
       - 'icons/**'
 
 jobs:
