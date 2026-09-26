@@ -740,8 +740,12 @@ async function startPremiumPayment(){
             "Complete the payment using the supported "+
             "OneKhusa Request-To-Pay process before it expires.";
 
-        button.textContent = "Payment Request Created";
+        button.textContent = "Waiting for Payment...";
         button.disabled = true;
+
+        // Keep checking the payment so Premium can activate automatically
+        // after OneKhusa confirms the transaction.
+        await monitorPremiumPayment(data.payment_id, message, button);
 
     }catch(error){
 
@@ -760,6 +764,103 @@ async function startPremiumPayment(){
         button.disabled = false;
         button.textContent = "Pay MWK 2,000";
     }
+}
+
+
+
+async function monitorPremiumPayment(paymentId, message, button){
+
+    const startedAt = Date.now();
+    const timeoutMs = 15 * 60 * 1000;
+
+    message.innerHTML +=
+        "<br><br><strong>Waiting for payment confirmation...</strong><br>"+
+        "Complete the mobile-money payment. MalawiHub will check automatically.";
+
+    while(Date.now() - startedAt < timeoutMs){
+
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
+        try{
+
+            const { data: sessionData } =
+                await supabaseClient.auth.getSession();
+
+            const accessToken =
+                sessionData?.session?.access_token;
+
+            if(!accessToken){
+                throw new Error("Your login session has expired.");
+            }
+
+            const { data, error } =
+                await supabaseClient.functions.invoke(
+                    "onekhusa-check-payment",
+                    {
+                        body:{
+                            payment_id:paymentId
+                        },
+                        headers:{
+                            Authorization:
+                                "Bearer " + accessToken
+                        }
+                    }
+                );
+
+            if(error){
+                console.warn("Premium payment status check:", error);
+                continue;
+            }
+
+            if(data?.status === "paid"){
+
+                message.style.background = "#e7f5ef";
+                message.style.color = "#087f5b";
+                message.innerHTML =
+                    "<strong>🎉 Premium payment confirmed!</strong><br><br>"+
+                    "Your MalawiHub Premium access is now active for 30 days.";
+
+                button.textContent = "Premium Activated";
+                await checkPremiumStatus();
+                return;
+            }
+
+            if(
+                data?.status === "failed" ||
+                data?.status === "reversed" ||
+                data?.status === "expired"
+            ){
+
+                message.style.background = "#f8d7da";
+                message.style.color = "#842029";
+                message.innerHTML =
+                    "<strong>Payment was not completed.</strong><br><br>"+
+                    "Status: " + data.status + ". You can start a new payment.";
+
+                button.disabled = false;
+                button.textContent = "Pay MWK 2,000";
+                return;
+            }
+
+        }catch(error){
+
+            console.warn(
+                "Premium payment monitoring error:",
+                error
+            );
+
+        }
+
+    }
+
+    message.style.background = "#fff3cd";
+    message.style.color = "#664d03";
+    message.innerHTML =
+        "<strong>Payment request expired.</strong><br><br>"+
+        "The payment window has ended. Please start a new payment request.";
+
+    button.disabled = false;
+    button.textContent = "Pay MWK 2,000";
 }
 
 
