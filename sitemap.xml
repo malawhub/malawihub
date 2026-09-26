@@ -36,11 +36,8 @@
   <url><loc>https://malawihub.pages.dev/tools/currency-calculator-malawi/</loc></url>
   <url><loc>https://malawihub.pages.dev/tools/assignment/</loc></url>
   <url><loc>https://malawihub.pages.dev/tools/assignment-cover-page-malawi/</loc></url>
-  <url><loc>https://malawihub.pages.dev/tools/smart-writer/</loc></url>
+  <url><loc>https://malawihub.pages.dev/tools/smart-writer/</loc><priority>0.8</priority></url>
   <url><loc>https://malawihub.pages.dev/tools/assignment/premium.html</loc></url>
-  <url><loc>https://malawihub.pages.dev/online-class/</loc></url>
-  <url><loc>https://malawihub.pages.dev/student-portal/</loc></url>
-  <url><loc>https://malawihub.pages.dev/teacher-portal/</loc></url>
-  <url><loc>https://malawihub.pages.dev/business/</loc></url>
+  <url><loc>https://malawihub.pages.dev/business/</loc><priority>0.8</priority></url>
   <url><loc>https://malawihub.pages.dev/discovery/</loc></url>
 </urlset>
