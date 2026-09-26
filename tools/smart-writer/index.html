@@ -39,8 +39,6 @@ document.getElementById('pages').addEventListener('input',scheduleCaret);documen
     const before=text.slice(0,-2);
     el.innerText=before+'. ';
     placeCaretAtEnd(el);
-  }else{
-    autoCapitalizeSentence(el);
   }
 });
 function placeCaretAtEnd(el){
