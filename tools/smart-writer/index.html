@@ -51,16 +51,31 @@ function renderKeyboard(mode){
   const p=palettes[mode]||palettes.math;
   ['numberRow','letterRow1','letterRow2','letterRow3'].forEach((id,i)=>makeRow(id,p[i]||[]));
 }
+let audioCtx=null;
+function tapSound(k){
+  try{
+    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==='suspended')audioCtx.resume();
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    const special=['Backspace','Delete','Enter','Space','Caps','Shift','Tab'].includes(k);
+    o.type='sine';
+    o.frequency.value=special?180:520;
+    g.gain.setValueAtTime(0.0001,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(special?0.035:0.025,audioCtx.currentTime+0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001,audioCtx.currentTime+0.045);
+    o.connect(g);g.connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+0.05);
+  }catch(_){}
+}
 let pressTimer=null,pressActive=false;
 function stopLongPress(){if(pressTimer){clearInterval(pressTimer);pressTimer=null}pressActive=false}
 function startLongPress(k,b){stopLongPress();pressActive=true;pressTimer=setTimeout(()=>{if(!pressActive)return;pressTimer=setInterval(()=>{if(pressActive)key(k)},70)},450)}
 function makeRow(id,a){a.forEach(k=>{let b=document.createElement('button');b.className='key';b.textContent=k==='APOS'?"'":k;if(['Backspace','Enter','Shift','Tab','Caps','Ctrl','Alt','Delete'].includes(k))b.classList.add('wide','control');if(k==='Space')b.classList.add('xwide');if(k==='Esc'||k.startsWith('F')||k==='PrtSc')b.classList.add('control');
-b.addEventListener('pointerdown',e=>{e.preventDefault();startLongPress(k,b)});
+b.addEventListener('pointerdown',e=>{e.preventDefault();tapSound(k);startLongPress(k,b)});
 b.addEventListener('pointerup',e=>{e.preventDefault();if(pressActive){stopLongPress();key(k)}});
 b.addEventListener('pointercancel',stopLongPress);b.addEventListener('pointerleave',()=>{if(pressActive)stopLongPress()});
 $(id).appendChild(b)})}
 document.addEventListener('pointerup',stopLongPress)}Object.entries(rows).forEach(x=>makeRow(x[0],x[1]));
-function updateCapsUI(){document.querySelectorAll('.key').forEach(b=>{if(b.textContent==='Caps')b.classList.toggle('activeCaps',caps)});$('status').textContent=caps?'Caps Lock ON':'Caps Lock OFF'}\nfunction key(k){if(k==='Shift'){shift=!shift;return}if(k==='Caps'){caps=!caps;updateCapsUI();return}if(k==='Space'){ins(' ');return}if(k==='Enter'){cmd('insertParagraph');return}if(k==='Backspace'||k==='⌫'){cmd('delete');return}if(k==='Delete'){cmd('forwardDelete');return}if(k==='Tab'){ins('\t');return}if(['Ctrl','Alt','Win','Esc','PrtSc'].includes(k)||k.startsWith('F'))return;let sym={'1':'!','2':'@','3':'#','4':'$','5':'%','6':'^','7':'&','8':'*','9':'(','0':')','-':'_','=':'+','[':'{',']':'}','\\':'|',';':':','APOS':'"',',':'<','.':'>','/':'?'};let out=k;if(shift){out=sym[k]||k.toUpperCase();shift=false}else if(caps&&/^[a-z]$/.test(k))out=k.toUpperCase();ins(out)}
+function updateCapsUI(){document.querySelectorAll('.key').forEach(b=>{if(b.textContent==='Caps')b.classList.toggle('activeCaps',caps)});$('status').textContent=caps?'Caps Lock ON':'Caps Lock OFF'}\nfunction key(k){tapSound(k);if(k==='Shift'){shift=!shift;return}if(k==='Caps'){caps=!caps;updateCapsUI();return}if(k==='Space'){ins(' ');return}if(k==='Enter'){cmd('insertParagraph');return}if(k==='Backspace'||k==='⌫'){cmd('delete');return}if(k==='Delete'){cmd('forwardDelete');return}if(k==='Tab'){ins('\t');return}if(['Ctrl','Alt','Win','Esc','PrtSc'].includes(k)||k.startsWith('F'))return;let sym={'1':'!','2':'@','3':'#','4':'$','5':'%','6':'^','7':'&','8':'*','9':'(','0':')','-':'_','=':'+','[':'{',']':'}','\\':'|',';':':','APOS':'"',',':'<','.':'>','/':'?'};let out=k;if(shift){out=sym[k]||k.toUpperCase();shift=false}else if(caps&&/^[a-z]$/.test(k))out=k.toUpperCase();ins(out)}
 function switchMode(id,type){document.querySelectorAll('.mode').forEach(x=>x.classList.remove('active'));$(id).classList.add('active');$('special').style.display=type==='special'?'block':'none';$('voicePanel').style.display=type==='voice'?'block':'none';$('ribbon').style.display=type==='voice'?'none':'flex';$('keyboard').style.display=type==='voice'?'none':'block';scheduleCaret()}
 $('writeMode').onclick=()=>{switchMode('writeMode','write');renderKeyboard('write')};$('mathMode').onclick=()=>{switchMode('mathMode','special');renderKeyboard('math')};$('physicsMode').onclick=()=>{switchMode('physicsMode','special');renderKeyboard('physics')};$('chemMode').onclick=()=>{switchMode('chemMode','special');renderKeyboard('chem')};$('voiceMode').onclick=()=>switchMode('voiceMode','voice');
 document.querySelectorAll('.keyboardSwitch button').forEach(b=>b.onclick=()=>renderKeyboard(b.dataset.kmode));
