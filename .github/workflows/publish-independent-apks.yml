@@ -1,0 +1,111 @@
+name: Publish Independent MalawiHub APKs
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download latest signed Main Hub APK
+        run: curl -fsSL "https://github.com/malawhub/malawihub/releases/latest/download/app-release-signed.apk" -o main-hub.apk
+
+      - name: Download latest successful Student APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ID=$(gh run list --workflow build-student-apk.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          test -n "$ID"
+          gh run download "$ID" --name student-apk --dir dist/student
+          cp dist/student/student.apk student.apk
+
+      - name: Download latest successful Teacher APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ID=$(gh run list --workflow build-teacher-apk.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          test -n "$ID"
+          gh run download "$ID" --name teacher-apk --dir dist/teacher
+          cp dist/teacher/teacher.apk teacher.apk
+
+      - name: Download latest successful Business Connector APK
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ID=$(gh run list --workflow build-connector.yml --status success --limit 1 --json databaseId --jq '.[0].databaseId')
+          test -n "$ID"
+          gh run download "$ID" --name malawihub-business-connector-apk --dir dist/connector
+          cp dist/connector/app-debug.apk business-connector.apk
+
+      - name: Build latest Smart Keyboard APK
+        uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Assemble Smart Keyboard
+        working-directory: android-keyboard
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Prepare Smart Keyboard
+        run: cp android-keyboard/app/build/outputs/apk/debug/app-debug.apk malawihub-smart-keyboard.apk
+
+      - name: Verify all independent APK files
+        run: |
+          test -s main-hub.apk
+          test -s student.apk
+          test -s teacher.apk
+          test -s business-connector.apk
+          test -s malawihub-smart-keyboard.apk
+          ls -lh *.apk
+
+      - name: Publish Main Hub independently
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="malawihub-main-v1.0.${{ github.run_number }}"
+          gh release create "$TAG" main-hub.apk --title "MalawiHub Main Hub v1.0.${{ github.run_number }}" --notes "Official standalone MalawiHub Main Hub Android APK. Student tools, calculators, resources and Smart Writer. Admin APK is separate."
+
+      - name: Publish Student Portal independently
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="malawihub-student-v1.0.${{ github.run_number }}"
+          gh release create "$TAG" student.apk --title "MalawiHub Student Portal v1.0.${{ github.run_number }}" --notes "Official standalone MalawiHub Student Portal Android APK."
+
+      - name: Publish Teacher Portal independently
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="malawihub-teacher-v1.0.${{ github.run_number }}"
+          gh release create "$TAG" teacher.apk --title "MalawiHub Teacher Portal v1.0.${{ github.run_number }}" --notes "Official standalone MalawiHub Teacher Portal Android APK."
+
+      - name: Publish Business Connector independently
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="malawihub-business-v1.0.${{ github.run_number }}"
+          gh release create "$TAG" business-connector.apk --title "MalawiHub Business Connector v1.0.${{ github.run_number }}" --notes "Official standalone MalawiHub Business Connector Android APK."
+
+      - name: Publish Smart Keyboard independently
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="malawihub-keyboard-v1.0.${{ github.run_number }}"
+          gh release create "$TAG" malawihub-smart-keyboard.apk --title "MalawiHub Smart Keyboard v1.0.${{ github.run_number }}" --notes "Official standalone MalawiHub Smart Keyboard Android APK."
+
+      - name: Show releases
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "malawihub-main-v1.0.${{ github.run_number }}" --json url
+          gh release view "malawihub-student-v1.0.${{ github.run_number }}" --json url
+          gh release view "malawihub-teacher-v1.0.${{ github.run_number }}" --json url
+          gh release view "malawihub-business-v1.0.${{ github.run_number }}" --json url
+          gh release view "malawihub-keyboard-v1.0.${{ github.run_number }}" --json url
