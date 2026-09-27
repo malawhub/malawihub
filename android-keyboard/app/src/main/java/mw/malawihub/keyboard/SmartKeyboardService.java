@@ -6,16 +6,10 @@ import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.view.Gravity;
 import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.Space;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class SmartKeyboardService extends InputMethodService {
     private LinearLayout root;
@@ -28,8 +22,13 @@ public class SmartKeyboardService extends InputMethodService {
         root.setPadding(6, 6, 6, 6);
         root.setBackgroundColor(Color.WHITE);
 
-        // Keep the IME compact like a modern Android keyboard so the editor remains visible.
-        getWindow().setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
+        // Let the editor resize/pan naturally above the IME like a modern Android keyboard.
+        if (getWindow() != null && getWindow().getWindow() != null) {
+            getWindow().getWindow().setSoftInputMode(
+                android.view.WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE
+            );
+        }
+
         buildKeyboard();
         return root;
     }
@@ -45,7 +44,6 @@ public class SmartKeyboardService extends InputMethodService {
     private void addRow(String letters) {
         LinearLayout row = new LinearLayout(this);
         row.setGravity(Gravity.CENTER);
-        row.setWeightSum(letters.length());
         for (char c : letters.toCharArray()) {
             Button b = key(String.valueOf(shift ? c : Character.toLowerCase(c)));
             row.addView(b, new LinearLayout.LayoutParams(0, 48, 1));
@@ -84,12 +82,12 @@ public class SmartKeyboardService extends InputMethodService {
         b.setAllCaps(false);
         b.setGravity(Gravity.CENTER);
         GradientDrawable bg = new GradientDrawable();
-        bg.setColor(Color.rgb(245,245,245));
+        bg.setColor(Color.rgb(245, 245, 245));
         bg.setCornerRadius(12);
         b.setBackground(bg);
         b.setOnClickListener(v -> {
-            if (!label.equals("shift") && !label.equals("SHIFT") &&
-                !label.equals("space") && !label.equals("⌫") && !label.equals("↵")) {
+            if (!label.equals("shift") && !label.equals("SHIFT")
+                    && !label.equals("space") && !label.equals("⌫") && !label.equals("↵")) {
                 commit(label);
                 shift = false;
                 buildKeyboard();
@@ -118,13 +116,18 @@ public class SmartKeyboardService extends InputMethodService {
         InputConnection ic = getCurrentInputConnection();
         if (ic == null) return;
         EditorInfo info = getCurrentInputEditorInfo();
-        int action = info == null ? EditorInfo.IME_ACTION_NONE : (info.imeOptions & EditorInfo.IME_MASK_ACTION);
+        int action = info == null ? EditorInfo.IME_ACTION_NONE
+                : (info.imeOptions & EditorInfo.IME_MASK_ACTION);
+
         if (action != EditorInfo.IME_ACTION_NONE && action != EditorInfo.IME_ACTION_UNSPECIFIED) {
             ic.performEditorAction(action);
         } else {
             ic.commitText("\n", 1);
         }
-        // Intentionally do not enable shift after Enter: the writer controls capitalization.
+
+        // Enter never forces shift/capitalization.
+        shift = false;
+        buildKeyboard();
     }
 
     @Override
