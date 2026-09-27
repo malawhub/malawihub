@@ -100,8 +100,7 @@ public class MainActivity extends Activity {
         settings.setAllowContentAccess(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
         settings.setMediaPlaybackRequiresUserGesture(false);
-        settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
-        webView.clearCache(true);
+        settings.setCacheMode(WebSettings.LOAD_DEFAULT);
         webView.clearHistory();
 
         CookieManager cookies=CookieManager.getInstance();
