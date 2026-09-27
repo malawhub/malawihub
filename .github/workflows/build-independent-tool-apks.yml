@@ -1,0 +1,37 @@
+name: Build Independent MalawiHub Tool APKs
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'android-tools/**'
+      - '.github/workflows/build-independent-tool-apks.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: [gpa, chemistry, assignment, papers, grade, timetable, percentage, currency, profit, smartwriter]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build APK
+        working-directory: android-tools
+        run: gradle :app:assemble${{ matrix.flavor }}Release --no-daemon
+      - name: Name APK
+        working-directory: android-tools
+        run: |
+          mkdir -p dist
+          cp app/build/outputs/apk/${{ matrix.flavor }}/release/app-${{ matrix.flavor }}-release.apk dist/${{ matrix.flavor }}.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: malawihub-${{ matrix.flavor }}-apk
+          path: android-tools/dist/${{ matrix.flavor }}.apk
