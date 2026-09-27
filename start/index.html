@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Start Here | MalawiHub — Free Student Tools for Malawi</title>
+<meta name="description" content="Start with what you need on MalawiHub: calculate GPA and grades, find past papers and study resources, create assignment covers, write documents, build a timetable or download Android apps.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://malawihub.pages.dev/start/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Start Here | MalawiHub">
+<meta property="og:description" content="Choose a task and start using MalawiHub immediately. Free student tools, study resources, past papers and Android apps.">
+<meta property="og:url" content="https://malawihub.pages.dev/start/">
+<meta property="og:site_name" content="MalawiHub">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Start Here | MalawiHub">
+<meta name="twitter:description" content="Choose what you need and start using MalawiHub immediately.">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f4f8f5;color:#15231b}header{background:#087f3f;color:#fff;padding:15px 6%;display:flex;align-items:center;justify-content:space-between;gap:15px}header a{color:#fff;text-decoration:none;font-weight:700}.wrap{max-width:1050px;margin:auto;padding:22px 16px 45px}.hero{background:#fff;border-radius:22px;padding:30px 22px;text-align:center;box-shadow:0 8px 28px #0000000b}.hero h1{font-size:clamp(30px,7vw,48px);margin:8px 0 12px}.hero p{max-width:720px;margin:auto;line-height:1.6;color:#536158}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:15px;margin-top:20px}.card{background:#fff;border:1px solid #dfe9e2;border-radius:17px;padding:20px}.card h2{font-size:20px;margin:0 0 8px}.card p{line-height:1.5;color:#59665f;min-height:48px}.go{display:inline-block;background:#087f3f;color:#fff;text-decoration:none;padding:11px 15px;border-radius:10px;font-weight:800}.share{margin-top:22px;text-align:center;background:#eaf5ed;border-radius:16px;padding:18px}.share button{border:0;border-radius:10px;padding:11px 15px;background:#087f3f;color:#fff;font-weight:800;cursor:pointer}.small{font-size:13px;color:#647169;margin-top:12px}.section-title{text-align:center;margin:30px 0 8px}
+</style>
+</head>
+<body>
+<header><strong>🇲🇼 MalawiHub</strong><a href="/">← Home</a></header>
+<main class="wrap">
+<section class="hero">
+<div>🇲🇼 <strong>Malawi Student & Calculator Hub</strong></div>
+<h1>What do you need?</h1>
+<p>Choose a task below and start immediately. Most MalawiHub tools are free and do not require an account.</p>
+</section>
+
+<h2 class="section-title">⚡ I need to...</h2>
+<section class="grid">
+<article class="card"><h2>📊 Calculate my GPA</h2><p>Work out your GPA quickly with the MalawiHub GPA Calculator.</p><a class="go" href="/tools/gpa/">Calculate GPA</a></article>
+<article class="card"><h2>📝 Calculate my grade</h2><p>Calculate percentages and grades from your marks.</p><a class="go" href="/tools/grade/">Calculate Grade</a></article>
+<article class="card"><h2>📚 Find past papers</h2><p>Open examination papers and revision resources.</p><a class="go" href="/papers/">Find Past Papers</a></article>
+<article class="card"><h2>🧪 Study Chemistry</h2><p>Open Chemistry resources or use the Chemistry Calculator.</p><a class="go" href="/resources/chemistry/">Study Chemistry</a></article>
+<article class="card"><h2>✍️ Write a document</h2><p>Use Smart Writer to write, organise and work on documents.</p><a class="go" href="/tools/smart-writer/">Open Smart Writer</a></article>
+<article class="card"><h2>📄 Make an assignment cover</h2><p>Create an assignment cover page quickly from your phone.</p><a class="go" href="/tools/assignment/">Create Cover</a></article>
+<article class="card"><h2>📅 Make a study timetable</h2><p>Create a simple timetable for organising your study time.</p><a class="go" href="/tools/timetable/">Make Timetable</a></article>
+<article class="card"><h2>🧮 Use a calculator</h2><p>Open percentage, currency, profit or chemistry calculators.</p><a class="go" href="/#calculators">Open Calculators</a></article>
+<article class="card"><h2>📱 Get the Android apps</h2><p>Install individual MalawiHub tools instead of the whole suite.</p><a class="go" href="/download/">Download Apps</a></article>
+<article class="card"><h2>🎓 Learn how MalawiHub works</h2><p>Follow the short English or Chichewa walkthrough.</p><a class="go" href="/tutorial/">Open Tutorial</a></article>
+<article class="card"><h2>🔎 Explore resources</h2><p>Browse subjects, study guides and learning materials.</p><a class="go" href="/discovery/">Explore Discovery</a></article>
+<article class="card"><h2>⭐ See Premium</h2><p>Learn what the optional Premium layer provides.</p><a class="go" href="/premium/">View Premium</a></article>
+</section>
+
+<section class="share">
+<h2>📣 Know someone who needs these tools?</h2>
+<p>Share this Start Here page instead of explaining where everything is.</p>
+<button id="shareBtn">Share MalawiHub</button>
+<div class="small" id="shareStatus"></div>
+</section>
+</main>
+<script>
+const url='https://malawihub.pages.dev/start/';
+const text='MalawiHub 🇲🇼 — free student tools, calculators, study resources, past papers and Android apps.';
+document.getElementById('shareBtn').onclick=async()=>{
+ const status=document.getElementById('shareStatus');
+ try{
+  if(navigator.share){await navigator.share({title:'MalawiHub — Start Here',text,url});status.textContent='Thanks for sharing MalawiHub.'}
+  else{await navigator.clipboard.writeText(url);status.textContent='Link copied. You can now paste it into WhatsApp or another app.'}
+ }catch(e){if(e.name!=='AbortError')status.textContent='Copy this page link: '+url}
+};
+</script>
+</body>
+</html>
