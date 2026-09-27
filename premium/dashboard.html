@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>My MalawiHub Premium | Premium Status</title>
+<meta name="description" content="Check your MalawiHub Premium status, plan and expiry date.">
+<meta name="robots" content="noindex,nofollow">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="/js/supabase.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f8f7;color:#17201b}.wrap{max-width:760px;margin:auto;padding:24px}.card{background:#fff;border-radius:18px;padding:24px;margin:18px 0;box-shadow:0 5px 20px rgba(0,0,0,.07)}.brand{text-align:center;color:#087f3f;font-weight:800}.status{font-size:28px;font-weight:800;color:#087f3f;margin:10px 0}.muted{color:#66746c;line-height:1.6}.row{display:flex;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid #e7ece9}.row:last-child{border-bottom:0}.btn{display:inline-block;border:0;border-radius:10px;padding:13px 18px;font-weight:700;text-decoration:none;cursor:pointer}.primary{background:#087f3f;color:#fff}.secondary{background:#eef5f1;color:#087f3f}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}.warning{background:#fff8df;border:1px solid #ead28a;color:#6b5500}.hidden{display:none!important}@media(max-width:520px){.row{display:block}.row strong{display:block;margin-top:4px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="brand">🇲🇼 MalawiHub</div>
+<div class="card" id="loading"><h1>My Premium</h1><p class="muted">Checking your MalawiHub account...</p></div>
+<div class="card hidden" id="signedOut">
+<h1>My Premium</h1><p class="muted">Sign in to see your Premium status and expiry date.</p>
+<div class="actions"><a class="btn primary" href="/tools/assignment/premium.html">Sign in / Premium</a><a class="btn secondary" href="/premium/">← Premium</a></div>
+</div>
+<div class="card hidden" id="dashboard">
+<h1>⭐ My Premium</h1>
+<div class="status" id="statusText">Premium active</div>
+<p class="muted" id="summary"></p>
+<div class="row"><span>Plan</span><strong id="planName">Premium</strong></div>
+<div class="row"><span>Started</span><strong id="startDate">—</strong></div>
+<div class="row"><span>Expires</span><strong id="expiryDate">—</strong></div>
+<div class="row"><span>Days remaining</span><strong id="daysLeft">—</strong></div>
+<div class="actions"><a class="btn primary" href="/tools/assignment/">Open Assignment Cover</a><a class="btn secondary" href="/premium/">Premium details</a></div>
+</div>
+<div class="card warning hidden" id="renew">
+<strong>Premium is ending soon.</strong>
+<p class="muted">You can renew for another 30 days from the Premium payment page.</p>
+<a class="btn primary" href="/tools/assignment/premium.html">Renew Premium</a>
+</div>
+<div class="card hidden" id="expired">
+<strong>Premium has expired.</strong>
+<p class="muted">Your free MalawiHub tools remain available. You can purchase Premium again whenever you want.</p>
+<a class="btn primary" href="/tools/assignment/premium.html">Get Premium</a>
+</div>
+<div class="actions"><a class="btn secondary" href="/">← MalawiHub</a><a class="btn secondary" href="/download/">📲 Android Apps</a></div>
+</div>
+<script>
+(async function(){
+const show=id=>document.getElementById(id).classList.remove('hidden');
+const hide=id=>document.getElementById(id).classList.add('hidden');
+try{
+ const {data:{user}}=await supabaseClient.auth.getUser();
+ if(!user){hide('loading');show('signedOut');return;}
+ const {data,error}=await supabaseClient.from('premium_access').select('status,starts_at,expires_at,plan_id,premium_plans(name,plan_key,duration_days)').eq('user_id',user.id).order('expires_at',{ascending:false}).limit(1).maybeSingle();
+ if(error)throw error;
+ hide('loading');show('dashboard');
+ if(!data){
+   document.getElementById('statusText').textContent='No active Premium plan';
+   document.getElementById('statusText').style.color='#66746c';
+   document.getElementById('summary').textContent='Your account is currently using the free MalawiHub experience.';
+   return;
+ }
+ const expiry=data.expires_at?new Date(data.expires_at):null;
+ const start=data.starts_at?new Date(data.starts_at):null;
+ const now=new Date();
+ const active=(data.status==='active'||data.status==='trial') && expiry && expiry>now;
+ const days=expiry?Math.max(0,Math.ceil((expiry-now)/86400000)):0;
+ document.getElementById('planName').textContent=data.premium_plans?.name||'Premium';
+ document.getElementById('startDate').textContent=start?start.toLocaleDateString(): '—';
+ document.getElementById('expiryDate').textContent=expiry?expiry.toLocaleDateString(): '—';
+ document.getElementById('daysLeft').textContent=active?String(days):'0';
+ if(active){
+   document.getElementById('statusText').textContent=data.status==='trial'?'Premium trial active':'Premium active';
+   document.getElementById('summary').textContent=days<=7?'Your Premium access is ending soon.': 'Your Premium access is active.';
+   if(days<=7)show('renew');
+ }else{
+   document.getElementById('statusText').textContent='Premium expired';
+   document.getElementById('statusText').style.color='#8a5a00';
+   document.getElementById('summary').textContent='Your Premium access has ended. Free MalawiHub tools remain available.';
+   show('expired');
+ }
+}catch(e){
+ console.error('Premium dashboard error:',e);
+ hide('loading');show('dashboard');
+ document.getElementById('statusText').textContent='Premium status unavailable';
+ document.getElementById('statusText').style.color='#8a5a00';
+ document.getElementById('summary').textContent='We could not load your Premium status. Please try again later.';
+}
+})();
+</script>
+</body>
+</html>
