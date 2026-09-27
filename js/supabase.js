@@ -56,9 +56,17 @@ async function trackMalawiHubVisitor(){
   await fetch(MH_SUPABASE_URL+"/functions/v1/track-visitor",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitorId,path:location.pathname})});
  }catch(e){console.debug("MalawiHub visitor tracking unavailable:",e)}
 }
-(function startMalawiHubActivityTracking(){
+(async function startMalawiHubActivityTracking(){
  const path=(location.pathname||"").toLowerCase();
- if(!path.includes("/admin/"))trackMalawiHubVisitor();
+ let isAdmin=false;
+ try{
+  const {data:{user}}=await supabaseClient.auth.getUser();
+  if(user){
+   const {data:profile}=await supabaseClient.from("profiles").select("role").eq("id",user.id).maybeSingle();
+   isAdmin=profile?.role==="admin";
+  }
+ }catch(e){console.debug("MalawiHub role check unavailable:",e)}
+ if(!isAdmin)await trackMalawiHubVisitor();
  const beat=()=>updateMalawiHubLastSeen();
  beat();
  setInterval(beat,2*60*1000);
