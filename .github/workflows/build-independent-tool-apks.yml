@@ -28,9 +28,15 @@ jobs:
         run: gradle :app:assemble${{ matrix.flavor }}Release --no-daemon
       - name: Name APK
         working-directory: android-tools
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p dist
-          cp app/build/outputs/apk/${{ matrix.flavor }}/release/app-${{ matrix.flavor }}-release.apk dist/${{ matrix.flavor }}.apk
+          apk="$(find app/build/outputs/apk -type f -name '*.apk' -print -quit)"
+          test -n "$apk"
+          echo "Built APK: $apk"
+          cp "$apk" "dist/${{ matrix.flavor }}.apk"
+          test -s "dist/${{ matrix.flavor }}.apk"
       - uses: actions/upload-artifact@v4
         with:
           name: malawihub-${{ matrix.flavor }}-apk
@@ -47,17 +53,18 @@ jobs:
           merge-multiple: true
       - name: Verify APK suite
         run: |
+          set -euo pipefail
           ls -lh dist
-          test -f dist/gpa.apk
-          test -f dist/chemistry.apk
-          test -f dist/assignment.apk
-          test -f dist/papers.apk
-          test -f dist/grade.apk
-          test -f dist/timetable.apk
-          test -f dist/percentage.apk
-          test -f dist/currency.apk
-          test -f dist/profit.apk
-          test -f dist/smartwriter.apk
+          test -s dist/gpa.apk
+          test -s dist/chemistry.apk
+          test -s dist/assignment.apk
+          test -s dist/papers.apk
+          test -s dist/grade.apk
+          test -s dist/timetable.apk
+          test -s dist/percentage.apk
+          test -s dist/currency.apk
+          test -s dist/profit.apk
+          test -s dist/smartwriter.apk
       - name: Publish worldwide release
         env:
           GH_TOKEN: ${{ github.token }}
