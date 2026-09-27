@@ -1,4 +1,4 @@
-name: Build admin APK
+name: Build and publish admin APK
 
 on:
   workflow_dispatch:
@@ -10,6 +10,9 @@ on:
     paths:
       - 'android-admin/**'
       - '.github/workflows/build-admin-apk.yml'
+
+permissions:
+  contents: write
 
 jobs:
   build-admin:
@@ -43,4 +46,22 @@ jobs:
           path: admin.apk
           if-no-files-found: error
 
-# Keep this workflow active for the current production APK pipeline.
+  publish:
+    needs: build-admin
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download admin APK
+        uses: actions/download-artifact@v4
+        with:
+          name: admin-apk
+          path: .
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: malawihub-admin-v1.0.0
+          name: MalawiHub Admin v1.0.0
+          body: MalawiHub Admin Portal APK v1.0.0
+          files: admin.apk
+          make_latest: false
