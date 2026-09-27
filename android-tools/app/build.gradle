@@ -5,15 +5,15 @@ android { namespace 'mw.malawihub.tools'; compileSdk 35
     buildFeatures { buildConfig true }
     flavorDimensions += 'tool'
     productFlavors {
-        gpa { dimension 'tool'; applicationId 'mw.malawihub.gpa'; resValue 'string','app_name','GPA Calculator Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/gpa/"' }
-        chemistry { dimension 'tool'; applicationId 'mw.malawihub.chemistry'; resValue 'string','app_name','Chemistry Calculator Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/chemistry/"' }
-        assignment { dimension 'tool'; applicationId 'mw.malawihub.assignment'; resValue 'string','app_name','Assignment Cover Page Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/assignment/"' }
-        papers { dimension 'tool'; applicationId 'mw.malawihub.papers'; resValue 'string','app_name','Past Papers Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/papers/"' }
-        grade { dimension 'tool'; applicationId 'mw.malawihub.grade'; resValue 'string','app_name','Grade Calculator Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/grade/"' }
-        timetable { dimension 'tool'; applicationId 'mw.malawihub.timetable'; resValue 'string','app_name','Study Timetable Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/timetable/"' }
-        percentage { dimension 'tool'; applicationId 'mw.malawihub.percentage'; resValue 'string','app_name','Percentage Calculator Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/percentage/"' }
-        currency { dimension 'tool'; applicationId 'mw.malawihub.currency'; resValue 'string','app_name','Currency Calculator Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/currency/"' }
-        profit { dimension 'tool'; applicationId 'mw.malawihub.profit'; resValue 'string','app_name','Profit Calculator Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/profit/"' }
-        smartwriter { dimension 'tool'; applicationId 'mw.malawihub.smartwriter'; resValue 'string','app_name','MalawiHub Smart Writer'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/smart-writer/"' }
+        gpa { dimension 'tool'; applicationId 'mw.malawihub.gpa'; resValue 'string','app_name','GPA Calculator Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/gpa/"'; buildConfigField 'String','TOOL_KEY','"gpa"' }
+        chemistry { dimension 'tool'; applicationId 'mw.malawihub.chemistry'; resValue 'string','app_name','Chemistry Calculator Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/chemistry/"'; buildConfigField 'String','TOOL_KEY','"chemistry"' }
+        assignment { dimension 'tool'; applicationId 'mw.malawihub.assignment'; resValue 'string','app_name','Assignment Cover Page Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/assignment/"'; buildConfigField 'String','TOOL_KEY','"assignment"' }
+        papers { dimension 'tool'; applicationId 'mw.malawihub.papers'; resValue 'string','app_name','Past Papers Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/papers/"'; buildConfigField 'String','TOOL_KEY','"papers"' }
+        grade { dimension 'tool'; applicationId 'mw.malawihub.grade'; resValue 'string','app_name','Grade Calculator Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/grade/"'; buildConfigField 'String','TOOL_KEY','"grade"' }
+        timetable { dimension 'tool'; applicationId 'mw.malawihub.timetable'; resValue 'string','app_name','Study Timetable Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/timetable/"'; buildConfigField 'String','TOOL_KEY','"timetable"' }
+        percentage { dimension 'tool'; applicationId 'mw.malawihub.percentage'; resValue 'string','app_name','Percentage Calculator Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/percentage/"'; buildConfigField 'String','TOOL_KEY','"percentage"' }
+        currency { dimension 'tool'; applicationId 'mw.malawihub.currency'; resValue 'string','app_name','Currency Calculator Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/currency/"'; buildConfigField 'String','TOOL_KEY','"currency"' }
+        profit { dimension 'tool'; applicationId 'mw.malawihub.profit'; resValue 'string','app_name','Profit Calculator Malawi'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/profit/"'; buildConfigField 'String','TOOL_KEY','"profit"' }
+        smartwriter { dimension 'tool'; applicationId 'mw.malawihub.smartwriter'; resValue 'string','app_name','MalawiHub Smart Writer'; buildConfigField 'String','TOOL_URL','"https://malawihub.pages.dev/tools/smart-writer/"'; buildConfigField 'String','TOOL_KEY','"smartwriter"' }
     }
 }
