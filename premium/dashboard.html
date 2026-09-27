@@ -28,6 +28,7 @@
 <div class="row"><span>Started</span><strong id="startDate">—</strong></div>
 <div class="row"><span>Expires</span><strong id="expiryDate">—</strong></div>
 <div class="row"><span>Days remaining</span><strong id="daysLeft">—</strong></div>
+<div class="row"><span>Premium activity</span><strong id="usageCount">—</strong></div>
 <div class="actions"><a class="btn primary" href="/tools/assignment/">Open Assignment Cover</a><a class="btn secondary" href="/premium/">Premium details</a></div>
 </div>
 <div class="card warning hidden" id="renew">
@@ -52,6 +53,8 @@ try{
  const {data,error}=await supabaseClient.from('premium_access').select('status,starts_at,expires_at,plan_id,premium_plans(name,plan_key,duration_days)').eq('user_id',user.id).order('expires_at',{ascending:false}).limit(1).maybeSingle();
  if(error)throw error;
  hide('loading');show('dashboard');
+ const usageResult=await supabaseClient.from('premium_usage').select('id',{count:'exact',head:true}).eq('user_id',user.id);
+ document.getElementById('usageCount').textContent=usageResult.error?'—':String(usageResult.count||0)+' recorded uses';
  if(!data){
    document.getElementById('statusText').textContent='No active Premium plan';
    document.getElementById('statusText').style.color='#66746c';
