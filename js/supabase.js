@@ -38,7 +38,32 @@ window.supabaseClient=supabaseClient;
 
 (function normalizeBusinessInviteUrl(){if(!location.pathname.includes("/business"))return;const h=location.hash||"";if(!h.startsWith("#invite="))return;const t=h.slice(8);if(!t)return;const u=new URL(location.href);u.hash="";u.searchParams.set("invite",t);history.replaceState(null,document.title,u.pathname+u.search)})();
 (function loadBusinessBranding(){if(!location.pathname.includes("/business"))return;const s=document.createElement("script");s.src="../business/brand.js?v=2";s.defer=true;document.head.appendChild(s);const p=document.createElement("script");p.src="../business/app-polish.js?v=2";p.defer=true;document.head.appendChild(p)})();
-async function updateMalawiHubLastSeen(){try{const {data:{user}}=await supabaseClient.auth.getUser();if(!user)return;await supabaseClient.from("profiles").upsert({id:user.id,email:user.email,last_seen:new Date().toISOString(),is_online:true})}catch(e){console.error("MalawiHub activity tracking error:",e)}}
+async function updateMalawiHubLastSeen(){
+ try{
+  const {data:{user}}=await supabaseClient.auth.getUser();
+  if(!user)return;
+  await supabaseClient.from("profiles").update({last_seen:new Date().toISOString(),is_online:true}).eq("id",user.id);
+ }catch(e){console.error("MalawiHub activity tracking error:",e)}
+}
+async function trackMalawiHubVisitor(){
+ try{
+  const key="malawihub_visitor_id";
+  let visitorId=localStorage.getItem(key);
+  if(!visitorId){
+   visitorId=(crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2));
+   localStorage.setItem(key,visitorId);
+  }
+  await fetch(MH_SUPABASE_URL+"/functions/v1/track-visitor",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({visitorId,path:location.pathname})});
+ }catch(e){console.debug("MalawiHub visitor tracking unavailable:",e)}
+}
+(function startMalawiHubActivityTracking(){
+ const path=(location.pathname||"").toLowerCase();
+ if(!path.includes("/admin/"))trackMalawiHubVisitor();
+ const beat=()=>updateMalawiHubLastSeen();
+ beat();
+ setInterval(beat,2*60*1000);
+ document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")beat()});
+})();
 async function fillOnlineClassCode(){
  const input=document.getElementById("code"),teacherButton=document.getElementById("teacherBtn"),params=new URLSearchParams(location.search),studentView=params.get("student")==="1";
  if(teacherButton)teacherButton.style.display="none";
@@ -46,10 +71,10 @@ async function fillOnlineClassCode(){
  if(!input)return;
  const code=params.get("code");if(code)input.value=code.trim().toUpperCase();
  if(params.get("teacher")!=="1")return;
- try{const {data:{user}}=await supabaseClient.auth.getUser();if(!user){alert("Teacher or administrator login required. Please use the private portal.");location.href="/teacher-portal/";return}const {data:p,error}=await supabaseClient.from("profiles").select("role").eq("id",user.id).maybeSingle();if(error||!p||(p.role!=="teacher"&&p.role!=="admin")){alert("Teacher access denied. Only registered teachers or administrators can open teacher classes.");location.href=p?.role==="admin"?"/admin/":"/teacher-portal/";return}if(teacherButton)teacherButton.click()}catch(e){console.error("Teacher class access error:",e);alert("Could not verify teacher access. Please use the private portal.");location.href="/teacher-portal/"}
+ try{const {data:{user}}=await supabaseClient.auth.getUser();if(!user){alert("Teacher or administrator login required. Please use the private portal.");location.href="/teacher-portal/";return}const {data:p,error}=await supabaseClient.from("profiles").select("role").eq("id",user.id).maybeSingle();if(error||!p||(p.role!=="teacher"&&p.role!=="admin")){alert("Teacher access denied. Only registered teachers or administrators can open teacher classes.");location.href=p?.role==="admin"?"/admin/":"/teacher-portal/";return}if(teacherButton)teacherButton.click()}catch(e){console.error("Teacher class access error:",e);alert("Could not verify teacher access. Please use the private portal.");location.href="/teacher-portal/"} 
 }
 window.updateMalawiHubLastSeen=updateMalawiHubLastSeen;
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",fillOnlineClassCode);else fillOnlineClassCode();
 // Administrator classroom routing deployment marker: 2026-09-21-admin6
-
 // Admin live-class guard fix: never redirect administrator launches to Student Portal.
+// Activity and visitor tracking deployment marker: 2026-09-27-stats1
