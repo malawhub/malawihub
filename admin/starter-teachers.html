@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>MalawiHub Starter Teacher Finder</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js?v=20260928-starter1"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f6f9f7;color:#17251f}.top{background:#087f5b;color:#fff;padding:18px}.wrap{max-width:980px;margin:auto;padding:18px 14px 40px}.top h1{margin:0;font-size:23px}.top p{margin:7px 0 0;opacity:.9}.notice{background:#fff;border:1px solid #dfe8e3;border-radius:15px;padding:15px;margin-bottom:16px;line-height:1.5}.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.filters button{border:1px solid #ccd8d2;background:#fff;border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}.filters button.active{background:#087f5b;color:#fff;border-color:#087f5b}.list{display:grid;gap:12px}.target{background:#fff;border:1px solid #e0e7e3;border-radius:15px;padding:16px}.target h2{margin:0 0 6px;font-size:18px}.meta{font-size:13px;color:#64736b;line-height:1.5}.subjects{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.tag{background:#eef7f2;color:#176b51;border-radius:999px;padding:5px 8px;font-size:12px;font-weight:700}.route{margin-top:10px;padding:10px;background:#f7f9f8;border-radius:10px;font-size:13px}.route a{color:#087f5b;font-weight:800;text-decoration:none}.status{display:inline-block;margin-top:10px;padding:5px 8px;border-radius:8px;font-size:11px;font-weight:800;background:#fff4d6;color:#795500}.status.current{background:#e7f7ed;color:#12623f}.back{display:inline-block;color:#fff;text-decoration:none;margin-bottom:12px;font-size:13px}.small{font-size:12px;color:#77827d;margin-top:18px}.empty{background:#fff;padding:20px;border-radius:14px;color:#68756f}@media(max-width:600px){.wrap{padding:14px 10px 30px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><a class="back" href="./">← Admin Hub</a><h1>🎓 Starter Teacher Finder</h1><p>Research-backed school and teacher leads for MalawiHub's first outreach wave.</p></div></header>
+<main class="wrap">
+<section class="notice"><b>How to use this list</b><br>Start with schools showing current or very recent teacher recruitment. Open the public source to verify the latest contact route, then contact the school or teacher yourself. This page does not create accounts or send messages automatically.</section>
+<div class="filters" id="filters"></div>
+<section class="list" id="list"></section>
+<p class="small">Research checked 28 September 2026. Recruitment adverts can expire or change, so verify the source before contacting a target.</p>
+</main>
+<script>
+const targets=[
+{name:'Kuwala Christian Girls School',location:'Lilongwe',focus:'Secondary',subjects:['Mathematics','Chemistry','Biology','Physics','Computer Studies','English','Chichewa'],status:'Current — closes 30 Sep 2026',kind:'current',source:'https://www.careeradmw.com/jobs/multiple-vacancies-1788590710'},
+{name:'Michiru View Schools',location:'Blantyre',focus:'Secondary',subjects:['English','Literature'],status:'Current — closes 29 Sep 2026',kind:'current',source:'https://jobsformalawi.com/jobs/teacher-of-english-secondary-school-michiru-view-schools/'},
+{name:'Government Teaching Service Commission',location:'Nationwide',focus:'Secondary',subjects:['Sciences','Humanities','Languages','ICT','Technical','Creative Arts','Special Needs'],status:'Current national recruitment route',kind:'current',source:'https://stagerecruitment.education.gov.mw/'},
+{name:'Simuka AfriLearn Secondary School',location:'Zomba',focus:'Secondary',subjects:['Chemistry','Biology','Physics','Mathematics','Business Studies','English'],status:'Recent recruitment lead',kind:'recent',source:'https://jobsformalawi.com/jobs/secondary-school-teacher-3/'},
+{name:'PACT Secondary Schools',location:'Blantyre',focus:'Secondary',subjects:['Agriculture','Biology','Computer','Bible Knowledge','History'],status:'Recent recruitment lead',kind:'recent',source:'https://onlinejobmw.com/vacancies/secondary-school-teacher-3/'},
+{name:'Malosa Anglican Secondary School',location:'Zomba',focus:'Secondary',subjects:['Mathematics','Physics','Chemistry','Biology','Agriculture','Computer Studies','English','Chichewa'],status:'Recent recruitment lead — advert closed',kind:'recent',source:'https://jobsformalawi.com/jobs/secondary-school-teachers-malosa-anglican-secondary-school/'},
+{name:'Mtola Academy',location:'Lilongwe',focus:'Secondary',subjects:['Agriculture','English','Chemistry','Physics','Biology','Mathematics','Computer Studies','Geography','History','Chichewa'],status:'Recent recruitment lead',kind:'recent',source:'https://onlinejobmw.com/vacancies/secondary-school-teachers-8/'},
+{name:'Chifuniro Private Schools',location:'Lilongwe',focus:'Primary & Secondary',subjects:['Humanities','Sciences','Languages'],status:'Recent recruitment lead',kind:'recent',source:'https://onlinejobmw.com/vacancies/multiple-positions-chifuniro-pvt-schools/'},
+{name:'New Life Academy',location:'Lilongwe',focus:'Primary',subjects:['Mathematics','Primary'],status:'Recent recruitment lead — advert closed',kind:'recent',source:'https://www.careeradmw.com/jobs/primary-school-teachers-3-posts'},
+{name:'Andiamo Secondary School',location:'Balaka',focus:'Secondary',subjects:['Secondary subjects'],status:'Recent recruitment lead',kind:'recent',source:'https://greatmalawijobs.com/jobs/job-detail/job-Secondary-School-Teachers-job-at-Andiamo-Secondary-School-52297'}
+];
+const list=document.getElementById('list'),filters=document.getElementById('filters');
+function render(filter='all'){list.innerHTML='';const rows=targets.filter(t=>filter==='all'||t.kind===filter);rows.forEach(t=>{const el=document.createElement('article');el.className='target';el.innerHTML='<h2>'+t.name+'</h2><div class="meta">'+t.location+' • '+t.focus+'</div><div class="subjects">'+t.subjects.map(s=>'<span class="tag">'+s+'</span>').join('')+'</div><span class="status '+(t.kind==='current'?'current':'')+'">'+t.status+'</span><div class="route">Public source / verification route: <a href="'+t.source+'" target="_blank" rel="noopener noreferrer">Open source →</a></div>';list.appendChild(el)});if(!rows.length)list.innerHTML='<div class="empty">No targets in this group.</div>'}
+[['all','All targets'],['current','Current'],['recent','Recent']].forEach(([key,label],i)=>{const b=document.createElement('button');b.textContent=label;b.dataset.filter=key;if(i===0)b.classList.add('active');b.onclick=()=>{document.querySelectorAll('.filters button').forEach(x=>x.classList.remove('active'));b.classList.add('active');render(key)};filters.appendChild(b)});
+async function guard(){try{const {data:{session}}=await supabaseClient.auth.getSession();if(!session?.access_token){location.replace('login.html?error=invalid_session');return}const {data:{user},error}=await supabaseClient.auth.getUser(session.access_token);if(error||!user){location.replace('login.html?error=invalid_session');return}const {data:profile}=await supabaseClient.from('profiles').select('role').eq('id',user.id).maybeSingle();if(profile?.role!=='admin'){await supabaseClient.auth.signOut();location.replace('login.html?error=access_denied');return}render()}catch(e){location.replace('login.html?error=invalid_session')}}
+guard();
+</script>
+</body>
+</html>
