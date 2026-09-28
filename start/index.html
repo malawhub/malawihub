@@ -28,6 +28,10 @@
 <p>Choose a task below and start immediately. Most MalawiHub tools are free and do not require an account.</p>
 </section>
 
+<section class="card" style="margin-top:20px;border:2px solid #087f3f;background:#f4fff8"><h2 style="font-size:24px">🇲🇼 New to MalawiHub?</h2><p>Start with one thing you need today. You can use the free tools without creating an account.</p><p style="margin-bottom:0"><b>Teacher?</b> Create a class and share one link. &nbsp; <b>Student?</b> Open your teacher’s link and join.</p></section>
+
+<section class="card" style="margin-top:14px;border:1px solid #dfe9e2"><h2>📣 Help someone discover MalawiHub</h2><p>If a friend, classmate or teacher needs student tools, share this page with them.</p><button id="shareBtnTop" class="go" style="border:0;cursor:pointer">Share MalawiHub</button><div class="small" id="shareStatusTop"></div></section>
+
 <section class="card" style="margin-top:20px;border:2px solid #087f3f;background:#f4fff8"><h2 style="font-size:24px">🎓 Online Class</h2><p>Are you joining a teacher’s online class or starting one? Choose the right portal below.</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px"><div><b>👨‍🏫 Teacher</b><p>Create a class and share one link with your students.</p><a class="go" href="/teacher-portal/">Teacher Portal</a></div><div><b>🎓 Student</b><p>Open your teacher’s class link or enter the class code.</p><a class="go" href="/student-portal/">Student Portal</a></div></div></section>
 
 <h2 class="section-title">⚡ I need to...</h2>
@@ -54,6 +58,7 @@
 </section>
 </main>
 <script>
+document.getElementById('shareBtnTop').onclick=async()=>{const s=document.getElementById('shareStatusTop');try{if(navigator.share){await navigator.share({title:'MalawiHub — Start Here',text:'MalawiHub 🇲🇼 — free student tools and learning resources.',url:location.href});s.textContent='Thanks for sharing MalawiHub.'}else{await navigator.clipboard.writeText(location.href);s.textContent='Link copied. Paste it into WhatsApp or another app.'}}catch(e){if(e.name!=='AbortError')s.textContent='You can share this page link from your browser.'}};
 const url='https://malawihub.pages.dev/start/';
 const text='MalawiHub 🇲🇼 — free student tools, calculators, study resources, past papers and Android apps.';
 document.getElementById('shareBtn').onclick=async()=>{
