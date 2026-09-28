@@ -142,6 +142,7 @@ async function renderClassFile(file){
  $('classFileMeta').textContent=((file.mime||'File')+' · '+Math.max(0,Math.round((Number(file.size)||0)/1024))+' KB');
  const box=$('classFileView');box.innerHTML='';
  const mime=String(file.mime||'').toLowerCase(),name=String(file.name||'');
+ let viewed=false;
  if(mime==='application/pdf'||/\.pdf$/i.test(name)){
   box.innerHTML='<div style="padding:18px;text-align:center;color:#667085">Loading PDF inside classroom…</div>';
   try{
@@ -158,15 +159,16 @@ async function renderClassFile(file){
     canvas.width=viewport.width;canvas.height=viewport.height;wrap.appendChild(canvas);box.appendChild(wrap);
     await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
    }
+   viewed=true;
   }catch(e){
    box.innerHTML='<div style="padding:18px;color:#b42318;text-align:center">This PDF could not be rendered inside the classroom.</div>';
    console.warn('classroom PDF render failed',e);
   }
  }else if(mime.startsWith('image/')){
-  const img=document.createElement('img');img.src=file.url;img.alt=name||'Classroom file';img.loading='eager';box.appendChild(img);
+  const img=document.createElement('img');img.src=file.url;img.alt=name||'Classroom file';img.loading='eager';box.appendChild(img);await new Promise(resolve=>{img.onload=()=>{viewed=true;resolve()};img.onerror=()=>resolve()});
  }else if(mime.startsWith('text/')||/\.(txt|md|csv|log|json|xml|html|css|js)$/i.test(name)){
   const pre=document.createElement('pre');pre.className='class-file-text';pre.textContent='Loading file…';box.appendChild(pre);
-  try{const res=await fetch(file.url);if(!res.ok)throw Error('HTTP '+res.status);pre.textContent=await res.text()}catch(e){pre.textContent='This text file could not be previewed directly inside the classroom.';console.warn('class file text preview',e)}
+  try{const res=await fetch(file.url);if(!res.ok)throw Error('HTTP '+res.status);pre.textContent=await res.text();viewed=true}catch(e){pre.textContent='This text file could not be previewed directly inside the classroom.';console.warn('class file text preview',e)}
  }else{
   box.innerHTML='<div style="padding:18px;text-align:center;color:#667085">This file type is not supported for direct classroom display.</div>';
  }
