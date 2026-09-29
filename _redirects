@@ -3,17 +3,10 @@
 /online-class/landing.html /online-classes/ 302
 /online-class/redirect.html /online-classes/ 302
 # Refresh-safe application entry routes
-/admin /admin/index.html 200
-/student-portal /student-portal/index.html 200
-/teacher-portal /teacher-portal/index.html 200
-/business /business/index.html 200
-/online-classes /online-classes/index.html 200
-/class-admin /class-admin/index.html 200
-/premium /premium/index.html 200
-/admin/ /admin/index.html 200
-/student-portal/ /student-portal/index.html 200
-/teacher-portal/ /teacher-portal/index.html 200
-/business/ /business/index.html 200
-/online-classes/ /online-classes/index.html 200
-/class-admin/ /class-admin/index.html 200
-/premium/ /premium/index.html 200
+/admin/* /admin/index.html 200
+/student-portal/* /student-portal/index.html 200
+/teacher-portal/* /teacher-portal/index.html 200
+/business/* /business/index.html 200
+/online-classes/* /online-classes/index.html 200
+/class-admin/* /class-admin/index.html 200
+/premium/* /premium/index.html 200
