@@ -23,13 +23,6 @@ async function openTeacherDashboard(user){
   return true;
 }
 
-async function checkExistingTeacherSession(){
-  try{
-    const {data:{session}}=await supabaseClient.auth.getSession();
-    if(session?.user)await openTeacherDashboard(session.user);
-  }catch(e){console.error('Teacher session check failed',e)}
-}
-
 $('shareTeacherPortal').onclick=async()=>{
   const s=$('shareTeacherStatus');
   try{
@@ -125,11 +118,8 @@ $('register').onclick=async()=>{
   }
 };
 
-supabaseClient.auth.onAuthStateChange((event,session)=>{
-  if(session?.user && (event==='SIGNED_IN'||event==='INITIAL_SESSION')){
-    setTimeout(()=>openTeacherDashboard(session.user).catch(e=>console.error('Teacher redirect failed',e)),0);
-  }
-});
-
-checkExistingTeacherSession();
+// Do not auto-redirect an existing teacher session.
+// Opening the Teacher Portal must always show this registration/login page first.
+// A teacher is sent to the dashboard only after explicitly choosing Log in
+// or completing registration above.
 </script></body></html>
