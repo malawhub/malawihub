@@ -1,0 +1,26 @@
+name: Deploy Teacher Self Registration
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "supabase/functions/teacher-self-register/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: cdqrdovgdidzxmyygoee
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Deploy teacher self-registration function
+        run: supabase functions deploy teacher-self-register --project-ref $SUPABASE_PROJECT_ID --use-api --no-verify-jwt
