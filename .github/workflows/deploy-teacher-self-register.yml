@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "supabase/functions/teacher-self-register/**"
+      - ".github/workflows/deploy-teacher-self-register.yml"
   workflow_dispatch:
 
 permissions:
