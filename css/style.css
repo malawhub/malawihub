@@ -24,3 +24,9 @@ footer{text-align:center;background:#111827;color:#d8dee9;padding:32px 15px}foot
 @media(max-width:650px){.major-categories{padding:38px 15px}.category-grid{grid-template-columns:1fr}.category-card{padding:16px}.category-heading h2{font-size:26px}}
 
 .category-card p{color:#687385;font-size:12px;margin:0 0 13px}.category-card>span{display:inline-block;color:#1769aa;font-size:11px;font-weight:bold}.category-card:hover>span{color:#fff}
+
+/* MainHub major-section icons */
+.major-categories .category-icon{font-size:64px;line-height:1;margin:2px 0 16px;display:block;transform:scale(1);transition:transform .18s ease}
+.major-categories .category-card:hover .category-icon,.major-categories .category-card:focus-visible .category-icon{transform:scale(1.08)}
+.major-categories .category-card{min-height:220px}
+@media(max-width:600px){.major-categories .category-icon{font-size:58px}.major-categories .category-card{min-height:200px}}
