@@ -22,3 +22,5 @@ footer{text-align:center;background:#111827;color:#d8dee9;padding:32px 15px}foot
 .category-options{display:flex;flex-wrap:wrap;gap:7px}.category-options a{background:#f2f5f8;color:#1769aa;border:1px solid #dce4eb;border-radius:7px;padding:7px 9px;text-decoration:none;font-size:11px;font-weight:bold}.category-options a:hover{background:#1769aa;color:#fff;border-color:#1769aa}
 @media(max-width:850px){.category-grid{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:650px){.major-categories{padding:38px 15px}.category-grid{grid-template-columns:1fr}.category-card{padding:16px}.category-heading h2{font-size:26px}}
+
+.category-card p{color:#687385;font-size:12px;margin:0 0 13px}.category-card>span{display:inline-block;color:#1769aa;font-size:11px;font-weight:bold}.category-card:hover>span{color:#fff}
