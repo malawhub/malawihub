@@ -13,3 +13,12 @@ footer{text-align:center;background:#111827;color:#d8dee9;padding:32px 15px}foot
 @media(max-width:850px){header{flex-wrap:wrap}.portal-links{margin-left:auto}nav{order:3;width:100%;overflow-x:auto;justify-content:flex-start;padding-bottom:2px}.trust-strip{grid-template-columns:repeat(2,1fr)}.feature-grid{grid-template-columns:1fr 1fr}.portal-strip{grid-template-columns:1fr 1fr}}
 @media(max-width:650px){header{padding:12px 15px;gap:10px}.logo{font-size:20px}nav{gap:13px}nav a{font-size:12px}.portal-links a{font-size:10px;padding:6px 8px}.hero{padding:58px 18px 52px}.hero h1{font-size:34px}.hero p{font-size:15px}.hero-mini{gap:10px 16px}.trust-strip{grid-template-columns:1fr 1fr;margin:0 10px}.trust-strip div{padding:8px 10px;border-bottom:1px solid #e8edf2}.portal-strip{grid-template-columns:1fr;padding:22px 15px 4px}.feature-grid{grid-template-columns:1fr}.grid{grid-template-columns:1fr;gap:16px}section{padding:45px 15px}section h2{font-size:25px}.search-section{padding:28px 15px 5px}.card{padding:23px 20px}}
 @media(max-width:420px){.portal-links a:first-child{display:none}.hero-actions{flex-direction:column}.hero button{width:100%}.trust-strip{grid-template-columns:1fr}.feature-card{text-align:center}}
+/* MAJOR CATEGORIES */
+.major-categories{background:#c8102e;padding:42px 6%;color:#fff}
+.category-heading{text-align:center;max-width:700px;margin:0 auto 25px}.category-heading>span{font-size:10px;font-weight:bold;letter-spacing:1.8px;color:#ffd9df}.category-heading h2{font-size:30px;margin:4px 0 5px}.category-heading p{font-size:13px;color:#ffecef}
+.category-grid{max-width:1120px;margin:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:15px}
+.category-card{background:#fff;color:#172033;border-radius:12px;padding:18px;box-shadow:0 5px 16px rgba(0,0,0,.16);text-align:left;border:1px solid rgba(255,255,255,.5)}
+.category-icon{font-size:30px;margin-bottom:5px}.category-card h3{font-size:18px;margin-bottom:11px}
+.category-options{display:flex;flex-wrap:wrap;gap:7px}.category-options a{background:#f2f5f8;color:#1769aa;border:1px solid #dce4eb;border-radius:7px;padding:7px 9px;text-decoration:none;font-size:11px;font-weight:bold}.category-options a:hover{background:#1769aa;color:#fff;border-color:#1769aa}
+@media(max-width:850px){.category-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){.major-categories{padding:38px 15px}.category-grid{grid-template-columns:1fr}.category-card{padding:16px}.category-heading h2{font-size:26px}}
