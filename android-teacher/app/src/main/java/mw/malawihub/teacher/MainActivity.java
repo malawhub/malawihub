@@ -25,7 +25,7 @@ import org.json.JSONObject;
 
 public class MainActivity extends Activity {
     private static final int SCREEN_CAPTURE_REQUEST=7001;
-    private static final String TEACHER_URL = "https://malawihub.pages.dev/teacher-portal/index.html?v=20260924-audio-duplex3";
+    private static final String TEACHER_URL = "https://malawihub.pages.dev/teacher-portal/index.html?v=20260930-native-screen";
     private WebView webView; private ProgressBar progress; private final Handler handler=new Handler(); private android.webkit.ValueCallback<android.net.Uri[]> fileCallback; private static final int FILE_PICK_REQUEST=8001;
     private NativeScreenShareManager nativeScreen;
     @Override protected void onCreate(Bundle state){super.onCreate(state);showBrandedSplash();handler.postDelayed(this::openTeacher,1200);}
@@ -98,7 +98,7 @@ public class MainActivity extends Activity {
             Intent s=new Intent(this,ScreenShareService.class);
             s.putExtra("resultCode",resultCode);s.putExtra("data",data);
             if(Build.VERSION.SDK_INT>=26)startForegroundService(s);else startService(s);
-            if(nativeScreen!=null) nativeScreen.start(data,getIntent().getStringExtra("native_room"),getIntent().getStringExtra("native_id"));
+            if(nativeScreen!=null) nativeScreen.start(data,getIntent().getStringExtra("native_room"),getIntent().getStringExtra("native_id")); getIntent().removeExtra("native_room"); getIntent().removeExtra("native_id");
         }
     }
     @Override public void onBackPressed(){if(webView!=null&&webView.canGoBack())webView.goBack();else super.onBackPressed();}
