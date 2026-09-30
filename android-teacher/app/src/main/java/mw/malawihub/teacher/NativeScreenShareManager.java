@@ -20,7 +20,7 @@ public class NativeScreenShareManager {
     private final Map<String,PeerConnection> peers=new ConcurrentHashMap<>();
     private final Map<String,List<IceCandidate>> pendingIce=new ConcurrentHashMap<>();
     private String code="", fromId="native-screen";
-    private boolean active=false;
+    private boolean active=false; private SurfaceTextureHelper captureHelper;
 
     public NativeScreenShareManager(Activity activity, SignalBridge bridge){this.activity=activity;this.bridge=bridge;}
 
@@ -37,8 +37,8 @@ public class NativeScreenShareManager {
             @Override public void onStop(){stop();bridge.status("Screen sharing stopped by Android.");}
         });
         source=factory.createVideoSource(capturer.isScreencast());
-        SurfaceTextureHelper helper=SurfaceTextureHelper.create("MalawiHubScreenCapture",eglBase.getEglBaseContext());
-        capturer.initialize(helper,activity.getApplicationContext(),source.getCapturerObserver());
+        captureHelper=SurfaceTextureHelper.create("MalawiHubScreenCapture",eglBase.getEglBaseContext());
+        capturer.initialize(captureHelper,activity.getApplicationContext(),source.getCapturerObserver());
         capturer.startCapture(1280,720,15);
         screenTrack=factory.createVideoTrack("malawihub-screen",source);
         active=true;
@@ -106,6 +106,7 @@ public class NativeScreenShareManager {
         if(capturer!=null)capturer.dispose();capturer=null;
         if(screenTrack!=null)screenTrack.dispose();screenTrack=null;
         if(source!=null)source.dispose();source=null;
+        if(captureHelper!=null)captureHelper.dispose();captureHelper=null;
         if(factory!=null)factory.dispose();factory=null;
         if(eglBase!=null)eglBase.release();eglBase=null;activity.stopService(new android.content.Intent(activity,ScreenShareService.class));
         try{JSONObject p=new JSONObject();p.put("type","native-screen-end");p.put("from",fromId);p.put("code",code);bridge.send(p);}catch(Exception ignored){}
