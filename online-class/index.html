@@ -164,6 +164,7 @@ async function renderClassFile(file){
   box.innerHTML='<div style="padding:18px;text-align:center;color:#667085">This file type is not supported for direct classroom display.</div>';
  }
  $('classFileStop').classList.toggle('hidden',!controlMode);
+ if(role==='student'&&window.updateStudentFileDownload)window.updateStudentFileDownload(file);
 }
 async function shareClassFile(file){
  if(!controlMode||!classId||!channel||!file)return;if(!startedAt){alert('Start the class before sharing a file.');return}
