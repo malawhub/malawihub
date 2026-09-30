@@ -51,7 +51,50 @@
    if(a&&b&&!b.contains(a))b.appendChild(a);
   };
 
+  function ensureFileDownload(){
+   const panel=document.getElementById("classFilePanel");
+   if(!panel||document.getElementById("mhStudentFileDownload"))return;
+   const b=document.createElement("button");
+   b.id="mhStudentFileDownload";
+   b.type="button";
+   b.className="btn primary";
+   b.textContent="⬇ Download Displayed File";
+   b.style.cssText="display:block;width:calc(100% - 24px);margin:10px 12px 14px;padding:11px 14px;font-weight:700";
+   b.onclick=async()=>{
+    const url=b.dataset.url;
+    const name=b.dataset.name||"malawihub-class-file";
+    if(!url)return;
+    const old=b.textContent;b.disabled=true;b.textContent="⏳ Preparing download…";
+    try{
+     const res=await fetch(url,{mode:"cors"});
+     if(!res.ok)throw new Error("HTTP "+res.status);
+     const blob=await res.blob();
+     const a=document.createElement("a");
+     a.href=URL.createObjectURL(blob);
+     a.download=name;
+     document.body.appendChild(a);a.click();a.remove();
+     setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    }catch(e){
+     console.warn("Displayed file download failed",e);
+     const a=document.createElement("a");
+     a.href=url;a.target="_blank";a.rel="noopener";
+     document.body.appendChild(a);a.click();a.remove();
+    }finally{b.disabled=false;b.textContent=old}
+   };
+   panel.appendChild(b);
+  }
+
+  window.updateStudentFileDownload=(file)=>{
+   ensureFileDownload();
+   const b=document.getElementById("mhStudentFileDownload");
+   if(!b)return;
+   b.dataset.url=file?.url||"";
+   b.dataset.name=(file?.name||"malawihub-class-file").replace(/[\\/:"*?<>|]+/g,"_");
+   b.style.display=file?.url?"block":"none";
+  };
+
   function mount(){
+   ensureFileDownload();
    move("remoteVideo","mhStudentLive");
    move("remoteAudio","mhStudentLive");
    move("waiting","mhStudentLive");
