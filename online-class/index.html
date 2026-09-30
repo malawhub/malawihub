@@ -53,7 +53,7 @@ const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
 const storedStudentCode=sessionStorage.getItem('malawihub_class_code')||'';
 const studentPortalSession=sessionStorage.getItem('malawihub_student_portal')==='1';
-const pageVersion='20260930-student-download2';
+const pageVersion='20260930-shared-display1';
 const adminMode=params.get('mode')==='admin'||params.get('admin')==='1'||params.get('role')==='admin'||location.hash==='#admin';
 const teacherPortalMode=!adminMode && (params.get('teacher')==='1');
 const controlMode=adminMode||teacherPortalMode;
@@ -122,7 +122,16 @@ function wakeStudentMedia(){
  $('remoteVideo')?.play().catch(()=>{});
  document.querySelectorAll('audio[data-peer-id]').forEach(a=>a.play().catch(()=>{}));
 }
-function adminShowDisplay(view,title){if(!controlMode)return;document.querySelectorAll('#adminClassDisplay .admin-view').forEach(v=>v.classList.remove('active'));$(view)?.classList.add('active');$('adminDisplayTitle').textContent=(view==='adminLiveView'?'🎥':view==='adminWhiteboardView'?'🧑‍🏫':view==='adminFileView'?'📄':view==='adminNotesView'?'📝':view==='adminChatView'?'💬':view==='adminPrivateView'?'🔒':'');$('adminDisplayStatus').textContent=''}
+function adminShowDisplay(view,title){
+ if(!controlMode)return;
+ document.querySelectorAll('#adminClassDisplay .admin-view').forEach(v=>v.classList.remove('active'));
+ $(view)?.classList.add('active');
+ $('adminDisplayTitle').textContent=(view==='adminLiveView'?'🎥':view==='adminWhiteboardView'?'🧑‍🏫':view==='adminFileView'?'📄':view==='adminNotesView'?'📝':view==='adminChatView'?'💬':view==='adminPrivateView'?'🔒':'');
+ $('adminDisplayStatus').textContent='';
+ if(channel&&roomCode){
+  send({type:'display',action:'view',view:view==='adminLiveView'?'live':view==='adminWhiteboardView'?'whiteboard':view==='adminFileView'?'file':view==='adminNotesView'?'notes':view==='adminChatView'?'chat':view==='adminPrivateView'?'private':'live',title:title||''}).catch(e=>console.warn('display broadcast',e));
+ }
+}
 function prepareAdminDisplay(){if(!controlMode)return;const stage=document.querySelector('.stage');const filePanel=$('classFilePanel');const notesPanel=$('notes')?.closest('.panel');if(stage&&!$('adminLiveView').contains(stage))$('adminLiveView').appendChild(stage);if(filePanel&&!$('adminFileView').contains(filePanel))$('adminFileView').appendChild(filePanel);if(notesPanel&&!$('adminNotesView').contains(notesPanel))$('adminNotesView').appendChild(notesPanel);
   const chatPanel=$('chat')?.closest('.panel');
   if(chatPanel&&!$('adminChatView').contains(chatPanel))$('adminChatView').appendChild(chatPanel); const privatePanel=$('privateNotes')?.closest('.private-note-panel'); if(privatePanel&&!$('adminPrivateView').contains(privatePanel))$('adminPrivateView').appendChild(privatePanel);const frame=$('adminWhiteboardView')?.querySelector('iframe');if(frame&&!frame.src)frame.src='./whiteboard.html?code='+encodeURIComponent(roomCode)+'&role='+encodeURIComponent(role);adminShowDisplay('adminLiveView','🎥')}
@@ -180,6 +189,7 @@ async function renderClassFile(file){
   };
  }
  if(role==='student'&&window.updateStudentFileDownload)window.updateStudentFileDownload(file);
+ wireTeacherFileScroll();
 }
 async function shareClassFile(file){
  if(!controlMode||!classId||!channel||!file)return;if(!startedAt){alert('Start the class before sharing a file.');return}
@@ -195,6 +205,7 @@ async function shareClassFile(file){
   const shared={name:file.name,mime:file.type||'application/octet-stream',size:file.size,url:pub.publicUrl,path:data.path,sharedAt:Date.now()};
   await renderClassFile(shared);
   await channel.send({type:'broadcast',event:'class-file',payload:{code:roomCode,action:'show',file:shared}});
+  await send({type:'display',action:'view',view:'file',title:'📄 Shared Classroom File'});
   $('status').textContent='FILE SHARED';
  }catch(e){
   console.error('Class file upload failed',e);
@@ -256,12 +267,41 @@ function ensureRemoteAudio(peerId){
  if(!el){el=document.createElement('audio');el.id='remoteAudio-'+safe;el.autoplay=true;el.playsInline=true;el.controls=false;el.dataset.peerId=peerId;el.style.display='none';document.body.appendChild(el)}
  return el;
 }
+let displayScrollTimer=0;
+let lastDisplayScrollSent=0;
+function getDisplayFileScroller(){
+ const el=role==='teacher'||role==='admin'?$('adminFileView'):document.getElementById('mhStudentFile')||$('studentFileView');
+ return el;
+}
+function applyStudentFileScroll(ratio){
+ if(role!=='student')return;
+ const el=getDisplayFileScroller();
+ if(!el)return;
+ const max=Math.max(0,el.scrollHeight-el.clientHeight);
+ el.scrollTop=Math.max(0,Math.min(1,ratio))*max;
+}
+function wireTeacherFileScroll(){
+ if(!controlMode)return;
+ const el=getDisplayFileScroller();
+ if(!el||el.dataset.mhScrollWired==='1')return;
+ el.dataset.mhScrollWired='1';
+ el.addEventListener('scroll',()=>{
+  if(!channel||!roomCode)return;
+  const now=Date.now();
+  if(now-lastDisplayScrollSent<120)return;
+  lastDisplayScrollSent=now;
+  const max=Math.max(0,el.scrollHeight-el.clientHeight);
+  const ratio=max?el.scrollTop/max:0;
+  clearTimeout(displayScrollTimer);
+  displayScrollTimer=setTimeout(()=>send({type:'display',action:'file-scroll',ratio}).catch(()=>{}),20);
+ },{passive:true});
+}
 async function handleSignal(p){
  if(['teacher','admin'].includes(role)&&p.type==='join'){
   state.students.set(p.from,p.name);renderStudents();
   if(window.MalawiHubNative)window.MalawiHubNative.nativeStudentJoined(p.from);
   await channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'join',id:p.from,name:p.name}});
-  makePeer(p.from); if(controlMode&&paused)await send({type:'pause',from:getMyId(),to:p.from,at:pausedAt});if(controlMode&&sharedFile)await send({type:'class-file',from:getMyId(),to:p.from,file:sharedFile});
+  makePeer(p.from); if(controlMode&&paused)await send({type:'pause',from:getMyId(),to:p.from,at:pausedAt});if(controlMode&&sharedFile){await send({type:'class-file',from:getMyId(),to:p.from,file:sharedFile});await send({type:'display',from:getMyId(),to:p.from,action:'view',view:'file',title:'📄 Shared Classroom File'});}else if(controlMode&&startedAt){await send({type:'display',from:getMyId(),to:p.from,action:'view',view:'live',title:'🎥 Live Classroom'});}
  }
  else if(p.type==='offer'){
   const peerId=p.from;
@@ -280,6 +320,20 @@ async function handleSignal(p){
   const peerId=p.from;
   const pc=peers.get(peerId);
   if(pc){try{await pc.setRemoteDescription(p.sdp);await flushIce(peerId)}catch(e){console.warn('Answer handling failed',e)}}
+ }
+ else if(role==='student'&&p.type==='display'){
+  if(p.action==='view'){
+   const map={live:'live',file:'file',whiteboard:'whiteboard',notes:'notes',chat:'chat'};
+   const view=map[p.view]||'live';
+   if(view==='file' && !sharedFile) return;
+   if(view==='file') await renderClassFile(sharedFile);
+   if(view==='whiteboard') prepareStudentDisplay();
+   if(view==='notes') prepareStudentDisplay();
+   if(view==='chat') prepareStudentDisplay();
+   if(window.studentShowDisplay) window.studentShowDisplay(view, p.title||'');
+  }else if(p.action==='file-scroll'){
+   applyStudentFileScroll(Number(p.ratio)||0);
+  }
  }
  else if(role==='student'&&p.type==='native-screen-offer'){
   const pc=makePeer('native-screen');await pc.setRemoteDescription(p.sdp);await flushIce('native-screen');const answer=await pc.createAnswer();await pc.setLocalDescription(answer);await send({type:'native-screen-answer',to:p.from,from:getMyId(),sdp:pc.localDescription})
