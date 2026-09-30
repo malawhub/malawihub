@@ -86,3 +86,6 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 // Administrator classroom routing deployment marker: 2026-09-21-admin6
 // Admin live-class guard fix: never redirect administrator launches to Student Portal.
 // Activity and visitor tracking deployment marker: 2026-09-27-stats1
+
+// Student workspace loader: 2026-09-30
+(function(){const p=(location.pathname||"").toLowerCase();if(!p.endsWith("/online-class/index.html")&&!p.endsWith("/online-class/"))return;const q=new URLSearchParams(location.search);if(q.get("student")!=="1"&&q.get("role")!=="student"&&sessionStorage.getItem("malawihub_student_portal")!=="1")return;const s=document.createElement("script");s.src="../js/student-workspace.js?v=20260930";s.defer=true;document.head.appendChild(s)})();
