@@ -28,6 +28,7 @@
 
 /online-class/*
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+  Permissions-Policy: display-capture=(self)
 
 /js/supabase.js
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0
