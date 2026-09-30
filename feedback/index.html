@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Contact MalawiHub with a question, review, comment or suggestion.">
+<title>Questions & Feedback — MalawiHub</title>
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+body{background:#f5f7fb;color:#101828;margin:0;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
+.fb-wrap{max-width:760px;margin:auto;padding:20px}.fb-head{background:#101828;color:#fff;border-radius:18px;padding:22px;margin-bottom:24px}.fb-back{color:#fff;text-decoration:none;font-size:14px;opacity:.9}.fb-brand{font-size:22px;font-weight:800;margin-top:10px}
+.fb-card{background:#fff;border-radius:22px;padding:26px;box-shadow:0 8px 28px #00000010}.fb-card h1{margin:0 0 8px;font-size:32px}.fb-card>p{color:#667085;line-height:1.6}
+.fb-types{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:20px 0}.fb-type{border:1px solid #d0d5dd;border-radius:13px;padding:12px;background:#fff;cursor:pointer;text-align:center;font-weight:700;color:#344054}.fb-type.active{border-color:#0d6efd;background:#eef5ff;color:#0d6efd}
+label{display:block;font-weight:700;margin:15px 0 7px}input,textarea,select{width:100%;box-sizing:border-box;border:1px solid #d0d5dd;border-radius:12px;padding:12px;font:inherit;background:#fff}textarea{min-height:140px;resize:vertical}.fb-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}.fb-submit{width:100%;border:0;border-radius:12px;padding:14px;background:#0d6efd;color:#fff;font-weight:800;font-size:16px;margin-top:18px;cursor:pointer}.fb-submit:disabled{opacity:.65}.fb-msg{display:none;margin-top:16px;padding:13px;border-radius:12px}.fb-msg.show{display:block}.success{background:#eaf7ef;color:#087f3f}.error{background:#fff1f0;color:#b42318}.fb-small{font-size:12px;color:#667085;margin-top:9px}
+@media(max-width:600px){.fb-types,.fb-row{grid-template-columns:1fr}.fb-card{padding:20px}.fb-card h1{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="fb-wrap">
+<header class="fb-head">
+<a class="fb-back" href="../">← Back to MalawiHub</a>
+<div class="fb-brand">🇲🇼 MalawiHub</div>
+</header>
+<main class="fb-card">
+<h1>💬 Questions & Feedback</h1>
+<p>Have a question, review, comment or suggestion? Tell us what you think about MalawiHub. Your feedback helps us improve the platform.</p>
+<div class="fb-types" role="group" aria-label="Feedback type">
+<button type="button" class="fb-type active" data-type="question">❓ Question</button>
+<button type="button" class="fb-type" data-type="review">⭐ Review</button>
+<button type="button" class="fb-type" data-type="comment">💬 Comment</button>
+</div>
+<form id="feedbackForm">
+<div class="fb-row">
+<div><label for="name">Name <span class="fb-small">(optional)</span></label><input id="name" maxlength="100" placeholder="Your name"></div>
+<div><label for="email">Email <span class="fb-small">(optional)</span></label><input id="email" type="email" maxlength="160" placeholder="Your email"></div>
+</div>
+<div id="ratingWrap" style="display:none"><label for="rating">Rating</label><select id="rating"><option value="">Choose a rating</option><option value="5">⭐⭐⭐⭐⭐ 5</option><option value="4">⭐⭐⭐⭐ 4</option><option value="3">⭐⭐⭐ 3</option><option value="2">⭐⭐ 2</option><option value="1">⭐ 1</option></select></div>
+<label for="message">Your message</label>
+<textarea id="message" maxlength="2000" required placeholder="Write your question, review, comment or suggestion..."></textarea>
+<div class="fb-small"><span id="count">0</span>/2000 characters</div>
+<button class="fb-submit" id="submitBtn" type="submit">Send Feedback</button>
+<div class="fb-msg" id="msg" role="status"></div>
+</form>
+</main>
+</div>
+<script>
+const SUPABASE_URL='https://cdqrdovgdidzxmyygoee.supabase.co';
+const SUPABASE_KEY='sb_publishable_XHAK368Bg4dirFmtl229Bq_xzjCyqb8';
+const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+let feedbackType='question';
+const types=[...document.querySelectorAll('.fb-type')], ratingWrap=document.getElementById('ratingWrap');
+types.forEach(btn=>btn.addEventListener('click',()=>{types.forEach(x=>x.classList.remove('active'));btn.classList.add('active');feedbackType=btn.dataset.type;ratingWrap.style.display=feedbackType==='review'?'block':'none';}));
+const message=document.getElementById('message'),count=document.getElementById('count');message.addEventListener('input',()=>count.textContent=message.value.length);
+document.getElementById('feedbackForm').addEventListener('submit',async e=>{
+ e.preventDefault();
+ const msg=document.getElementById('msg'),btn=document.getElementById('submitBtn');
+ msg.className='fb-msg';msg.textContent='';
+ const text=message.value.trim();
+ if(text.length<3){msg.className='fb-msg show error';msg.textContent='Please enter at least 3 characters.';return}
+ btn.disabled=true;btn.textContent='Sending...';
+ try{
+  const {data:{user}}=await client.auth.getUser();
+  const payload={user_id:user?.id||null,user_role:user?.user_metadata?.role||null,feedback_type:feedbackType,rating:feedbackType==='review'?(Number(document.getElementById('rating').value)||null):null,name:document.getElementById('name').value.trim()||null,email:document.getElementById('email').value.trim()||null,message:text,page_url:location.href};
+  const {error}=await client.from('feedback').insert(payload);
+  if(error)throw error;
+  msg.className='fb-msg show success';msg.textContent='Thank you! Your feedback has been received by MalawiHub.';
+  e.target.reset();count.textContent='0';
+ }catch(err){console.error(err);msg.className='fb-msg show error';msg.textContent='We could not send your feedback right now. Please try again.';}
+ finally{btn.disabled=false;btn.textContent='Send Feedback';}
+});
+</script>
+</body>
+</html>
