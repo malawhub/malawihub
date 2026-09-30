@@ -126,6 +126,7 @@
    const x=views[v]||views.live;
    Object.values(views).forEach(a=>document.getElementById(a[0])?.classList.remove("active"));
    document.getElementById(x[0])?.classList.add("active");
+   if(v==="whiteboard")window.MalawiHubInPageWhiteboard?.resize();
    const title=document.getElementById("mhStudentTitle");
    if(title)title.textContent=x[1];
   }
