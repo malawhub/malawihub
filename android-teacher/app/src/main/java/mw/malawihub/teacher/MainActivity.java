@@ -27,7 +27,7 @@ public class MainActivity extends Activity {
     private static final int SCREEN_CAPTURE_REQUEST=7001;
     private static final String TEACHER_URL = "https://malawihub.pages.dev/teacher-portal/index.html?v=20260930-native-screen";
     private WebView webView; private ProgressBar progress; private final Handler handler=new Handler(); private android.webkit.ValueCallback<android.net.Uri[]> fileCallback; private static final int FILE_PICK_REQUEST=8001;
-    private NativeScreenShareManager nativeScreen;
+    private NativeScreenShareManager nativeScreen; private String pendingNativeRoom="", pendingNativeId="";
     @Override protected void onCreate(Bundle state){super.onCreate(state);showBrandedSplash();handler.postDelayed(this::openTeacher,1200);}
     private void showBrandedSplash(){
         LinearLayout splash=new LinearLayout(this);splash.setOrientation(LinearLayout.VERTICAL);splash.setGravity(Gravity.CENTER);splash.setPadding(32,32,32,32);splash.setBackgroundColor(Color.WHITE);
@@ -67,8 +67,8 @@ public class MainActivity extends Activity {
             @android.webkit.JavascriptInterface public void requestNativeScreenShare(String roomCode,String nativeId){
                 runOnUiThread(()->{
                     if(nativeScreen!=null&&nativeScreen.isActive()){nativeScreen.stop();return;}
-                    getIntent().putExtra("native_room",roomCode);
-                    getIntent().putExtra("native_id",nativeId);
+                    pendingNativeRoom=roomCode==null?"":roomCode;
+                    pendingNativeId=nativeId==null?"":nativeId;
                     MediaProjectionManager m=(MediaProjectionManager)getSystemService(MEDIA_PROJECTION_SERVICE);
                     startActivityForResult(m.createScreenCaptureIntent(),SCREEN_CAPTURE_REQUEST);
                 });
@@ -94,11 +94,30 @@ public class MainActivity extends Activity {
     @Override protected void onActivityResult(int requestCode,int resultCode,Intent data){
         super.onActivityResult(requestCode,resultCode,data);
         if(requestCode==FILE_PICK_REQUEST){if(fileCallback!=null){fileCallback.onReceiveValue(resultCode==RESULT_OK&&data!=null?new android.net.Uri[]{data.getData()}:null);fileCallback=null;}return;}
-        if(requestCode==SCREEN_CAPTURE_REQUEST && resultCode==RESULT_OK && data!=null){
-            Intent s=new Intent(this,ScreenShareService.class);
-            s.putExtra("resultCode",resultCode);s.putExtra("data",data);
-            if(Build.VERSION.SDK_INT>=26)startForegroundService(s);else startService(s);
-            if(nativeScreen!=null) nativeScreen.start(data,getIntent().getStringExtra("native_room"),getIntent().getStringExtra("native_id")); getIntent().removeExtra("native_room"); getIntent().removeExtra("native_id");
+        if(requestCode==SCREEN_CAPTURE_REQUEST){
+            if(resultCode!=RESULT_OK || data==null){
+                pendingNativeRoom=""; pendingNativeId="";
+                if(webView!=null) webView.evaluateJavascript("window.__malawiNativeStatus&&window.__malawiNativeStatus('Screen sharing was cancelled.');",null);
+                return;
+            }
+            try{
+                Intent s=new Intent(this,ScreenShareService.class);
+                s.putExtra("resultCode",resultCode);s.putExtra("data",data);
+                if(Build.VERSION.SDK_INT>=26)startForegroundService(s);else startService(s);
+                final Intent projectionData=data;
+                final String room=pendingNativeRoom, id=pendingNativeId;
+                new Handler().postDelayed(()->{
+                    try{
+                        if(nativeScreen!=null) nativeScreen.start(projectionData,room,id);
+                    }catch(Exception e){
+                        if(webView!=null) webView.evaluateJavascript("window.__malawiNativeStatus&&window.__malawiNativeStatus("+JSONObject.quote("Screen sharing could not start: "+e.getClass().getSimpleName())+");",null);
+                    }
+                    pendingNativeRoom=""; pendingNativeId="";
+                },300);
+            }catch(Exception e){
+                pendingNativeRoom=""; pendingNativeId="";
+                if(webView!=null) webView.evaluateJavascript("window.__malawiNativeStatus&&window.__malawiNativeStatus("+JSONObject.quote("Screen sharing could not start: "+e.getClass().getSimpleName())+");",null);
+            }
         }
     }
     @Override public void onBackPressed(){if(webView!=null&&webView.canGoBack())webView.goBack();else super.onBackPressed();}
