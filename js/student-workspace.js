@@ -24,7 +24,7 @@
     ".mh-student-view.active{display:block}.mh-student-view.live{background:#101828}"+
     ".mh-student-view .stage{margin:0;border-radius:0;min-height:calc(100vh - 60px);height:100%}"+
     ".mh-student-view .panel{margin:0;border-radius:0;box-shadow:none}"+
-    ".mh-student-view .video-grid{grid-template-columns:1fr}"+
+    ".mh-student-view .video-grid{grid-template-columns:1fr}.mh-student-board{display:block;width:100%;height:calc(100vh - 60px);min-height:360px;background:#fff;touch-action:none;cursor:crosshair}"+
     "@media(max-width:600px){.mh-student-view,.mh-student-view .stage{min-height:calc(100vh - 58px)}}";
    document.head.appendChild(s);
   }
@@ -40,7 +40,7 @@
    '<div class="mh-student-view active live" id="mhStudentLive"></div>'+
    '<div class="mh-student-view" id="mhStudentFile"></div>'+
    '<div class="mh-student-view" id="mhStudentVideo"></div>'+
-   '<div class="mh-student-view" id="mhStudentWhiteboard"><iframe title="MalawiHub Shared Whiteboard" style="width:100%;height:100%;min-height:calc(100vh - 60px);border:0;background:#fff"></iframe></div>'+
+   '<div class="mh-student-view" id="mhStudentWhiteboard"><canvas id="mhStudentBoard" class="mh-student-board" aria-label="MalawiHub shared whiteboard"></canvas></div>'+
    '<div class="mh-student-view" id="mhStudentNotes"></div>'+
    '<div class="mh-student-view" id="mhStudentStudents"></div>'+
    '<div class="mh-student-view" id="mhStudentChat"></div>'+
@@ -109,9 +109,6 @@
    move("chatInput","mhStudentChat");
    move("sendChat","mhStudentChat");
 
-   const wb=document.querySelector("#mhStudentWhiteboard iframe");
-   const code=params.get("code")||sessionStorage.getItem("malawihub_class_code")||"";
-   if(wb&&!wb.src&&code)wb.src="./whiteboard.html?code="+encodeURIComponent(code)+"&role=student&embedded=1";
   }
 
   const views={
