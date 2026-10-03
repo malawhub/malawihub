@@ -38,4 +38,25 @@ jobs:
           path: teacher.apk
           if-no-files-found: error
 
-# Keep this workflow active for the current production APK pipeline.
+
+  publish:
+    needs: build-teacher
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: teacher-apk
+          path: .
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: malawihub-teacher-v1.0.0
+          name: MalawiHub Teacher Portal v1.0.0
+          body: MalawiHub Teacher Portal v1.0.0 — installable Android APK for the Online Class teacher portal.
+          files: teacher.apk
+          make_latest: false
+          prerelease: false
