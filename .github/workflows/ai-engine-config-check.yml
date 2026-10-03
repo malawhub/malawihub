@@ -1,0 +1,29 @@
+name: MalawiHub AI Engine Config Check
+
+on:
+  push:
+    paths:
+      - "ai-engine/**"
+      - "supabase/functions/malawihub-ai/**"
+  pull_request:
+    paths:
+      - "ai-engine/**"
+      - "supabase/functions/malawihub-ai/**"
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required engine files
+        run: |
+          test -f ai-engine/README.md
+          test -f ai-engine/docker-compose.yml
+          test -f ai-engine/.env.example
+          test -f ai-engine/health-check.sh
+          test -f supabase/functions/malawihub-ai/index.ts
+
+      - name: Check for accidentally committed secrets
+        run: |
+          ! grep -RInE 'sk-[A-Za-z0-9_-]{20,}|AIza[A-Za-z0-9_-]{20,}|BEGIN (RSA|OPENSSH|EC) PRIVATE KEY' ai-engine supabase/functions/malawihub-ai ||             (echo "Possible secret detected" && exit 1)
