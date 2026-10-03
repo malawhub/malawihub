@@ -38,4 +38,25 @@ jobs:
           path: student.apk
           if-no-files-found: error
 
-# Keep this workflow active for the current production APK pipeline.
+
+  publish:
+    needs: build-student
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: student-apk
+          path: .
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: malawihub-student-v1.0.0
+          name: MalawiHub Student Portal v1.0.0
+          body: MalawiHub Student Portal v1.0.0 — installable Android APK for the Online Class student portal.
+          files: student.apk
+          make_latest: false
+          prerelease: false
