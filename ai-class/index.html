@@ -42,7 +42,7 @@
 <div class="footer">MalawiHub AI Class • Independent university-level learning</div>
 </main>
 <script>
-const API_URL="/functions/v1/ai-class";
+const API_URL="https://cdqrdovgdidzxmyygoee.supabase.co/functions/v1/ai-class";
 const q=document.getElementById("question"), askBtn=document.getElementById("askBtn"), status=document.getElementById("status"), answer=document.getElementById("answer"), answerText=document.getElementById("answerText"), deepButtons=document.getElementById("deepButtons");
 let lastQuestion="";
 function setStatus(t,err=false){status.innerHTML=err?'<span class="error">'+t+"</span>":t}
