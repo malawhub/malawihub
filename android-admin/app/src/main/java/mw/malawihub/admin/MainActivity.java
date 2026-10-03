@@ -118,6 +118,19 @@ public class MainActivity extends Activity {
             @Override public void status(String text){ runOnUiThread(()->{ if(webView!=null) webView.evaluateJavascript("window.__malawiNativeStatus("+JSONObject.quote(text)+");",null); }); }
         });
         webView.setWebChromeClient(new WebChromeClient(){
+            @Override public boolean onShowFileChooser(WebView view, android.webkit.ValueCallback<android.net.Uri[]> callback, WebChromeClient.FileChooserParams params){
+                if(fileCallback!=null) fileCallback.onReceiveValue(null);
+                fileCallback=callback;
+                try{
+                    android.content.Intent intent=params.createIntent();
+                    startActivityForResult(intent,FILE_PICK_REQUEST);
+                    return true;
+                }catch(Exception e){
+                    fileCallback=null;
+                    callback.onReceiveValue(null);
+                    return false;
+                }
+            }
             @Override public void onPermissionRequest(final android.webkit.PermissionRequest request){runOnUiThread(()->{if(request.getOrigin()!=null&&request.getOrigin().toString().startsWith("https://malawihub.pages.dev/")){
                 boolean micOk=android.os.Build.VERSION.SDK_INT<23 || checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==android.content.pm.PackageManager.PERMISSION_GRANTED;
                 boolean cameraOk=android.os.Build.VERSION.SDK_INT<23 || checkSelfPermission(android.Manifest.permission.CAMERA)==android.content.pm.PackageManager.PERMISSION_GRANTED;
