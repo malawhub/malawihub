@@ -1,10 +1,34 @@
-/* MalawiHub in-page classroom whiteboard — 2026-09-30 */
+/* MalawiHub in-page classroom whiteboard — 2026-10-03 */
 (function(){
   const $=id=>document.getElementById(id);
   let canvas=null,ctx=null,role='',room='',channel=null,strokes=[],current=null,drawing=false,tool='pen',lastSent=0,resizeBound=false,channelBound=false;
+  function addStudentClassControls(){
+    if(role!=='student'||$('mhStudentClassControls'))return;
+    const bar=document.querySelector('.student-toolbar');
+    if(!bar)return;
+    const wrap=document.createElement('div');
+    wrap.id='mhStudentClassControls';
+    wrap.style.cssText='display:flex;gap:7px;align-items:center;justify-content:center;flex-wrap:wrap;width:100%;margin-top:4px';
+    const exit=document.createElement('button');
+    exit.type='button';exit.className='btn danger';exit.textContent='🚪 Exit Class';
+    exit.title='Leave this class and return to the Student Portal';
+    exit.onclick=async()=>{
+      try{if(channel&&room)await channel.send({type:'broadcast',event:'presence',payload:{code:room,action:'leave',id:window.malawiClassUserId||'',name:window.malawiClassUserName||''}})}catch(e){}
+      try{sessionStorage.setItem('malawihub_class_code',room);sessionStorage.setItem('malawihub_student_portal','1')}catch(e){}
+      location.href='../student-portal/?class='+encodeURIComponent(room)+'&reenter=1';
+    };
+    const reenter=document.createElement('button');
+    reenter.type='button';reenter.className='btn';reenter.textContent='↩ Re-enter Class';
+    reenter.title='Return to this class';
+    reenter.onclick=()=>{if(room)location.href='./index.html?student=1&role=student&code='+encodeURIComponent(room)+'&v=20261003-student-reenter'};
+    wrap.appendChild(exit);
+    wrap.appendChild(reenter);
+    bar.appendChild(wrap);
+  }
   function init(){
     role=window.malawiClassRole||'';room=window.malawiClassRoom||'';channel=window.malawiClassChannel||null;
     canvas=role==='student'?$('mhStudentBoard'):$('mhTeacherBoard');
+    if(role==='student')addStudentClassControls();
     if(!canvas)return;
     ctx=canvas.getContext('2d');resize();
     if(!resizeBound){window.addEventListener('resize',resize);resizeBound=true}
