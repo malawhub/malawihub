@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="MalawiHub AI Class — ask university-level academic questions and learn deeper with clear explanations, examples and practice.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://malawihub.pages.dev/ai-class/">
+<meta property="og:title" content="MalawiHub AI Class">
+<meta property="og:description" content="Ask a university-level question. Get a clear explanation and go deeper.">
+<meta property="og:url" content="https://malawihub.pages.dev/ai-class/">
+<meta property="og:type" content="website">
+<title>AI Class — MalawiHub</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f7fa;color:#172033;line-height:1.55}header{background:#111827;color:#fff;padding:12px 5%;display:flex;justify-content:space-between;align-items:center;gap:15px}header a{color:#fff;text-decoration:none;font-weight:700}.logo{font-size:20px}.back{font-size:12px;border:1px solid #465064;border-radius:7px;padding:7px 10px}.wrap{max-width:900px;margin:auto;padding:28px 15px 50px}.hero{text-align:center;padding:28px 0 20px}.badge{display:inline-block;background:#e8f4ed;color:#176b3a;border:1px solid #cce6d6;border-radius:20px;padding:5px 10px;font-size:11px;font-weight:700}.hero h1{font-size:38px;line-height:1.15;margin:13px 0 9px}.hero h1 span{color:#1769aa}.hero p{max-width:650px;margin:auto;color:#667384;font-size:14px}.ask{margin-top:24px;background:#fff;border:1px solid #dce3eb;border-radius:16px;padding:15px;box-shadow:0 6px 22px rgba(0,0,0,.06)}textarea{width:100%;min-height:130px;border:1px solid #d5dce5;border-radius:11px;padding:13px;font:inherit;resize:vertical;outline:none}textarea:focus{border-color:#1769aa;box-shadow:0 0 0 3px rgba(23,105,170,.1)}.row{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:10px}.hint{font-size:11px;color:#788493}.ask button{background:#1769aa;color:#fff;border:0;border-radius:9px;padding:11px 18px;font-weight:700;cursor:pointer}.ask button:disabled{opacity:.55}.examples{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.examples button{background:#f1f4f7;color:#1769aa;border:1px solid #dce4eb;border-radius:8px;padding:7px 9px;font-size:11px;cursor:pointer}.answer{display:none;margin-top:18px;background:#fff;border:1px solid #dce3eb;border-radius:16px;padding:20px}.answer.show{display:block}.answer h2{font-size:18px;margin:0 0 13px}.answer-content{white-space:pre-wrap;font-size:14px}.deep{margin-top:20px;border-top:1px solid #e7ebef;padding-top:15px}.deep h3{font-size:14px}.deep button{margin:4px 5px 4px 0;background:#f1f5f8;color:#1769aa;border:1px solid #d8e1e9;border-radius:8px;padding:8px 10px;cursor:pointer;font-size:11px}.status{font-size:12px;color:#687385;margin-top:10px;min-height:18px}.notice{margin-top:18px;text-align:center;color:#7a8491;font-size:11px}.error{color:#b42318}.footer{margin-top:30px;text-align:center;font-size:11px;color:#7b8592}.spinner{display:inline-block;width:12px;height:12px;border:2px solid #cbd5df;border-top-color:#1769aa;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:5px}@keyframes spin{to{transform:rotate(360deg)}}@media(max-width:600px){.hero h1{font-size:31px}.row{align-items:flex-end}.hint{max-width:55%}}
+</style>
+</head>
+<body>
+<header><a class="logo" href="/">🇲🇼 MalawiHub</a><a class="back" href="/">← Back to MalawiHub</a></header>
+<main class="wrap">
+<section class="hero">
+<span class="badge">INDEPENDENT UNIVERSITY LEARNING</span>
+<h1>Ask a question.<br><span>Learn deeper.</span></h1>
+<p>Ask MalawiHub AI Class a university-level academic question. Start with a clear answer, then continue with explanations, examples, practice and related topics.</p>
+</section>
+<section class="ask">
+<textarea id="question" maxlength="4000" placeholder="Example: Explain the difference between accuracy and precision in analytical chemistry."></textarea>
+<div class="examples">
+<button data-q="Explain the difference between accuracy and precision.">Accuracy vs precision</button>
+<button data-q="How does the Krebs cycle produce energy?">Krebs cycle</button>
+<button data-q="Explain the concept of opportunity cost with examples.">Opportunity cost</button>
+</div>
+<div class="row"><span class="hint">University-level • General knowledge • No institution-specific syllabus</span><button id="askBtn">Ask AI Class</button></div>
+<div id="status" class="status"></div>
+</section>
+<section id="answer" class="answer">
+<h2>MalawiHub AI Class</h2>
+<div id="answerText" class="answer-content"></div>
+<div class="deep"><h3>Go deeper</h3><div id="deepButtons"></div></div>
+</section>
+<div class="notice">AI answers can contain mistakes. Check important academic facts against reliable learning materials.</div>
+<div class="footer">MalawiHub AI Class • Independent university-level learning</div>
+</main>
+<script>
+const API_URL="/functions/v1/ai-class";
+const q=document.getElementById("question"), askBtn=document.getElementById("askBtn"), status=document.getElementById("status"), answer=document.getElementById("answer"), answerText=document.getElementById("answerText"), deepButtons=document.getElementById("deepButtons");
+let lastQuestion="";
+function setStatus(t,err=false){status.innerHTML=err?'<span class="error">'+t+"</span>":t}
+async function ask(question,followUp=""){
+ const clean=question.trim(); if(!clean)return;
+ lastQuestion=clean; askBtn.disabled=true; setStatus('<span class="spinner"></span>Thinking…'); answer.classList.remove("show"); deepButtons.innerHTML="";
+ try{
+  const r=await fetch(API_URL,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:clean,follow_up:followUp})});
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(data.error||"AI Class is temporarily unavailable.");
+  answerText.textContent=data.answer||"No answer was returned.";
+  answer.classList.add("show");
+  const actions=["Explain deeper","Give examples","Show step-by-step","Practice questions","Test me","Related topics"];
+  actions.forEach(a=>{const b=document.createElement("button");b.textContent=a;b.onclick=()=>ask(lastQuestion+"\n\nPlease "+a.toLowerCase()+".","");deepButtons.appendChild(b)});
+  setStatus("");
+  answer.scrollIntoView({behavior:"smooth",block:"start"});
+ }catch(e){setStatus(e.message,true)}
+ finally{askBtn.disabled=false}
+}
+askBtn.onclick=()=>ask(q.value);
+q.addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter")ask(q.value)});
+document.querySelectorAll(".examples button").forEach(b=>b.onclick=()=>{q.value=b.dataset.q;ask(q.value)});
+</script>
+</body>
+</html>
