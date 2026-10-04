@@ -927,6 +927,8 @@ async function updateUniversityLogo(institution){
 
     const logo=document.getElementById("universityLogo");
     const groupLogo=document.getElementById("groupUniversityLogo");
+    const leftLogo=document.querySelector("#cover .custom-left-logo");
+    const groupLeftLogo=document.getElementById("groupLeftLogo");
 
     const institutionLogos = {
         "University of Malawi": "/tools/assignment/assets/right-logo.jpeg",
@@ -945,8 +947,19 @@ async function updateUniversityLogo(institution){
 
     const selectedLogo = institutionLogos[institution];
 
-    // Never reuse one institution's logo for another institution.
-    // If an institution logo has not yet been supplied, hide the logo rather than showing the wrong one.
+    // UNIMA is the only institution currently using the two-logo cover:
+    // its existing left logo + its existing right logo.
+    // Every other institution uses only its own institution logo on the right.
+    if(leftLogo){
+        leftLogo.src="/tools/assignment/assets/left-logo.jpeg";
+        leftLogo.style.display=institution==="University of Malawi" ? "block" : "none";
+    }
+
+    if(groupLeftLogo){
+        groupLeftLogo.src="/tools/assignment/assets/left-logo.jpeg";
+        groupLeftLogo.style.display=institution==="University of Malawi" ? "block" : "none";
+    }
+
     if(selectedLogo){
         logo.src=selectedLogo;
         logo.style.display="block";
@@ -1085,13 +1098,6 @@ if(assignmentType==="group"){
     document.getElementById("groupMembersTable").innerHTML=members.map(function(member,index){
         return "<tr><td>"+(index+1)+"</td><td>"+escapeHtml(member.name)+"</td><td>"+escapeHtml(member.id)+"</td></tr>";
     }).join("");
-
-    const leftLogo=document.querySelector("#cover .custom-left-logo");
-    const groupLeftLogo=document.getElementById("groupLeftLogo");
-    if(leftLogo && groupLeftLogo){
-        groupLeftLogo.src=leftLogo.src;
-        groupLeftLogo.style.display=leftLogo.src ? "block" : "none";
-    }
 
     const universityLogo=document.getElementById("universityLogo");
     const groupUniversityLogo=document.getElementById("groupUniversityLogo");
