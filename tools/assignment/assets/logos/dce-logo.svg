@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="white"/>
+  <circle cx="256" cy="256" r="244" fill="white" stroke="#111" stroke-width="12"/>
+  <circle cx="256" cy="256" r="211" fill="none" stroke="#111" stroke-width="7"/>
+  <text x="256" y="70" text-anchor="middle" font-family="Arial,sans-serif" font-size="38" font-weight="700" letter-spacing="1">DOMASI COLLEGE OF</text>
+  <text x="256" y="112" text-anchor="middle" font-family="Arial,sans-serif" font-size="38" font-weight="700">EDUCATION</text>
+  <g fill="none" stroke="#111" stroke-width="10" stroke-linejoin="round">
+    <path d="M88 300 L256 190 L424 300 L397 300 L256 226 L115 300 Z"/>
+    <path d="M90 302 L422 302 L397 340 L115 340 Z"/>
+    <path d="M115 340 L397 340 L376 363 L136 363 Z"/>
+  </g>
+  <text x="256" y="292" text-anchor="middle" font-family="Georgia,serif" font-size="88" font-weight="700" font-style="italic">DCE</text>
+  <path d="M256 151 L256 177 M244 163 L256 151 L268 163" stroke="#111" stroke-width="8" fill="none"/>
+  <path d="M256 132 C244 143 244 151 256 157 C268 151 268 143 256 132Z" fill="#111"/>
+  <text x="256" y="400" text-anchor="middle" font-family="Arial,sans-serif" font-size="34" font-weight="700">EDUCATION</text>
+  <text x="256" y="451" text-anchor="middle" font-family="Arial,sans-serif" font-size="25" font-weight="700">KNOWLEDGE • DEVELOPMENT</text>
+</svg>
