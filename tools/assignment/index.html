@@ -152,6 +152,17 @@ background:#d4a017;
 }
 
 @media(max-width:500px){
+.cover .cover-logos{
+gap:20px;
+}
+.cover .cover-logo-box{
+width:105px;
+height:90px;
+}
+.cover .cover-logo{
+max-width:95px;
+max-height:80px;
+}
 .premium-features{
 grid-template-columns:1fr;
 }
@@ -183,22 +194,27 @@ align-items:center
 }
 
 .cover-logos{
-position:absolute;
-top:30px;
-left:38px;
-right:38px;
+position:relative;
+top:auto;
+left:auto;
+right:auto;
+width:100%;
 display:flex;
-justify-content:space-between;
+justify-content:center;
 align-items:flex-start;
-pointer-events:none
+gap:48px;
+margin:0 auto 22px;
+pointer-events:none;
+flex-shrink:0
 }
 
 .cover-logo-box{
-width:105px;
-height:90px;
+width:120px;
+height:100px;
 display:flex;
 align-items:center;
-justify-content:center
+justify-content:center;
+flex-shrink:0
 }
 
 .cover-logo{
@@ -215,21 +231,36 @@ display:block
 display:none
 }
 
+.cover-institution-header{
+width:100%;
+display:flex;
+flex-direction:column;
+align-items:center;
+justify-content:flex-start;
+flex-shrink:0;
+}
+
 .cover h2{
 display:none
 }
 
 .cover .school{
 font-size:20px;
-margin-top:12px;
-margin-bottom:18px;
-line-height:1.4
+margin-top:0;
+margin-bottom:10px;
+line-height:1.4;
+font-weight:700;
+text-align:center;
+width:100%;
 }
 
 .cover .department{
 font-size:18px;
-margin-bottom:70px;
-line-height:1.4
+margin-top:0;
+margin-bottom:55px;
+line-height:1.4;
+text-align:center;
+width:100%;
 }
 
 .cover .assignment{
@@ -349,15 +380,20 @@ break-before:page;
 }
 
 .group-cover .cover-logos{
-margin-bottom:30px;
+margin-bottom:22px;
 }
 
 .cover .cover-logos{
+position:relative;
+top:auto;
+left:auto;
+right:auto;
 display:flex;
-justify-content:space-between;
+justify-content:center;
 align-items:flex-start;
+gap:48px;
 width:100%;
-margin-bottom:30px;
+margin:0 auto 22px;
 }
 
 .cover .cover-logo-box{
@@ -378,7 +414,7 @@ display:block;
 
 .cover .school,
 .cover .department{
-margin-top:12px;
+margin-top:0;
 }
 
 .group-members-wrap{
@@ -444,7 +480,17 @@ margin:0
 .cover{
 border:0;
 min-height:100vh;
-padding:60px 40px
+padding:60px 40px;
+}
+.cover .cover-logos{
+position:relative;
+top:auto;
+left:auto;
+right:auto;
+margin-bottom:22px;
+}
+.cover-institution-header{
+margin-bottom:0;
 }
 
 .group-cover{
@@ -615,10 +661,10 @@ Assignment Cover Preview
 </div>
 </div>
 
-
+<div class="cover-institution-header">
 <div class="school" id="outSchool"></div>
-
 <div class="department" id="outDepartment"></div>
+</div>
 
 
 
@@ -687,8 +733,10 @@ Assignment Cover Preview
 </div>
 </div>
 
+<div class="cover-institution-header">
 <div class="school" id="groupSchool"></div>
 <div class="department" id="groupDepartment"></div>
+</div>
 <div class="info">
 
 <div class="info-row">
@@ -877,14 +925,39 @@ async function updateUniversityLogo(institution){
     const logo=document.getElementById("universityLogo");
     const groupLogo=document.getElementById("groupUniversityLogo");
 
-    // Both logos are bundled with MalawiHub so the cover does not depend on
-    // a remote image or Supabase branding lookup.
-    logo.src="/tools/assignment/assets/right-logo.jpeg";
-    logo.style.display="block";
+    const institutionLogos = {
+        "University of Malawi": "/tools/assignment/assets/logos/unima.png",
+        "Mzuzu University": "/tools/assignment/assets/logos/mzuni.png",
+        "Malawi University of Business and Applied Sciences": "/tools/assignment/assets/logos/mubas.png",
+        "Kamuzu University of Health Sciences": "/tools/assignment/assets/logos/kuhes.png",
+        "Malawi College of Accountancy": "/tools/assignment/assets/logos/mca.png",
+        "University of Livingstonia": "/tools/assignment/assets/logos/unilia.png",
+        "Lake Malawi Anglican University": "/tools/assignment/assets/logos/lamau.png",
+        "Daeyang University": "/tools/assignment/assets/logos/daeyang.png",
+        "Malawi Adventist University": "/tools/assignment/assets/logos/mau.png",
+        "Domasi College of Education": "/tools/assignment/assets/logos/domasi.png"
+    };
+
+    const selectedLogo = institutionLogos[institution];
+
+    // Never reuse one institution's logo for another institution.
+    // If an institution logo has not yet been supplied, hide the logo rather than showing the wrong one.
+    if(selectedLogo){
+        logo.src=selectedLogo;
+        logo.style.display="block";
+    }else{
+        logo.removeAttribute("src");
+        logo.style.display="none";
+    }
 
     if(groupLogo){
-        groupLogo.src="/tools/assignment/assets/right-logo.jpeg";
-        groupLogo.style.display="block";
+        if(selectedLogo){
+            groupLogo.src=selectedLogo;
+            groupLogo.style.display="block";
+        }else{
+            groupLogo.removeAttribute("src");
+            groupLogo.style.display="none";
+        }
     }
 }
 
