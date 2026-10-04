@@ -274,6 +274,108 @@ text-align:center;
 width:100%;
 }
 
+.cover.dce-cover{
+border:0;
+padding:45px 55px;
+outline:3px solid #222;
+outline-offset:-12px;
+}
+
+.cover.dce-cover:before,
+.cover.dce-cover:after{
+content:"";
+position:absolute;
+pointer-events:none;
+border:1.5px solid #222;
+}
+
+.cover.dce-cover:before{
+inset:18px;
+}
+
+.cover.dce-cover:after{
+inset:27px;
+}
+
+.dce-cover .cover-logos{
+margin-bottom:18px;
+z-index:1;
+}
+
+.dce-cover .cover-institution-header{
+z-index:1;
+}
+
+.dce-cover .school{
+font-size:25px;
+font-weight:800;
+letter-spacing:.3px;
+margin-bottom:14px;
+}
+
+.dce-cover .department{
+font-size:17px;
+font-weight:700;
+margin-bottom:34px;
+}
+
+.dce-details{
+width:94%;
+max-width:760px;
+margin:0 auto;
+text-align:left;
+font-size:16px;
+line-height:1.5;
+z-index:1;
+}
+
+.dce-details>div{
+display:grid;
+grid-template-columns:210px 18px minmax(0,1fr);
+align-items:start;
+margin:11px 0;
+}
+
+.dce-details span{
+font-weight:700;
+white-space:nowrap;
+}
+
+.dce-details b{
+text-align:center;
+}
+
+.dce-details strong{
+font-weight:500;
+white-space:normal;
+}
+
+.dce-details .dce-assignment-title{
+margin-top:18px;
+}
+
+.dce-details .dce-assignment-title strong{
+font-weight:700;
+line-height:1.35;
+}
+
+@media(max-width:500px){
+.dce-cover{
+padding:35px 28px!important;
+}
+.dce-cover .school{
+font-size:21px;
+}
+.dce-details{
+font-size:14px;
+width:92%;
+}
+.dce-details>div{
+grid-template-columns:150px 15px minmax(0,1fr);
+margin:9px 0;
+}
+}
+
 .cover .assignment{
 font-size:26px;
 font-weight:bold;
@@ -638,6 +740,14 @@ placeholder="Enter your school, faculty or college"
 <label for="department">Department</label>
 <input id="department" placeholder="e.g. Chemistry">
 
+<div id="dceExtraFields" style="display:none">
+<label for="yearOfStudy">Year of Study</label>
+<input id="yearOfStudy" placeholder="e.g. Two">
+
+<label for="semester">Semester</label>
+<input id="semester" placeholder="e.g. One">
+</div>
+
 <label for="course">Course Name</label>
 <input id="course" placeholder="e.g. Physical Chemistry">
 
@@ -682,6 +792,17 @@ Assignment Cover Preview
 <div class="cover-institution-header">
 <div class="school" id="outSchool"></div>
 <div class="department" id="outDepartment"></div>
+</div>
+<div class="dce-details" id="dceDetails">
+<div><span>COURSE TITLE</span><b>:</b><strong id="dceCourse"></strong></div>
+<div><span>COURSE CODE</span><b>:</b><strong id="dceCode"></strong></div>
+<div><span>COURSE LECTURER</span><b>:</b><strong id="dceLecturer"></strong></div>
+<div><span>YEAR OF STUDY</span><b>:</b><strong id="dceYear"></strong></div>
+<div><span>SEMESTER</span><b>:</b><strong id="dceSemester"></strong></div>
+<div><span>STUDENT NAME</span><b>:</b><strong id="dceStudent"></strong></div>
+<div><span>REGISTRATION NUMBER</span><b>:</b><strong id="dceStudentId"></strong></div>
+<div class="dce-assignment-title"><span>ASSIGNMENT TITLE</span><b>:</b><strong id="dceTitle"></strong></div>
+<div><span>DUE DATE</span><b>:</b><strong id="dceDate"></strong></div>
 </div>
 
 
@@ -935,6 +1056,10 @@ return document.getElementById(id).value.trim();
 document.addEventListener("DOMContentLoaded", function(){
     checkPremiumAccess();
     handleAssignmentTypeChange();
+    document.getElementById("institution").addEventListener("change", function(){
+        const dce=document.getElementById("dceExtraFields");
+        if(dce) dce.style.display=this.value==="Domasi College of Education" ? "block" : "none";
+    });
 });
 
 
@@ -1090,8 +1215,14 @@ if(date){
 
 const cover=document.getElementById("cover");
 const groupCover=document.getElementById("groupCover");
-cover.classList.remove("template-professional","template-academic","template-modern");
-groupCover.classList.remove("template-professional","template-academic","template-modern");
+const dceFields=document.getElementById("dceExtraFields");
+if(dceFields) dceFields.style.display=institution==="Domasi College of Education" ? "block" : "none";
+cover.classList.remove("template-professional","template-academic","template-modern","dce-cover");
+groupCover.classList.remove("template-professional","template-academic","template-modern","dce-cover");
+if(institution==="Domasi College of Education"){
+    cover.classList.add("dce-cover");
+    groupCover.classList.add("dce-cover");
+}
 
 if(template !== "basic"){
     cover.classList.add("template-" + template);
@@ -1136,6 +1267,21 @@ if(assignmentType==="group"){
     document.getElementById("outTitle").textContent=get("title");
     document.getElementById("outLecturer").textContent=get("lecturer");
     document.getElementById("outDate").textContent=formattedDate;
+
+    if(institution==="Domasi College of Education"){
+        document.getElementById("dceCourse").textContent=get("course");
+        document.getElementById("dceCode").textContent=get("code");
+        document.getElementById("dceLecturer").textContent=get("lecturer");
+        document.getElementById("dceYear").textContent=get("yearOfStudy");
+        document.getElementById("dceSemester").textContent=get("semester");
+        document.getElementById("dceStudent").textContent=get("student");
+        document.getElementById("dceStudentId").textContent=get("studentId");
+        document.getElementById("dceTitle").textContent=get("title");
+        document.getElementById("dceDate").textContent=formattedDate;
+        document.getElementById("dceDetails").style.display="block";
+    }else{
+        document.getElementById("dceDetails").style.display="none";
+    }
 
     cover.style.display="block";
     groupCover.style.display="none";
