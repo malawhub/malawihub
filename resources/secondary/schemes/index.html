@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Schemes of Work | MalawiHub</title>
+<meta name="description" content="Secondary school schemes of work for Forms 1 to 4 on MalawiHub.">
+<link rel="stylesheet" href="../../../css/style.css">
+<style>
+.page{max-width:1100px;margin:auto;padding:30px 16px 55px}
+.intro{text-align:center;padding:20px 0}
+.intro h1{font-size:32px;margin:8px 0}
+.intro p{max-width:700px;margin:auto;color:#667384}
+.back{margin-bottom:18px}
+.back a{color:#1769aa;text-decoration:none;font-weight:700}
+.search{margin:20px 0}
+.search input{width:100%;padding:13px;border:1px solid #d5dce5;border-radius:10px;font:inherit}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:15px}
+.card{background:#fff;border:1px solid #e1e7ef;border-radius:14px;padding:18px;box-shadow:0 4px 14px rgba(0,0,0,.05)}
+.card h3{font-size:16px;margin:0 0 8px;overflow-wrap:anywhere}
+.card p{font-size:12px;color:#667384}
+.card a{display:inline-block;margin-top:8px;padding:9px 12px;border-radius:8px;background:#1769aa;color:#fff;text-decoration:none;font-weight:700;font-size:12px}
+.count{margin:10px 0 18px;color:#667384;font-size:13px}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="logo"><span class="logo-mark">M</span> MalawiHub</div>
+<nav>
+<a href="../../../index.html">Home</a>
+<a href="../index.html">Secondary Resources</a>
+<a href="../../index.html">University Resources</a>
+</nav>
+</header>
+
+<main class="page">
+
+<div class="back">
+<a href="../index.html">← Secondary Resources</a>
+</div>
+
+<section class="intro">
+<div class="hero-badge">📚 TEACHER RESOURCES</div>
+<h1>Schemes of Work</h1>
+<p>Secondary school schemes and records of work available on MalawiHub.</p>
+</section>
+
+<div class="search">
+<input id="search" type="search" placeholder="Search by subject, Form or title...">
+</div>
+
+<div class="count" id="count"></div>
+
+<div class="grid" id="list"></div>
+
+</main>
+
+<footer>
+<p>© 2026 MalawiHub</p>
+<p>Secondary school schemes of work.</p>
+</footer>
+
+<script>
+const files = [
+"2022 LIFE SKILLS FORM 4 SCHEME -TERM 1.docx",
+"2022 Social Studies Scheme -Edited Form 1-1.docx",
+"2022 Social Studies Scheme -Edited Form 2 --1.docx",
+"2022 term one SCHEMES OF WORK FORM 2 ENGLISH.docx",
+"BIO FORM 1  TERM 1  2022 schemes.docx",
+"BIO FORM 2  TERM 1  2022 schemes-1.docx",
+"BIO FORM 3  TERM 1 schemes-1.docx",
+"BIO FORM 4  TERM 1 schemes.docx",
+"BK F1.docx",
+"BK F2.docx",
+"CHEMISTRY F3.docx",
+"CHEMISTRY F4.docx",
+"CLUSTER SCHEME- BK  FORM 3.docx",
+"CLUSTER SCHEME- BK  FORM 4 4.docx",
+"F2 AGRICULTURE SCHEME.docx",
+"FORM ONE AGRIC SCHEME (TRM 1).docx",
+"FORM ONE TERM 1 SCHEMES AND RECORDS OF WORK.docx",
+"FORM THREE TERM 1 SCHEMES AND RECORDS OF WORK FOR CHICHEWA.doc",
+"FRENCH SCHEME  FORM 1.docx",
+"FRENCH SCHEME  FORM 4.docx",
+"FRENCH SCHEME FORM 2.docx",
+"FRENCH SCHEME FORM 3.docx",
+"GEOGRAPHY SCHEMES FOR FORM 1.docx",
+"GEOGRAPHY SCHEMES FOR FORM 2.docx",
+"GEOGRAPHY SCHEMES FOR FORM 3.docx",
+"GEOGRAPHY SCHEMES FOR FORM 4.docx",
+"MHUJU CLUSTER CHICHEWA SCHEME FORM 2.pdf",
+"MHUJU CLUSTER CHICHEWA SCHEME FORM 4.pdf",
+"MHUJU EDUCATION CLUSTER  FORM 1 ENGLISH SCHEMES TERM 1  2022.docx",
+"MHUJU EDUCATION CLUSTER FORM  3 ENGLISH SCHEMES TERM 1.docx",
+"Mwaiwao AGR F3, T1 SCHEMES  MHUJU 2022.docx",
+"New agr F4 SCHEMES  MHUJU 2022 T1.docx",
+"PHYSICS scheme-F4, TERM ONE 2022.docx",
+"Physics form 1 (Schemes).docx",
+"Physics form 2 (Schemes).docx",
+"SCHEME AND RECORD OF WORK - HISTORY FORM 3 term 1.docx",
+"SCHEME MAT2, T1.docx",
+"SCHEME OF WORK  form  3  2022.docx",
+"SCHEME OF WORK F1 -CHEM.docx",
+"SCHEME OF WORK F2 -CHEM.docx",
+"SCHEME, MAT1, T1.docx",
+"SCHEME, MAT3, T1.docx",
+"SCHEME, MAT4, T1.docx",
+"SCHEMES AND RECORDS OF WORK FOR LIFE SKILLS FORM 1.docx",
+"SCHEMES AND RECORDS OF WORK FORM 3.docx",
+"SCHEMES OF WORK - HISTORY FORM 1 term 1.docx",
+"english mhuju cluster scheme form 4.docx",
+"scheme for history form 2.docx",
+"scheme for history form 4.docx"
+];
+
+const list=document.getElementById("list");
+const search=document.getElementById("search");
+const count=document.getElementById("count");
+
+function esc(value){
+ const d=document.createElement("div");
+ d.textContent=value;
+ return d.innerHTML;
+}
+
+function render(){
+ const term=search.value.toLowerCase().trim();
+ const filtered=files.filter(file=>file.toLowerCase().includes(term));
+
+ count.textContent=filtered.length+" of "+files.length+" schemes";
+
+ list.innerHTML=filtered.map(file=>{
+   const href=encodeURI(file);
+   return `
+   <div class="card">
+     <h3>${esc(file)}</h3>
+     <p>Secondary school scheme of work</p>
+     <a href="${href}" target="_blank" rel="noopener">Open Resource</a>
+   </div>`;
+ }).join("");
+
+ if(!filtered.length){
+   list.innerHTML='<div class="card"><p>No matching schemes found.</p></div>';
+ }
+}
+
+search.addEventListener("input",render);
+render();
+</script>
+
+</body>
+</html>
