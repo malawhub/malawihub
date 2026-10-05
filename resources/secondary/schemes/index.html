@@ -160,29 +160,31 @@ function esc(value){
 
 function getSubject(file){
   const f=file.toLowerCase();
-  if(f.includes("biology") || f.includes("bio ")) return "Biology";
-  if(f.includes("chem")) return "Chemistry";
-  if(f.includes("physics")) return "Physics";
-  if(f.includes("mat") || f.includes("math")) return "Mathematics";
-  if(f.includes("geography")) return "Geography";
-  if(f.includes("history")) return "History";
-  if(f.includes("agric")) return "Agriculture";
+
+  if(f.includes("life skills")) return "Life Skills";
+  if(f.includes("social studies")) return "Social Studies";
   if(f.includes("chichewa")) return "Chichewa";
   if(f.includes("french")) return "French";
   if(f.includes("english")) return "English";
-  if(f.includes("life skills")) return "Life Skills";
-  if(f.includes("social studies")) return "Social Studies";
+  if(f.includes("geography")) return "Geography";
+  if(f.includes("history")) return "History";
+  if(f.includes("agric")) return "Agriculture";
+  if(f.includes("physics")) return "Physics";
+  if(f.includes("chem")) return "Chemistry";
+  if(f.includes("biology") || f.includes("bio ")) return "Biology";
+  if(f.includes("math") || f.includes("mat")) return "Mathematics";
   if(f.includes("bk ") || f.startsWith("bk") || f.includes("business")) return "Business Studies";
-  return "Other";
+
+  return "General";
 }
 
 function getForm(file){
   const f=file.toLowerCase();
 
-  if(/form[\s_-]*one\b/.test(f) || /\bf1\b/.test(f) || /\bf1[.\s_-]/.test(f)) return "1";
-  if(/form[\s_-]*two\b/.test(f) || /\bf2\b/.test(f) || /\bf2[.\s_-]/.test(f)) return "2";
-  if(/form[\s_-]*three\b/.test(f) || /\bf3\b/.test(f) || /\bf3[.\s_-]/.test(f)) return "3";
-  if(/form[\s_-]*four\b/.test(f) || /\bf4\b/.test(f) || /\bf4[.\s_-]/.test(f)) return "4";
+  if(/form[\s_-]*one\b/.test(f) || /\bf1\b/.test(f)) return "1";
+  if(/form[\s_-]*two\b/.test(f) || /\bf2\b/.test(f)) return "2";
+  if(/form[\s_-]*three\b/.test(f) || /\bf3\b/.test(f)) return "3";
+  if(/form[\s_-]*four\b/.test(f) || /\bf4\b/.test(f)) return "4";
 
   return "";
 }
