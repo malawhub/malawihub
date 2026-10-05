@@ -239,12 +239,32 @@ async function loadStatistics() {
     document.getElementById("pastPapers").textContent =
         pastPapers;
 
-    const { data: resources, error } = await supabaseClient
-        .from("resources")
-        .select("category, subject");
+    /*
+     * Subject counts must include BOTH resource libraries:
+     *   1. resources
+     *   2. subject_resources
+     *
+     * The old code only counted the "resources" table. Most of the
+     * university/subject uploads are now stored in "subject_resources",
+     * which caused the subject cards to remain at 0 while Total Resources
+     * correctly included them.
+     */
+    const [{ data: resources, error: resourcesError },
+           { data: subjectRows, error: subjectError }] = await Promise.all([
+        supabaseClient
+            .from("resources")
+            .select("category, subject"),
+        supabaseClient
+            .from("subject_resources")
+            .select("category, subject")
+    ]);
 
-    if (error) {
-        throw error;
+    if (resourcesError) {
+        throw resourcesError;
+    }
+
+    if (subjectError) {
+        throw subjectError;
     }
 
     const counts = {
@@ -254,13 +274,19 @@ async function loadStatistics() {
         education: 0
     };
 
-    (resources || []).forEach(resource => {
+    const allSubjectRows = [
+        ...(resources || []),
+        ...(subjectRows || [])
+    ];
 
-        const value = (
-            resource.subject ||
-            resource.category ||
-            ""
-        ).toLowerCase();
+    allSubjectRows.forEach(resource => {
+        const value = [
+            resource.subject,
+            resource.category
+        ]
+            .filter(Boolean)
+            .map(value => String(value).toLowerCase())
+            .join(" ");
 
         if (value.includes("chemistry")) {
             counts.chemistry++;
