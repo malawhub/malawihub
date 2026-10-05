@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>MalawiHub Reviews & Feedback</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../js/supabase.js"></script>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f5f8f7;color:#17251f}.top{background:#087f5b;color:#fff;padding:16px}.wrap{max-width:950px;margin:auto}.top a{color:#fff;text-decoration:none;font-weight:700}.main{padding:20px 14px}.head{background:#fff;border-radius:16px;padding:18px;border:1px solid #e0e7e3}.head h1{margin:0 0 6px}.head p{margin:0;color:#68756f}.filters{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}.filters button{border:1px solid #ccd8d2;background:#fff;border-radius:9px;padding:9px 12px;font-weight:700;cursor:pointer}.filters button.active{background:#087f5b;color:#fff;border-color:#087f5b}.item{background:#fff;border:1px solid #dfe7e3;border-radius:15px;padding:16px;margin:12px 0;box-shadow:0 3px 12px #0000000a}.meta{font-size:12px;color:#68756f}.msg{margin:12px 0;line-height:1.55;white-space:pre-wrap}.reply{background:#f1faf6;border-left:4px solid #087f5b;padding:12px;border-radius:8px;line-height:1.5}.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:0;border-radius:9px;padding:10px 13px;font-weight:800;cursor:pointer;background:#087f5b;color:#fff}.btn:disabled{opacity:.6}.danger{background:#c92a3a}.empty,.loading{padding:25px;text-align:center;color:#68756f}.error{color:#c92a3a}.stars{letter-spacing:2px}.count{font-size:13px;color:#68756f;margin:8px 0} @media(max-width:600px){.item{padding:13px}}
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap"><a href="../index.html">← Admin Dashboard</a></div></header>
+<main class="main wrap">
+<section class="head"><h1>💬 User Reviews & Feedback</h1><p>Read questions, comments and reviews from MalawiHub users. Automatic answers are saved so you can see exactly what MalawiHub answered.</p></section>
+<div class="filters" id="filters">
+<button data-filter="all" class="active">All</button><button data-filter="review">Reviews</button><button data-filter="question">Questions</button><button data-filter="comment">Comments</button><button data-filter="unanswered">Unanswered</button>
+</div>
+<div id="count" class="count"></div><div id="list" class="loading">Loading feedback…</div>
+</main>
+<script>
+let allFeedback=[],filter='all',adminSession=null;
+function esc(v){return String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
+function stars(n){n=Number(n||0);return n?'<span class="stars">'+('★'.repeat(n))+'</span>':'No rating';}
+async function auth(){
+ const {data:{session},error}=await supabaseClient.auth.getSession(); if(error)throw error;
+ if(!session?.access_token)return null;
+ const {data:{user},error:ue}=await supabaseClient.auth.getUser(session.access_token); if(ue||!user)return null;
+ const {data:profile,error:pe}=await supabaseClient.from('profiles').select('id,role').eq('id',user.id).maybeSingle(); if(pe)throw pe;
+ if(profile?.role!=='admin')return null; return {session,user};
+}
+async function load(){
+ try{
+  adminSession=await auth(); if(!adminSession){location.replace('../login.html?error=invalid_session');return}
+  const {data,error}=await supabaseClient.from('feedback').select('*').order('created_at',{ascending:false});
+  if(error)throw error; allFeedback=data||[];render();
+ }catch(e){document.getElementById('list').innerHTML='<div class="empty error">Unable to load feedback: '+esc(e.message)+'</div>'}
+}
+function render(){
+ let rows=allFeedback.filter(x=>filter==='all'||x.feedback_type===filter||(filter==='unanswered'&&!x.admin_reply));
+ document.getElementById('count').textContent=rows.length+' item'+(rows.length===1?'':'s');
+ document.getElementById('list').innerHTML=rows.length?rows.map(x=>{
+  const answered=!!x.admin_reply;
+  return '<article class="item"><div class="meta"><b>'+esc(x.feedback_type||'feedback').toUpperCase()+'</b> • '+esc(x.created_at?new Date(x.created_at).toLocaleString():'')+' • '+esc(x.name||'Anonymous')+(x.email?' • '+esc(x.email):'')+'</div>'+
+   (x.rating?'<div style="margin-top:8px">'+stars(x.rating)+'</div>':'')+
+   '<div class="msg">'+esc(x.message)+'</div>'+
+   (x.page_url?'<div class="meta">Page: '+esc(x.page_url)+'</div>':'')+
+   (answered?'<div class="reply"><b>🤖 MalawiHub answer · Automatic</b><div style="margin-top:6px">'+esc(x.admin_reply)+'</div><div class="meta" style="margin-top:7px">Answered '+esc(x.replied_at?new Date(x.replied_at).toLocaleString():'')+'</div></div>':
+   '<div class="actions"><button class="btn" onclick="autoAnswer(\''+esc(x.id)+'\')">🤖 Answer automatically</button></div>')+
+   '</article>';
+ }).join(''):'<div class="empty">No feedback in this filter.</div>';
+}
+async function autoAnswer(id){
+ const row=allFeedback.find(x=>String(x.id)===String(id)); if(!row)return;
+ const btn=[...document.querySelectorAll('button')].find(b=>b.getAttribute('onclick')?.includes("'"+String(id)+"'"));
+ if(btn){btn.disabled=true;btn.textContent='Generating answer…'}
+ try{
+  const prompt='You are MalawiHub Support. Answer this user feedback using only the known MalawiHub context. Be helpful, concise and professional. Do not invent features, policies, prices or facts. If it is a suggestion or complaint, acknowledge it and explain the next practical step. User feedback type: '+(row.feedback_type||'feedback')+'\nUser message: '+row.message;
+  const {data,error}=await supabaseClient.functions.invoke('ai-class',{body:{message:prompt,mode:'support',context:'MalawiHub support reply'}});
+  if(error)throw error;
+  const reply=String(data?.answer||data?.response||data?.output||'').trim(); if(!reply)throw new Error('AI returned an empty answer.');
+  const {error:ue}=await supabaseClient.from('feedback').update({admin_reply:reply,replied_at:new Date().toISOString(),auto_replied:true}).eq('id',row.id);
+  if(ue)throw ue;
+  row.admin_reply=reply;row.replied_at=new Date().toISOString();row.auto_replied=true;render();
+ }catch(e){alert('Could not answer this feedback: '+(e.message||e));if(btn){btn.disabled=false;btn.textContent='🤖 Answer automatically'}}
+}
+document.querySelectorAll('#filters button').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('#filters button').forEach(x=>x.classList.remove('active'));b.classList.add('active');filter=b.dataset.filter;render()}));
+window.autoAnswer=autoAnswer;load();
+</script>
+</body>
+</html>
