@@ -49,6 +49,31 @@
 
 <div class="search">
 <input id="search" type="search" placeholder="Search by subject, Form or title...">
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:10px">
+<select id="subjectFilter" style="padding:13px;border:1px solid #d5dce5;border-radius:10px;font:inherit">
+<option value="">All Subjects</option>
+<option>Biology</option>
+<option>Chemistry</option>
+<option>Physics</option>
+<option>Mathematics</option>
+<option>Geography</option>
+<option>History</option>
+<option>Agriculture</option>
+<option>English</option>
+<option>Chichewa</option>
+<option>French</option>
+<option>Life Skills</option>
+<option>Social Studies</option>
+<option>Business Studies</option>
+</select>
+<select id="formFilter" style="padding:13px;border:1px solid #d5dce5;border-radius:10px;font:inherit">
+<option value="">All Forms</option>
+<option value="1">Form 1</option>
+<option value="2">Form 2</option>
+<option value="3">Form 3</option>
+<option value="4">Form 4</option>
+</select>
+</div>
 </div>
 
 <div class="count" id="count"></div>
@@ -117,36 +142,88 @@ const files = [
 
 const list=document.getElementById("list");
 const search=document.getElementById("search");
+const subjectFilter=document.getElementById("subjectFilter");
+const formFilter=document.getElementById("formFilter");
 const count=document.getElementById("count");
 
+const params=new URLSearchParams(window.location.search);
+const initialForm=params.get("form");
+if(["1","2","3","4"].includes(initialForm)){
+  formFilter.value=initialForm;
+}
+
 function esc(value){
- const d=document.createElement("div");
- d.textContent=value;
- return d.innerHTML;
+  const d=document.createElement("div");
+  d.textContent=value;
+  return d.innerHTML;
+}
+
+function getSubject(file){
+  const f=file.toLowerCase();
+  if(f.includes("biology") || f.includes("bio ")) return "Biology";
+  if(f.includes("chem")) return "Chemistry";
+  if(f.includes("physics")) return "Physics";
+  if(f.includes("mat") || f.includes("math")) return "Mathematics";
+  if(f.includes("geography")) return "Geography";
+  if(f.includes("history")) return "History";
+  if(f.includes("agric")) return "Agriculture";
+  if(f.includes("chichewa")) return "Chichewa";
+  if(f.includes("french")) return "French";
+  if(f.includes("english")) return "English";
+  if(f.includes("life skills")) return "Life Skills";
+  if(f.includes("social studies")) return "Social Studies";
+  if(f.includes("bk ") || f.startsWith("bk") || f.includes("business")) return "Business Studies";
+  return "Other";
+}
+
+function getForm(file){
+  const f=file.toLowerCase();
+
+  if(/form[\s_-]*one\b/.test(f) || /\bf1\b/.test(f) || /\bf1[.\s_-]/.test(f)) return "1";
+  if(/form[\s_-]*two\b/.test(f) || /\bf2\b/.test(f) || /\bf2[.\s_-]/.test(f)) return "2";
+  if(/form[\s_-]*three\b/.test(f) || /\bf3\b/.test(f) || /\bf3[.\s_-]/.test(f)) return "3";
+  if(/form[\s_-]*four\b/.test(f) || /\bf4\b/.test(f) || /\bf4[.\s_-]/.test(f)) return "4";
+
+  return "";
 }
 
 function render(){
- const term=search.value.toLowerCase().trim();
- const filtered=files.filter(file=>file.toLowerCase().includes(term));
+  const term=search.value.toLowerCase().trim();
+  const subject=subjectFilter.value;
+  const form=formFilter.value;
 
- count.textContent=filtered.length+" of "+files.length+" schemes";
+  const filtered=files.filter(file=>{
+    const matchesSearch=!term || file.toLowerCase().includes(term);
+    const matchesSubject=!subject || getSubject(file)===subject;
+    const matchesForm=!form || getForm(file)===form;
+    return matchesSearch && matchesSubject && matchesForm;
+  });
 
- list.innerHTML=filtered.map(file=>{
-   const href=encodeURI(file);
-   return `
-   <div class="card">
-     <h3>${esc(file)}</h3>
-     <p>Secondary school scheme of work</p>
-     <a href="${href}" target="_blank" rel="noopener">Open Resource</a>
-   </div>`;
- }).join("");
+  count.textContent=filtered.length+" of "+files.length+" schemes";
 
- if(!filtered.length){
-   list.innerHTML='<div class="card"><p>No matching schemes found.</p></div>';
- }
+  list.innerHTML=filtered.map(file=>{
+    const subject=getSubject(file);
+    const form=getForm(file);
+    const formText=form ? "Form "+form : "Form not specified";
+    const href=encodeURIComponent(file);
+
+    return `
+    <div class="card">
+      <h3>${esc(file)}</h3>
+      <p><strong>${esc(subject)}</strong> • ${formText}</p>
+      <a href="${href}" target="_blank" rel="noopener">Open Resource</a>
+    </div>`;
+  }).join("");
+
+  if(!filtered.length){
+    list.innerHTML='<div class="card"><p>No matching schemes found.</p></div>';
+  }
 }
 
 search.addEventListener("input",render);
+subjectFilter.addEventListener("change",render);
+formFilter.addEventListener("change",render);
+
 render();
 </script>
 
