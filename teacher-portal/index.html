@@ -58,8 +58,16 @@ $('register').onclick=async()=>{
   if(!created?.ok||!created?.teacher)throw Error('Teacher account creation did not complete.');
   const {data:loginData,error:loginError}=await supabaseClient.auth.signInWithPassword({email,password});
   if(loginError)throw loginError;
-  const ok=await openTeacherDashboard(loginData.user);
-  if(!ok){await supabaseClient.auth.signOut();throw Error('Teacher account was created but could not be verified. Please contact MalawiHub Admin.')}
+  if(created?.multi_area){
+    // The existing Auth identity may already be a Student or Business user.
+    // Do not overwrite that area's profile role.
+    const {error:areaError}=await supabaseClient.from('user_area_roles').select('area').eq('user_id',loginData.user.id).eq('area','teacher').single();
+    if(areaError)throw areaError;
+  }else{
+    const ok=await openTeacherDashboard(loginData.user);
+    if(!ok){await supabaseClient.auth.signOut();throw Error('Teacher account was created but could not be verified. Please contact MalawiHub Admin.')}
+  }
+  location.href=teacherDashboardUrl;
  }catch(e){show(e.message||'Could not create teacher account.',true)}
  finally{b.disabled=false;b.textContent='Create Teacher Account'}
 };
