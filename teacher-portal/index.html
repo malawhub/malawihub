@@ -22,6 +22,14 @@ let redirecting=false;
 function show(message,error=false){$('msg').textContent=message||'';$('msg').className='msg'+(error?' error':'')}
 async function openTeacherDashboard(user){
  if(redirecting||!user)return false;
+ const {data:area,error:areaError}=await supabaseClient.from('user_area_roles').select('area').eq('user_id',user.id).eq('area','teacher').maybeSingle();
+ if(areaError)throw areaError;
+ if(area?.area==='teacher'){
+  redirecting=true;
+  show('Teacher account verified. Opening your dashboard…');
+  location.href=teacherDashboardUrl;
+  return true;
+ }
  const {data:p,error}=await supabaseClient.from('profiles').select('role').eq('id',user.id).maybeSingle();
  if(error)throw error;
  if(p?.role!=='teacher')return false;
