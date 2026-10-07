@@ -47,23 +47,45 @@ Deno.serve(async (req) => {
     );
 
     if (existing) {
-      const { data: profile, error: profileError } = await admin
+      const { data: existingProfile, error: profileError } = await admin
         .from("profiles")
-        .select("role")
+        .select("role, full_name")
         .eq("id", existing.id)
         .maybeSingle();
 
       if (profileError) throw profileError;
 
-      if (profile?.role === "teacher") {
+      if (existingProfile?.role === "admin") {
+        return json({ error: "Administrator accounts cannot be registered as teachers." }, 409);
+      }
+
+      if (existingProfile?.role === "teacher") {
         return json({
           error: "A teacher account with this email already exists. Please use Log in instead."
         }, 409);
       }
 
+      const { error: areaError } = await admin
+        .from("user_area_roles")
+        .upsert({
+          user_id: existing.id,
+          area: "teacher",
+          display_name: name || existingProfile?.full_name || email
+        }, { onConflict: "user_id,area" });
+
+      if (areaError) throw areaError;
+
       return json({
-        error: "This email already belongs to another MalawiHub user area. Please use a different email."
-      }, 409);
+        ok: true,
+        teacher: {
+          id: existing.id,
+          email,
+          role: "teacher",
+          name: name || existingProfile?.full_name || email
+        },
+        existing: true,
+        multi_area: true
+      });
     }
 
     // Match Admin-created teachers:
@@ -97,6 +119,20 @@ Deno.serve(async (req) => {
     if (profileError) {
       await admin.auth.admin.deleteUser(created.user.id).catch(() => {});
       throw profileError;
+    }
+
+    const { error: areaError } = await admin
+      .from("user_area_roles")
+      .upsert({
+        user_id: created.user.id,
+        area: "teacher",
+        display_name: name
+      }, { onConflict: "user_id,area" });
+
+    if (areaError) {
+      await admin.from("profiles").delete().eq("id", created.user.id);
+      await admin.auth.admin.deleteUser(created.user.id).catch(() => {});
+      throw areaError;
     }
 
     return json({
