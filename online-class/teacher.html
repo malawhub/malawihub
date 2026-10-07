@@ -94,6 +94,12 @@ async function init(){
     }
 
     who.textContent="Checking teacher profile…";
+    const areaResult=await Promise.race([
+      supabaseClient.from("user_area_roles").select("area").eq("user_id",user.id).eq("area","teacher").maybeSingle(),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error("Teacher area check timed out after 10 seconds.")),10000))
+    ]);
+    const {data:teacherArea,error:areaError}=areaResult;
+    if(areaError)throw areaError;
     const profileResult=await Promise.race([
       supabaseClient.from("profiles").select("role,can_register_students").eq("id",user.id).maybeSingle(),
       new Promise((_,reject)=>setTimeout(()=>reject(new Error("Teacher profile check timed out after 10 seconds.")),10000))
@@ -101,14 +107,14 @@ async function init(){
     const {data:profile,error}=profileResult;
     if(error)throw error;
 
-    if(!profile||profile.role!=="teacher"){
+    if(teacherArea?.area!=="teacher" && profile?.role!=="teacher"){
       who.innerHTML='Teacher access is required. <a href="/teacher-portal/">Return to Teacher Portal</a>';
       return;
     }
 
     who.textContent="Teacher · "+(user.email||user.id);
     $("app").classList.remove("hidden");
-    if(profile.can_register_students)$("studentRegistration").classList.remove("hidden");
+    if(profile?.can_register_students)$("studentRegistration").classList.remove("hidden");
 
     $("dashboardStatus").textContent="Loading your classes…";
     try{
