@@ -678,7 +678,7 @@ Create a clean and professional assignment cover page.
 </div>
 
 <label for="institution">University / College</label>
-<select id="institution">
+<select id="institution" onchange="handleInstitutionChange()">
 <option value="">Select your university or college</option>
 <option>University of Malawi</option>
 <option>Mzuzu University</option>
@@ -695,6 +695,8 @@ Create a clean and professional assignment cover page.
 <option>Other University / College</option>
 </select>
 
+<div id="standardFormFields">
+
 <label for="assignmentType">Assignment Type</label>
 <select id="assignmentType" onchange="handleAssignmentTypeChange()">
 <option value="individual">Individual Assignment</option>
@@ -704,31 +706,17 @@ Create a clean and professional assignment cover page.
 <div id="groupOptions" style="display:none">
 <label for="groupSize">Number of Group Members</label>
 <select id="groupSize" onchange="buildMemberTable()">
-<option value="2">2</option>
-<option value="3">3</option>
-<option value="4">4</option>
-<option value="5">5</option>
-<option value="6">6</option>
-<option value="7">7</option>
-<option value="8">8</option>
-<option value="9">9</option>
-<option value="10" selected>10</option>
-<option value="11">11</option>
-<option value="12">12</option>
-<option value="13">13</option>
-<option value="14">14</option>
-<option value="15">15</option>
+<option value="2">2</option><option value="3">3</option><option value="4">4</option>
+<option value="5">5</option><option value="6">6</option><option value="7">7</option>
+<option value="8">8</option><option value="9">9</option><option value="10" selected>10</option>
+<option value="11">11</option><option value="12">12</option><option value="13">13</option>
+<option value="14">14</option><option value="15">15</option>
 </select>
-
 <div id="memberInputs"></div>
 </div>
 
 <label for="school">School / Faculty / College</label>
-<input
-type="text"
-id="school"
-placeholder="Enter your school, faculty or college"
->
+<input type="text" id="school" placeholder="Enter your school, faculty or college">
 
 <div id="individualStudentFields">
 <label for="student">Student Name</label>
@@ -740,14 +728,6 @@ placeholder="Enter your school, faculty or college"
 
 <label for="department">Department</label>
 <input id="department" placeholder="e.g. Chemistry">
-
-<div id="dceExtraFields" style="display:none">
-<label for="yearOfStudy">Year of Study</label>
-<input id="yearOfStudy" placeholder="e.g. Two">
-
-<label for="semester">Semester</label>
-<input id="semester" placeholder="e.g. One">
-</div>
 
 <label for="course">Course Name</label>
 <input id="course" placeholder="e.g. Physical Chemistry">
@@ -766,6 +746,45 @@ placeholder="Enter your school, faculty or college"
 
 <label for="date">Submission Date</label>
 <input id="date" type="date">
+
+</div>
+
+<div id="dceFormFields" style="display:none">
+<h3 style="margin:22px 0 8px;text-align:center">Domasi College of Education Cover Page</h3>
+
+<label for="dceFaculty">Faculty</label>
+<input id="dceFaculty" placeholder="e.g. Faculty of Social Science">
+
+<label for="dceDepartment">Department</label>
+<input id="dceDepartment" placeholder="e.g. Department of History">
+
+<label for="dceCourse">Course Title</label>
+<input id="dceCourse" placeholder="e.g. The Teaching of History 1">
+
+<label for="dceCode">Course Code</label>
+<input id="dceCode" placeholder="e.g. HST...">
+
+<label for="dceLecturer">Course Lecturer</label>
+<input id="dceLecturer" placeholder="Enter course lecturer">
+
+<label for="dceYear">Year of Study</label>
+<input id="dceYear" placeholder="e.g. Year 1">
+
+<label for="dceSemester">Semester</label>
+<input id="dceSemester" placeholder="e.g. Semester 1">
+
+<label for="dceStudent">Student Name</label>
+<input id="dceStudent" placeholder="Enter student name">
+
+<label for="dceStudentId">Registration Number</label>
+<input id="dceStudentId" placeholder="Enter registration number">
+
+<label for="dceTitleInput">Assignment Title</label>
+<textarea id="dceTitleInput" placeholder="Enter assignment title"></textarea>
+
+<label for="dceDate">Due Date</label>
+<input id="dceDate" type="date">
+</div>
 
 <button onclick="generateCover()">
 Generate Cover Page
@@ -1050,6 +1069,15 @@ function showPremiumMessage(){
 }
 
 
+function handleInstitutionChange(){
+    const isDCE=document.getElementById("institution").value==="Domasi College of Education";
+    document.getElementById("standardFormFields").style.display=isDCE?"none":"block";
+    document.getElementById("dceFormFields").style.display=isDCE?"block":"none";
+    if(isDCE){
+        document.getElementById("assignmentType").value="individual";
+        document.getElementById("groupOptions").style.display="none";
+    }
+}
 function get(id){
 return document.getElementById(id).value.trim();
 }
@@ -1057,10 +1085,7 @@ return document.getElementById(id).value.trim();
 document.addEventListener("DOMContentLoaded", function(){
     checkPremiumAccess();
     handleAssignmentTypeChange();
-    document.getElementById("institution").addEventListener("change", function(){
-        const dce=document.getElementById("dceExtraFields");
-        if(dce) dce.style.display=this.value==="Domasi College of Education" ? "block" : "none";
-    });
+    handleInstitutionChange();
 });
 
 
@@ -1189,12 +1214,20 @@ const template=document.getElementById("template").value;
 const assignmentType=document.getElementById("assignmentType").value;
 
 if(!institution){ alert("Please select your university or college."); return; }
-if(!get("school")){ alert("Please enter your school, faculty or college."); return; }
-if(!get("title")){ alert("Please enter the assignment title."); return; }
-
-if(assignmentType==="individual" && !get("student")){
-    alert("Please enter your student name.");
-    return;
+if(institution==="Domasi College of Education"){
+    if(!get("dceFaculty") || !get("dceDepartment") || !get("dceCourse") || !get("dceCode") ||
+       !get("dceLecturer") || !get("dceYear") || !get("dceSemester") ||
+       !get("dceStudent") || !get("dceStudentId") || !get("dceTitleInput") || !get("dceDate")){
+        alert("Please complete all Domasi College of Education cover-page fields.");
+        return;
+    }
+}else{
+    if(!get("school")){ alert("Please enter your school, faculty or college."); return; }
+    if(!get("title")){ alert("Please enter the assignment title."); return; }
+    if(assignmentType==="individual" && !get("student")){
+        alert("Please enter your student name.");
+        return;
+    }
 }
 
 if(assignmentType==="group"){
@@ -1207,7 +1240,7 @@ if(assignmentType==="group"){
 
 await updateUniversityLogo(institution);
 
-const date=get("date");
+const date=institution==="Domasi College of Education" ? get("dceDate") : get("date");
 let formattedDate="";
 if(date){
     const d=new Date(date+"T00:00:00");
@@ -1258,8 +1291,8 @@ if(assignmentType==="group"){
 
 }else{
 
-    document.getElementById("outSchool").textContent=get("school");
-    document.getElementById("outDepartment").textContent=get("department");
+    document.getElementById("outSchool").textContent=institution==="Domasi College of Education" ? get("dceFaculty") : get("school");
+    document.getElementById("outDepartment").textContent=institution==="Domasi College of Education" ? get("dceDepartment") : get("department");
     document.getElementById("outAssignmentNumber").textContent=get("assignmentNumber");
     document.getElementById("outStudent").textContent=get("student");
     document.getElementById("outStudentId").textContent=get("studentId");
@@ -1270,14 +1303,14 @@ if(assignmentType==="group"){
     document.getElementById("outDate").textContent=formattedDate;
 
     if(institution==="Domasi College of Education"){
-        document.getElementById("dceCourse").textContent=get("course");
-        document.getElementById("dceCode").textContent=get("code");
-        document.getElementById("dceLecturer").textContent=get("lecturer");
-        document.getElementById("dceYear").textContent=get("yearOfStudy");
-        document.getElementById("dceSemester").textContent=get("semester");
-        document.getElementById("dceStudent").textContent=get("student");
-        document.getElementById("dceStudentId").textContent=get("studentId");
-        document.getElementById("dceTitle").textContent=get("title");
+        document.getElementById("dceCourse").textContent=get("dceCourse");
+        document.getElementById("dceCode").textContent=get("dceCode");
+        document.getElementById("dceLecturer").textContent=get("dceLecturer");
+        document.getElementById("dceYear").textContent=get("dceYear");
+        document.getElementById("dceSemester").textContent=get("dceSemester");
+        document.getElementById("dceStudent").textContent=get("dceStudent");
+        document.getElementById("dceStudentId").textContent=get("dceStudentId");
+        document.getElementById("dceTitle").textContent=get("dceTitleInput");
         document.getElementById("dceDate").textContent=formattedDate;
         document.getElementById("dceDetails").style.display="block";
     }else{
@@ -1322,16 +1355,16 @@ async function downloadWord(){
 
         const institution=get("institution");
         const assignmentType=document.getElementById("assignmentType").value;
-        const school=get("school");
-        const department=get("department");
-        const course=get("course");
-        const code=get("code");
-        const title=get("title");
-        const lecturer=get("lecturer");
+        const school=institution==="Domasi College of Education"?get("dceFaculty"):get("school");
+        const department=institution==="Domasi College of Education"?get("dceDepartment"):get("department");
+        const course=institution==="Domasi College of Education"?get("dceCourse"):get("course");
+        const code=institution==="Domasi College of Education"?get("dceCode"):get("code");
+        const title=institution==="Domasi College of Education"?get("dceTitleInput"):get("title");
+        const lecturer=institution==="Domasi College of Education"?get("dceLecturer"):get("lecturer");
         const assignmentNumber=get("assignmentNumber");
-        const student=get("student");
-        const studentId=get("studentId");
-        const dateValue=get("date");
+        const student=institution==="Domasi College of Education"?get("dceStudent"):get("student");
+        const studentId=institution==="Domasi College of Education"?get("dceStudentId"):get("studentId");
+        const dateValue=institution==="Domasi College of Education"?get("dceDate"):get("date");
 
         let formattedDate="";
         if(dateValue){
@@ -1340,8 +1373,8 @@ async function downloadWord(){
         }
 
         const isDCE=institution==="Domasi College of Education";
-        const year=isDCE?get("yearOfStudy"):"";
-        const semester=isDCE?get("semester"):"";
+        const year=isDCE?get("dceYear"):"";
+        const semester=isDCE?get("dceSemester"):"";
 
         const children=[];
 
@@ -1369,7 +1402,8 @@ async function downloadWord(){
             children.push(new Paragraph({spacing:{after:80}}));
             if(isDCE){
                 children.push(centered("DOMASI COLLEGE OF EDUCATION",30,true,120));
-                children.push(centered(school,22,true,160));
+                children.push(centered("FACULTY : "+school,22,true,110));
+                children.push(centered("DEPARTMENT : "+department,21,true,160));
             }else{
                 children.push(centered(institution,27,true,120));
                 children.push(centered(school,22,true,150));
@@ -1502,6 +1536,7 @@ field.value="";
 
 document.getElementById("institution").value="";
 document.getElementById("assignmentType").value="individual";
+handleInstitutionChange();
 document.getElementById("groupOptions").style.display="none";
 document.getElementById("individualStudentFields").style.display="block";
 document.getElementById("memberInputs").innerHTML="";
