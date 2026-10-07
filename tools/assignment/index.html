@@ -624,6 +624,7 @@ margin-top:90px
 </style>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@9.5.1/build/index.umd.js"></script>
 <script src="/js/supabase.js"></script>
 
 <link rel="stylesheet" href="../../css/orientation.css"></head>
@@ -925,8 +926,8 @@ Assignment Cover Preview
 </div>
 
 </div>
-<button class="download" onclick="downloadPDF()">
-⬇️ Download Cover as PDF
+<button class="download" onclick="downloadWord()">
+⬇️ Download Editable Word Document
 </button>
 
 <button class="reset" onclick="resetForm()">
@@ -934,8 +935,8 @@ Create Another Cover
 </button>
 
 <p class="note">
-On Android, the PDF button opens the print screen.
-Choose <strong>Save as PDF</strong> to save your assignment cover.
+Download your cover as an editable <strong>Microsoft Word (.docx)</strong> document.
+You can open it in Word or a compatible Office app and edit anything that is missing before printing or submitting.
 </p>
 
 </div>
@@ -1291,10 +1292,204 @@ document.getElementById("preview").style.display="block";
 document.getElementById("preview").scrollIntoView({behavior:"smooth"});
 
 }
-function downloadPDF(){
+async function downloadWord(){
 
-window.print();
+    const button=document.querySelector(".download");
 
+    if(button){
+        button.disabled=true;
+        button.textContent="Preparing Word document...";
+    }
+
+    try{
+
+        if(!window.docx){
+            throw new Error("The Word document library could not be loaded. Please check your internet connection and try again.");
+        }
+
+        const {
+            Document,
+            Packer,
+            Paragraph,
+            TextRun,
+            AlignmentType,
+            Table,
+            TableRow,
+            TableCell,
+            WidthType,
+            BorderStyle
+        } = window.docx;
+
+        const institution=get("institution");
+        const assignmentType=document.getElementById("assignmentType").value;
+        const school=get("school");
+        const department=get("department");
+        const course=get("course");
+        const code=get("code");
+        const title=get("title");
+        const lecturer=get("lecturer");
+        const assignmentNumber=get("assignmentNumber");
+        const student=get("student");
+        const studentId=get("studentId");
+        const dateValue=get("date");
+
+        let formattedDate="";
+        if(dateValue){
+            const d=new Date(dateValue+"T00:00:00");
+            formattedDate=d.toLocaleDateString(undefined,{day:"numeric",month:"long",year:"numeric"});
+        }
+
+        const isDCE=institution==="Domasi College of Education";
+        const year=isDCE?get("yearOfStudy"):"";
+        const semester=isDCE?get("semester"):"";
+
+        const children=[];
+
+        function textLine(label,value,opts={}){
+            return new Paragraph({
+                alignment:opts.alignment || AlignmentType.LEFT,
+                spacing:{before:opts.before || 90, after:opts.after || 90, line:260},
+                children:[
+                    new TextRun({text:label, bold:true, size:opts.labelSize || 22, font:"Arial"}),
+                    new TextRun({text:"  :  ", bold:true, size:opts.labelSize || 22, font:"Arial"}),
+                    new TextRun({text:value || "", size:opts.valueSize || 22, font:"Arial"})
+                ]
+            });
+        }
+
+        function centered(value,size=24,bold=false,after=100){
+            return new Paragraph({
+                alignment:AlignmentType.CENTER,
+                spacing:{after},
+                children:[new TextRun({text:value || "",bold,size,font:"Arial"})]
+            });
+        }
+
+        function addHeader(){
+            children.push(new Paragraph({spacing:{after:80}}));
+            if(isDCE){
+                children.push(centered("DOMASI COLLEGE OF EDUCATION",30,true,120));
+                children.push(centered(school,22,true,160));
+            }else{
+                children.push(centered(institution,27,true,120));
+                children.push(centered(school,22,true,150));
+                if(department) children.push(centered(department,21,false,220));
+            }
+        }
+
+        function addDetailsIndividual(){
+            if(isDCE){
+                children.push(textLine("COURSE TITLE",course));
+                children.push(textLine("COURSE CODE",code));
+                children.push(textLine("COURSE LECTURER",lecturer));
+                children.push(textLine("YEAR OF STUDY",year));
+                children.push(textLine("SEMESTER",semester));
+                children.push(textLine("STUDENT NAME",student));
+                children.push(textLine("REGISTRATION NUMBER",studentId));
+                children.push(textLine("ASSIGNMENT TITLE",title,{before:150}));
+                children.push(textLine("DUE DATE",formattedDate));
+            }else{
+                children.push(textLine("Lecturer",lecturer));
+                children.push(textLine("Student Name",student));
+                children.push(textLine("Student ID",studentId));
+                children.push(textLine("Course Name",course));
+                children.push(textLine("Course Code",code));
+                children.push(textLine("Assignment Title",title));
+                children.push(textLine("Assignment Number",assignmentNumber));
+                children.push(textLine("Submission Date",formattedDate));
+            }
+        }
+
+        addHeader();
+
+        if(assignmentType==="group"){
+            children.push(centered("GROUP ASSIGNMENT",25,true,130));
+
+            const members=getGroupMembers();
+            const rows=[
+                new TableRow({
+                    children:[
+                        new TableCell({children:[centered("No.",19,true,0)]}),
+                        new TableCell({children:[centered("Group Member Name",19,true,0)]}),
+                        new TableCell({children:[centered("Student ID / Registration Number",19,true,0)]})
+                    ]
+                })
+            ];
+
+            members.forEach((member,index)=>{
+                rows.push(new TableRow({
+                    children:[
+                        new TableCell({children:[centered(String(index+1),19,false,0)]}),
+                        new TableCell({children:[new Paragraph({children:[new TextRun({text:member.name,size:19,font:"Arial"})]})]}),
+                        new TableCell({children:[new Paragraph({children:[new TextRun({text:member.id,size:19,font:"Arial"})]})]})
+                    ]
+                }));
+            });
+
+            children.push(new Table({
+                width:{size:100,type:WidthType.PERCENTAGE},
+                rows
+            }));
+
+            children.push(new Paragraph({spacing:{after:70}}));
+            children.push(textLine("Lecturer",lecturer));
+            children.push(textLine("Course Name",course));
+            children.push(textLine("Course Code",code));
+            children.push(textLine("Assignment Title",title));
+            children.push(textLine("Assignment Number",assignmentNumber));
+            children.push(textLine("Submission Date",formattedDate));
+
+        }else{
+            addDetailsIndividual();
+        }
+
+        const border={
+            top:{style:BorderStyle.SINGLE,size:12,color:"000000",space:18},
+            bottom:{style:BorderStyle.SINGLE,size:12,color:"000000",space:18},
+            left:{style:BorderStyle.SINGLE,size:12,color:"000000",space:18},
+            right:{style:BorderStyle.SINGLE,size:12,color:"000000",space:18}
+        };
+
+        const doc=new Document({
+            sections:[{
+                properties:{
+                    page:{
+                        size:{width:11906,height:16838},
+                        margin:{top:650,bottom:650,left:750,right:750,header:0,footer:0,gutter:0}
+                    },
+                    borders:{page:border}
+                },
+                children
+            }]
+        });
+
+        const blob=await Packer.toBlob(doc);
+        const safeInstitution=(institution||"MalawiHub").replace(/[^a-z0-9]+/gi,"_").replace(/^_|_$/g,"");
+        const safeTitle=(title||"Assignment_Cover").replace(/[^a-z0-9]+/gi,"_").replace(/^_|_$/g,"");
+        const filename=`${safeInstitution}_Assignment_Cover_${safeTitle||"Document"}.docx`;
+
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement("a");
+        a.href=url;
+        a.download=filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),1500);
+
+    }catch(error){
+
+        console.error("Word document generation error:",error);
+        alert("❌ The editable Word document could not be generated. "+(error?.message || "Please try again."));
+
+    }finally{
+
+        if(button){
+            button.disabled=false;
+            button.textContent="⬇️ Download Editable Word Document";
+        }
+
+    }
 }
 
 function resetForm(){
