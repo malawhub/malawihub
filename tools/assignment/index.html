@@ -1436,8 +1436,14 @@ async function downloadWord(){
 
         addHeader();
 
+        // Make the downloaded Word document a genuine cover page, not just a list of details.
+        // These spacers create the same formal, vertically balanced layout expected on a cover.
+        children.push(new Paragraph({spacing:{before:760,after:260}}));
+        children.push(centered("ASSIGNMENT COVER PAGE",30,true,260));
+        children.push(new Paragraph({spacing:{after:260}}));
+
         if(assignmentType==="group"){
-            children.push(centered("GROUP ASSIGNMENT",25,true,130));
+            children.push(centered("GROUP ASSIGNMENT",25,true,220));
 
             const members=getGroupMembers();
             const rows=[
