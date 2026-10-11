@@ -115,10 +115,12 @@ function prepareStudentDisplay(){
 }
 function studentShowDisplay(view,title){
  if(role!=='student')return;
+ const displayMap={live:'studentLiveView',file:'studentFileView',whiteboard:'studentWhiteboardView'};
+ const targetId=displayMap[view]||'studentLiveView';
  document.querySelectorAll('#studentDisplay .student-view').forEach(v=>v.classList.remove('active'));
- $(view)?.classList.add('active');
+ $(targetId)?.classList.add('active');
  $('studentDisplayTitle').textContent=title||'🎥 Live Classroom';
- $('studentDisplayStatus').textContent=view==='studentFileView'?'📄 SHARED':'LIVE';
+ $('studentDisplayStatus').textContent=view==='file'?'📄 SHARED':view==='whiteboard'?'🧑‍🏫 WHITEBOARD':'LIVE';
 }
 function wakeStudentMedia(){
  if(role!=='student')return;
