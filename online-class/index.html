@@ -55,7 +55,7 @@ const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
 const storedStudentCode=sessionStorage.getItem('malawihub_class_code')||'';
 const studentPortalSession=sessionStorage.getItem('malawihub_student_portal')==='1';
-const pageVersion='20261011-classroom-layout-restored';
+const pageVersion='20261011-teacher-student-sync2';
 const adminMode=params.get('mode')==='admin'||params.get('admin')==='1'||params.get('role')==='admin'||location.hash==='#admin';
 const teacherPortalMode=!adminMode && (params.get('teacher')==='1'||params.get('role')==='teacher');
 const controlMode=adminMode||teacherPortalMode;
@@ -100,6 +100,7 @@ async function loadResources(){if(!classId)return;const {data,error}=await supab
 function syncStudentTopBar(){if(role!=='student')return;const title=$('classTitle')?.textContent||'Form 1';$('studentTopClass').textContent=title;$('studentTopRole').textContent='Student mode';$('studentTopTimer').textContent=$('timer')?.textContent||'00:00';const oldMic=$('micBtn');const topMic=$('studentTopMicBtn');if(oldMic&&topMic){topMic.textContent=oldMic.textContent||'🎙 Enable Microphone';topMic.disabled=oldMic.disabled||false}}
 function prepareStudentDisplay(){
  if(role!=='student')return;
+ window.malawiClassRole=role;window.malawiClassRoom=roomCode;window.malawiClassUserId=authUser?.id||'';window.malawiClassUserName=userName||'Student';window.malawiClassChannel=channel;
  document.body.classList.add('student-room');
  $('studentTopBar').classList.remove('hidden');
  $('studentDisplay').classList.remove('hidden');
@@ -511,6 +512,6 @@ $('hidePrivateNote').onclick=hidePrivateNoteFromStudents;
 $('privateNotes').addEventListener('input',()=>{clearTimeout(window.__privateNoteTimer);window.__privateNoteTimer=setTimeout(savePrivateNoteLocal,400)});
 window.addEventListener('beforeunload',()=>{if(channel&&roomCode)channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'leave',id:getMyId(),name:userName}});if(resourceChannel)supabaseClient.removeChannel(resourceChannel)});
 </script>
-<script src="../js/classroom-whiteboard.js?v=20260930"></script>
+<script src="../js/classroom-whiteboard.js?v=20261011-sync2"></script>
 </body>
 </html>
