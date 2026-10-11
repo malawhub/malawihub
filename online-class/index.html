@@ -391,7 +391,8 @@ function makePeer(id){
   if(pc.connectionState==='disconnected')setTimeout(()=>{if(pc.connectionState==='disconnected'){try{pc.restartIce()}catch(e){}}},2500);
   if(pc.connectionState==='closed')removePeer(id)
  };
- if(localStream)localStream.getTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});
+ if(localStream)localStream.getTracks().filter(t=>!(screenStream&&t.kind==='video')).forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});
+ if(screenStream)screenStream.getVideoTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,screenStream)});
  return pc;
 }
 function removePeer(id){const pc=peers.get(id);if(pc){pc.close();peers.delete(id)}const audio=document.querySelector('[data-peer-id="'+String(id).replace(/"/g,'')+'"]');if(audio)audio.remove()}
