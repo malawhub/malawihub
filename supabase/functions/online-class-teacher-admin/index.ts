@@ -23,9 +23,14 @@ if(action==="unregister_self"){
   return json({ok:true});
 }
 if(action==="list_class_students"){
-  if(!isAdmin)return json({error:"Administrator access required"},403);
   const classId=String(body.class_id||"");
   if(!classId)return json({error:"Class ID is required."},400);
+  if(!isAdmin){
+    if(!isTeacher)return json({error:"Teacher access required"},403);
+    const {data:ownedClass,error:ownedClassError}=await admin.from("online_classes").select("id").eq("id",classId).eq("teacher_id",user.id).maybeSingle();
+    if(ownedClassError)throw ownedClassError;
+    if(!ownedClass)return json({error:"You can only view students enrolled in your own class."},403);
+  }
   const {data:enrollments,error:ee}=await admin.from("online_class_enrollments").select("student_id,joined_at").eq("class_id",classId).order("joined_at",{ascending:true});
   if(ee)throw ee;
   const ids=(enrollments||[]).map((x:any)=>x.student_id).filter(Boolean);
