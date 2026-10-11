@@ -146,7 +146,7 @@ function clearClassFile(){sharedFile=null;$('classFilePanel').classList.add('hid
 async function renderClassFile(file){
  if(!file?.url)return;
  sharedFile=file;
- $('classFilePanel').classList.remove('hidden');if(controlMode)adminShowDisplay('adminFileView','📄');else if(role==='student'){prepareStudentDisplay();studentShowDisplay('studentFileView','📄 Shared Classroom File');}
+ $('classFilePanel').classList.remove('hidden');if(controlMode)adminShowDisplay('adminFileView','📄');else if(role==='student'){prepareStudentDisplay();studentShowDisplay('file','📄 Shared Classroom File');}
  $('classFileTitle').textContent='📄 '+(file.name||'Classroom File');
  $('classFileMeta').textContent=((file.mime||'File')+' · '+Math.max(0,Math.round((Number(file.size)||0)/1024))+' KB');
  const box=$('classFileView');box.innerHTML='';
@@ -224,6 +224,7 @@ async function stopClassFile(){
  if(!controlMode||!channel)return;
  clearClassFile();
  await channel.send({type:'broadcast',event:'class-file',payload:{code:roomCode,action:'hide'}});
+ adminShowDisplay('adminLiveView','🎥 Live Classroom');
  $('status').textContent=paused?'PAUSED':'LIVE';
 }
 async function setupRoom(){
@@ -240,7 +241,7 @@ if(controlMode)prepareAdminDisplay(); $('room').classList.remove('hidden');if(ro
  .on('broadcast',{event:'notes'},({payload})=>{if(!['teacher','admin'].includes(role)&&payload.code===roomCode){ $('notes').value=payload.notes;$('saveState').textContent='Live'; }})
  .on('broadcast',{event:'private-note'},({payload})=>{if(payload.code!==roomCode||['teacher','admin'].includes(role))return;if(payload.action==='show'){privateNoteShown=true;$('studentSharedNoteText').textContent=payload.content||'';$('studentSharedNote').classList.remove('hidden');$('privateNoteState').textContent='Teacher has shared a note';}else if(payload.action==='hide'){privateNoteShown=false;$('studentSharedNote').classList.add('hidden');$('studentSharedNoteText').textContent='';$('privateNoteState').textContent='Private — not shared';}})
  .on('broadcast',{event:'chat'},({payload})=>{if(payload.code===roomCode)addChat(payload.name,payload.text)})
- .on('broadcast',{event:'class-file'},async({payload})=>{if(payload.code!==roomCode||role!=='student')return;if(payload.action==='show'&&payload.file){await renderClassFile(payload.file);msg('FILE SHARED')}else if(payload.action==='hide'){clearClassFile();msg(paused?'PAUSED':'LIVE')}})
+ .on('broadcast',{event:'class-file'},async({payload})=>{if(payload.code!==roomCode||role!=='student')return;if(payload.action==='show'&&payload.file){await renderClassFile(payload.file);studentShowDisplay('file','📄 Shared Classroom File');msg('FILE SHARED')}else if(payload.action==='hide'){clearClassFile();studentShowDisplay('live','🎥 Live Classroom');msg(paused?'PAUSED':'LIVE')}})
  .on('broadcast',{event:'presence'},({payload})=>{if(payload.code!==roomCode)return;if(payload.action==='join'){state.students.set(payload.id,payload.name);renderStudents()}if(payload.action==='leave'){state.students.delete(payload.id);removePeer(payload.id);renderStudents()}});
  try{await new Promise((resolve,reject)=>channel.subscribe((s,e)=>{if(s==='SUBSCRIBED')resolve();else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'||s==='CLOSED')reject(e||Error('Realtime status: '+s))}));}catch(e){console.error('MalawiHub classroom realtime subscription failed',{roomCode,role,error:e});msg('Live connection failed. Use Exit / Re-enter Class to retry. '+(e?.message||''));if(role==='student'){prepareStudentDisplay();$('studentExitClassBtn').textContent='🚪 Exit / Re-enter Class';$('studentExitClassBtnBottom').textContent='🚪 Exit / Re-enter Class';}throw e;}window.malawiClassChannel=channel;if(window.MalawiHubInPageWhiteboard)window.MalawiHubInPageWhiteboard.init();msg('Connected');if(controlMode)await loadAdminStudents();
  if(role==='student'){
@@ -310,7 +311,7 @@ async function handleSignal(p){
   state.students.set(p.from,p.name);renderStudents();
   if(window.MalawiHubNative)window.MalawiHubNative.nativeStudentJoined(p.from);
   await channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'join',id:p.from,name:p.name}});
-  makePeer(p.from); if(controlMode&&paused)await send({type:'pause',from:getMyId(),to:p.from,at:pausedAt});if(controlMode&&sharedFile){await send({type:'start',from:getMyId(),to:p.from,startedAt,duration});await send({type:'class-file',from:getMyId(),to:p.from,file:sharedFile});await send({type:'display',from:getMyId(),to:p.from,action:'view',view:'file',title:'📄 Shared Classroom File'});}else if(controlMode&&startedAt){await send({type:'start',from:getMyId(),to:p.from,startedAt,duration});await send({type:'display',from:getMyId(),to:p.from,action:'view',view:window.__mhCurrentDisplay||'live',title:window.__mhCurrentDisplayTitle||'🎥 Live Classroom'});}
+  makePeer(p.from); if(controlMode&&startedAt){await send({type:'start',from:getMyId(),to:p.from,startedAt,duration});if(paused)await send({type:'pause',from:getMyId(),to:p.from,at:pausedAt});const currentView=window.__mhCurrentDisplay||'live';if(currentView==='file'&&sharedFile){await channel.send({type:'broadcast',event:'class-file',payload:{code:roomCode,action:'show',file:sharedFile,to:p.from}});await send({type:'display',from:getMyId(),to:p.from,action:'view',view:'file',title:window.__mhCurrentDisplayTitle||'📄 Shared Classroom File'});}else{await send({type:'display',from:getMyId(),to:p.from,action:'view',view:currentView,title:window.__mhCurrentDisplayTitle||'🎥 Live Classroom'});}}
  }
  else if(p.type==='offer'){
   const peerId=p.from;
