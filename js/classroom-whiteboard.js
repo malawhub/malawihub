@@ -48,7 +48,15 @@
   function clearBoard(){strokes=[];redraw();send('whiteboard-clear',{})}
   function undo(){if(!strokes.length)return;strokes.pop();redraw();send('whiteboard-state',{strokes})}
   function receive(p){if(!p||p.code!==room||p.type!=='whiteboard')return;if(p.action==='whiteboard-stroke'&&p.stroke)addStroke(p.stroke);else if(p.action==='whiteboard-segment'&&p.stroke){const s=p.stroke,e=strokes.find(x=>x.id===s.id);if(e){const last=e.points.at(-1),pts=(s.points||[]).filter((x,i)=>i===0||!last||x.x!==last.x||x.y!==last.y);e.points.push(...pts);drawStroke(e,true)}else addStroke(s)}else if(p.action==='whiteboard-clear'){strokes=[];redraw()}else if(p.action==='whiteboard-state'&&Array.isArray(p.strokes)){strokes=p.strokes;redraw()}else if(p.action==='whiteboard-sync-request'&&['teacher','admin'].includes(role))send('whiteboard-state',{strokes})}
-  function bind(){if(canvas.dataset.mhWbBound==='1')return;canvas.dataset.mhWbBound='1';canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);canvas.addEventListener('pointerleave',()=>{if(drawing)up()});$('mhBoardPen')?.addEventListener('click',()=>setTool('pen'));$('mhBoardEraser')?.addEventListener('click',()=>setTool('eraser'));$('mhBoardUndo')?.addEventListener('click',undo);$('mhBoardClear')?.addEventListener('click',clearBoard);setTool('pen');if(channel&&!channelBound){channel.on('broadcast',{event:'class'},({payload})=>receive(payload));channelBound=true}}
+  function bind(){
+    if(canvas.dataset.mhWbBound!=='1'){
+      canvas.dataset.mhWbBound='1';
+      canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);canvas.addEventListener('pointerleave',()=>{if(drawing)up()});
+      $('mhBoardPen')?.addEventListener('click',()=>setTool('pen'));$('mhBoardEraser')?.addEventListener('click',()=>setTool('eraser'));$('mhBoardUndo')?.addEventListener('click',undo);$('mhBoardClear')?.addEventListener('click',clearBoard);
+    }
+    setTool('pen');
+    if(channel&&!channelBound){channel.on('broadcast',{event:'class'},({payload})=>receive(payload));channelBound=true}
+  }
   window.MalawiHubInPageWhiteboard={init,resize,receive};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
