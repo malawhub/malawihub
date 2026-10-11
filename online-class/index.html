@@ -64,7 +64,7 @@ if(studentPortalMode && !params.get('code') && !storedStudentCode){ location.rep
 if(adminMode){$('areaLabel').textContent='';} else if(teacherPortalMode){$('areaLabel').textContent='Teacher Portal · Private Classroom';} else {$('areaLabel').textContent='Student Portal · Private Classroom';}
 if(adminMode||teacherPortalMode||studentPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent=adminMode?'Administrator Class':teacherPortalMode?'Teacher Class':'Student Class';$('modeHelp').textContent=adminMode?'Administrator mode. Only the administrator can control this class.':teacherPortalMode?'Teacher mode. Students join through the Student Portal using the class code.':'Student mode. Teacher and administrator controls are unavailable.';const codeFromUrl=params.get('code')||storedStudentCode;if(codeFromUrl)$('code').value=codeFromUrl;$('name').value=sessionStorage.getItem('malawihub_student_name')||'Student';if(studentPortalMode){$('studentBtn').classList.remove('hidden');$('studentBtn').textContent='↻ Retry Joining Class';}else $('modePanel').classList.add('hidden');}
 let channel,resourceChannel,roomCode='',userName='',privateNoteShown=false,sharedFile=null,role=adminMode?'admin':(teacherPortalMode?'teacher':(studentPortalMode?'student':'')),localStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null,paused=false,pausedAt=0,pausedTotalMs=0;
-let controllerPeerId='';const peers=new Map();const iceQueues=new Map();const state={students:new Map(),joined:new Map()};let myId='';
+let controllerPeerId='';const peers=new Map();const iceQueues=new Map();const state={students:new Map(),joined:new Map()};let myId='';let joinRetryTimer=null;let joinRetryCount=0;
 // WebRTC connectivity: use public STUN plus the configured short-lived Cloudflare TURN relay.
 let iceServers=[
  {urls:'stun:stun.l.google.com:19302'},
@@ -258,8 +258,23 @@ $('modePanel').classList.add('hidden');if(controlMode)prepareAdminDisplay(); $('
   prepareStudentDisplay();
   if(data.status==='ended'){msg('Class ended');return}
   if(data.status==='live'&&data.starts_at){startedAt=data.starts_at;duration=Number(data.duration_minutes)||duration;startTimer();$('waiting').classList.add('hidden');msg('LIVE');}
-  msg('Joined class · classroom display connected · tap 🎙 to speak');
+  msg('Connected to class · waiting for teacher confirmation…');
+  $('studentDisplayStatus').textContent='CONNECTING';
   await send({type:'join',from:getMyId(),name:userName,to:'*'});
+  if(joinRetryTimer)clearInterval(joinRetryTimer);
+  joinRetryCount=0;
+  joinRetryTimer=setInterval(async()=>{
+    if(!channel||role!=='student'||joinRetryCount>=4){
+      if(joinRetryTimer){clearInterval(joinRetryTimer);joinRetryTimer=null;}
+      if(role==='student'&&joinRetryCount>=4){
+        $('studentDisplayStatus').textContent='TEACHER NOT CONNECTED';
+        msg('Class opened, but the teacher has not confirmed the connection. Check that both devices use the same class code.');
+      }
+      return;
+    }
+    joinRetryCount++;
+    try{await send({type:'join',from:getMyId(),name:userName,to:'*'});}catch(e){console.warn('Student join retry failed',e);}
+  },2500);
   wakeStudentMedia();
 }
  else {$('adminControls').classList.toggle('hidden',!controlMode);$('startBtn').classList.toggle('hidden',controlMode);$('screenBtn').classList.toggle('hidden',controlMode);$('micBtn').classList.toggle('hidden',controlMode);$('whiteboardBtn').classList.toggle('hidden',controlMode);$('endBtn').classList.toggle('hidden',controlMode);$('notes').readOnly=false;$('showPrivateNote').classList.remove('hidden');$('hidePrivateNote').classList.remove('hidden');if(data.status==='live'&&data.starts_at){startedAt=data.starts_at;startTimer();msg('LIVE');await loadNotes()} updateAdminPauseUI()}
@@ -267,7 +282,7 @@ $('modePanel').classList.add('hidden');if(controlMode)prepareAdminDisplay(); $('
 document.addEventListener('click',e=>{if(e.target?.id==='studentTopMicBtn'){$('micBtn')?.click();setTimeout(syncStudentTopBar,100)}});
 window.__malawiNativeSend=async function(json){try{const p=typeof json==='string'?JSON.parse(json):json;await send(p)}catch(e){console.warn('native signal send',e)}};
 window.__malawiNativeStatus=function(text){msg(text);if(String(text).includes('Screen sharing is active')){ $('screenBtn').textContent='⏹'; if(window.MalawiHubNative)state.students.forEach((n,id)=>window.MalawiHubNative.nativeStudentJoined(id)); }else if(String(text).includes('stopped')){$('screenBtn').textContent='🖥';}};
-async function send(payload){payload.code=roomCode;await channel.send({type:'broadcast',event:'class',payload})}
+async function send(payload){payload.code=roomCode;const result=await channel.send({type:'broadcast',event:'class',payload});if(result?.status&&result.status!=='ok')throw new Error('Classroom message failed: '+result.status);return result}
 function peerTarget(id){return id}
 async function flushIce(peerId){
  const pc=peers.get(peerId);
@@ -317,6 +332,7 @@ async function handleSignal(p){
   state.students.set(p.from,p.name);renderStudents();
   if(window.MalawiHubNative)window.MalawiHubNative.nativeStudentJoined(p.from);
   await channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'join',id:p.from,name:p.name}});
+  await send({type:'join-ack',from:getMyId(),to:p.from,name:userName||'Teacher'});
   makePeer(p.from);
   if(controlMode){
    if(startedAt){await send({type:'start',from:getMyId(),to:p.from,startedAt,duration});if(paused)await send({type:'pause',from:getMyId(),to:p.from,at:pausedAt});}
@@ -343,6 +359,11 @@ async function handleSignal(p){
   const peerId=p.from;
   const pc=peers.get(peerId);
   if(pc){try{await pc.setRemoteDescription(p.sdp);await flushIce(peerId)}catch(e){console.warn('Answer handling failed',e)}}
+ }
+ else if(role==='student'&&p.type==='join-ack'){
+  if(joinRetryTimer){clearInterval(joinRetryTimer);joinRetryTimer=null;}
+  $('studentDisplayStatus').textContent='CONNECTED';
+  msg('Connected to teacher · classroom synchronized');
  }
  else if(role==='student'&&p.type==='display'){
   if(p.action==='view'){
