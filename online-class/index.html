@@ -57,7 +57,7 @@ const storedStudentCode=sessionStorage.getItem('malawihub_class_code')||'';
 const studentPortalSession=sessionStorage.getItem('malawihub_student_portal')==='1';
 const pageVersion='20261011-teacher-student-sync2';
 const adminMode=params.get('mode')==='admin'||params.get('admin')==='1'||params.get('role')==='admin'||location.hash==='#admin';
-const teacherPortalMode=!adminMode && (params.get('teacher')==='1'||params.get('role')==='teacher');
+const teacherPortalMode=!adminMode && (params.get('mode')==='teacher'||params.get('teacher')==='1'||params.get('role')==='teacher');
 const controlMode=adminMode||teacherPortalMode;
 const studentPortalMode=!adminMode && !teacherPortalMode && (params.get('student')==='1'||params.get('role')==='student'||!!storedStudentCode||studentPortalSession);
 if(studentPortalMode && !params.get('code') && !storedStudentCode){ location.replace('../student-portal/'); }
