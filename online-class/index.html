@@ -523,6 +523,6 @@ $('hidePrivateNote').onclick=hidePrivateNoteFromStudents;
 $('privateNotes').addEventListener('input',()=>{clearTimeout(window.__privateNoteTimer);window.__privateNoteTimer=setTimeout(savePrivateNoteLocal,400)});
 window.addEventListener('beforeunload',()=>{if(channel&&roomCode)channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'leave',id:getMyId(),name:userName}});if(resourceChannel)supabaseClient.removeChannel(resourceChannel)});
 </script>
-<script src="../js/classroom-whiteboard.js?v=20261011-sync2"></script>
+<script src="../js/classroom-whiteboard.js?v=20261011-display-sync-fix1"></script>
 </body>
 </html>
