@@ -309,7 +309,7 @@ async function handleSignal(p){
   state.students.set(p.from,p.name);renderStudents();
   if(window.MalawiHubNative)window.MalawiHubNative.nativeStudentJoined(p.from);
   await channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'join',id:p.from,name:p.name}});
-  makePeer(p.from); if(controlMode&&paused)await send({type:'pause',from:getMyId(),to:p.from,at:pausedAt});if(controlMode&&sharedFile){await send({type:'class-file',from:getMyId(),to:p.from,file:sharedFile});await send({type:'display',from:getMyId(),to:p.from,action:'view',view:'file',title:'📄 Shared Classroom File'});}else if(controlMode&&startedAt){await send({type:'display',from:getMyId(),to:p.from,action:'view',view:window.__mhCurrentDisplay||'live',title:window.__mhCurrentDisplayTitle||'🎥 Live Classroom'});}
+  makePeer(p.from); if(controlMode&&paused)await send({type:'pause',from:getMyId(),to:p.from,at:pausedAt});if(controlMode&&sharedFile){await send({type:'start',from:getMyId(),to:p.from,startedAt,duration});await send({type:'class-file',from:getMyId(),to:p.from,file:sharedFile});await send({type:'display',from:getMyId(),to:p.from,action:'view',view:'file',title:'📄 Shared Classroom File'});}else if(controlMode&&startedAt){await send({type:'start',from:getMyId(),to:p.from,startedAt,duration});await send({type:'display',from:getMyId(),to:p.from,action:'view',view:window.__mhCurrentDisplay||'live',title:window.__mhCurrentDisplayTitle||'🎥 Live Classroom'});}
  }
  else if(p.type==='offer'){
   const peerId=p.from;
