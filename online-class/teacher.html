@@ -52,7 +52,7 @@ async function loadClasses(){
     return;
   }
 
-  el.innerHTML=data.map(c=>'<article class="class-card"><span class="pill">'+esc(c.status)+'</span><h3>'+esc(c.title)+'</h3><p class="muted">'+esc(c.subject||"General")+" · "+c.duration_minutes+' minutes</p><p><b>Code:</b> '+esc(c.join_code)+'</p><div class="quick"><a class="btn primary" href="./index.html?teacher=1&role=teacher&code='+encodeURIComponent(c.join_code)+'&v=20260924-teacher-audio1">Open Live Class</a><button class="btn share-existing" type="button" data-code="'+esc(c.join_code)+'" data-title="'+esc(c.title)+'">🔗 Share Class Link</button><a class="btn" href="./whiteboard.html?code='+encodeURIComponent(c.join_code)+'">🧑‍🏫 Shared Whiteboard</a><a class="btn" href="./teacher-workspace.html?code='+encodeURIComponent(c.join_code)+'">Teacher Workspace</a><a class="btn" href="./resources.html?code='+encodeURIComponent(c.join_code)+'">Videos</a></div></article>').join("");
+  el.innerHTML=data.map(c=>'<article class="class-card"><span class="pill">'+esc(c.status)+'</span><h3>'+esc(c.title)+'</h3><p class="muted">'+esc(c.subject||"General")+" · "+c.duration_minutes+' minutes</p><p><b>Code:</b> '+esc(c.join_code)+'</p><div class="quick"><a class="btn primary" href="./teacher-room.html?teacher=1&role=teacher&code='+encodeURIComponent(c.join_code)+'&v=20261011-teacher-route-refresh">Open Live Class</a><button class="btn share-existing" type="button" data-code="'+esc(c.join_code)+'" data-title="'+esc(c.title)+'">🔗 Share Class Link</button><a class="btn" href="./whiteboard.html?code='+encodeURIComponent(c.join_code)+'">🧑‍🏫 Shared Whiteboard</a><a class="btn" href="./teacher-workspace.html?code='+encodeURIComponent(c.join_code)+'">Teacher Workspace</a><a class="btn" href="./resources.html?code='+encodeURIComponent(c.join_code)+'">Videos</a></div></article>').join("");
 
   document.querySelectorAll(".share-existing").forEach(button=>{
     button.addEventListener("click",()=>shareExistingClass(button.dataset.code,button.dataset.title));
@@ -203,7 +203,7 @@ $("create").onclick=async()=>{
     return;
   }
 
-  location.href="./index.html?teacher=1&role=teacher&code="+encodeURIComponent(code)+"&v=20260924-teacher-audio1";
+  location.href="./teacher-room.html?teacher=1&role=teacher&code="+encodeURIComponent(code)+"&v=20261011-teacher-route-refresh";
 };
 
 $("refresh").onclick=async()=>{
