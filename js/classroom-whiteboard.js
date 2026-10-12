@@ -26,7 +26,11 @@
     bar.appendChild(wrap);
   }
   function init(){
-    role=window.malawiClassRole||'';room=window.malawiClassRoom||'';channel=window.malawiClassChannel||null;
+    const params=new URLSearchParams(location.search);
+    role=window.malawiClassRole||(params.get('student')==='1'||params.get('role')==='student'||sessionStorage.getItem('malawihub_student_portal')==='1'?'student':(params.get('teacher')==='1'||params.get('role')==='teacher'?'teacher':(params.get('admin')==='1'||params.get('role')==='admin'?'admin':'')));
+    room=window.malawiClassRoom||params.get('code')||sessionStorage.getItem('malawihub_class_code')||'';
+    channel=window.malawiClassChannel||null;
+    /* Student workspace replaces its canvas when mounting the compact view. Always resolve the live canvas again. */
     canvas=role==='student'?$('mhStudentBoard'):$('mhTeacherBoard');
     if(role==='student')addStudentClassControls();
     if(!canvas)return;
