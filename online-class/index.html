@@ -292,7 +292,10 @@ function startStudentSharedFileSync(){
   try{
    const {data,error}=await supabaseClient.from('online_classes').select('shared_file').eq('id',classId).maybeSingle();
    if(error)throw error;
-   const latest=data?.shared_file;
+   // A temporarily unavailable/RLS-hidden row is not proof that the teacher stopped sharing.
+   // Keep the current display until we can confirm the row exists and shared_file was cleared.
+   if(!data)return;
+   const latest=data.shared_file;
    const latestKey=latest?.url?String(latest.path||latest.url):'';
    const currentKey=sharedFile?.url?String(sharedFile.path||sharedFile.url):'';
    if(latestKey&&latestKey!==currentKey){
