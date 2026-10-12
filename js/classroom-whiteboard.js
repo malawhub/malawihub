@@ -44,7 +44,7 @@
   function drawStroke(s,partial){if(!s?.points?.length)return;const w=canvas.clientWidth,h=canvas.clientHeight,p=s.points;ctx.save();ctx.strokeStyle=s.eraser?'#fff':s.color;ctx.lineWidth=s.size;ctx.lineCap='round';ctx.lineJoin='round';if(p.length===1){ctx.fillStyle=s.eraser?'#fff':s.color;ctx.beginPath();ctx.arc(p[0].x*w,p[0].y*h,Math.max(1,s.size/2),0,Math.PI*2);ctx.fill();ctx.restore();return}const start=partial?Math.max(0,p.length-2):0;ctx.beginPath();ctx.moveTo(p[start].x*w,p[start].y*h);for(let i=start+1;i<p.length;i++)ctx.lineTo(p[i].x*w,p[i].y*h);ctx.stroke();ctx.restore()}
   function redraw(){if(!ctx)return;ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);strokes.forEach(s=>drawStroke(s,false))}
   function addStroke(s){const i=strokes.findIndex(x=>x.id===s.id);if(i>=0)strokes[i]=s;else strokes.push(s);redraw()}
-  async function send(action,payload){if(!channel||!room)return;try{await channel.send({type:'broadcast',event:'class',payload:{code:room,type:'whiteboard',action,...payload}})}catch(e){console.warn('whiteboard send',e)}}
+  async function send(action,payload){if(!channel||!room)return;try{await channel.send({type:'broadcast',event:'whiteboard',payload:{code:room,type:'whiteboard',action,...payload}})}catch(e){console.warn('whiteboard send',e)}}
   function down(e){if(!['teacher','admin','student'].includes(role))return;drawing=true;canvas.setPointerCapture?.(e.pointerId);const p=pos(e);current={id:(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random()),color:$('mhBoardColor')?.value||'#111111',size:Number($('mhBoardSize')?.value||4),eraser:tool==='eraser',points:[p],author:window.malawiClassUserId||''};strokes.push(current);drawStroke(current,false)}
   function move(e){if(!drawing||!current)return;current.points.push(pos(e));drawStroke(current,true);const now=Date.now();if(now-lastSent>100){lastSent=now;send('whiteboard-segment',{stroke:{id:current.id,color:current.color,size:current.size,eraser:current.eraser,points:current.points.slice(-2),author:current.author}})}}
   function up(){if(!drawing)return;drawing=false;if(current){send('whiteboard-stroke',{stroke:current});current=null}}
@@ -59,7 +59,7 @@
       $('mhBoardPen')?.addEventListener('click',()=>setTool('pen'));$('mhBoardEraser')?.addEventListener('click',()=>setTool('eraser'));$('mhBoardUndo')?.addEventListener('click',undo);$('mhBoardClear')?.addEventListener('click',clearBoard);
     }
     setTool('pen');
-    if(channel&&!channelBound){channel.on('broadcast',{event:'class'},({payload})=>receive(payload));channelBound=true}
+    if(channel&&!channelBound){channel.on('broadcast',{event:'whiteboard'},({payload})=>receive(payload));channel.on('broadcast',{event:'class'},({payload})=>receive(payload));channelBound=true}
   }
   window.MalawiHubInPageWhiteboard={init,resize,receive};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
