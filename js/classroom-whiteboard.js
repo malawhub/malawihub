@@ -55,9 +55,23 @@
   function bind(){
     if(canvas.dataset.mhWbBound!=='1'){
       canvas.dataset.mhWbBound='1';
-      canvas.addEventListener('pointerdown',down);canvas.addEventListener('pointermove',move);canvas.addEventListener('pointerup',up);canvas.addEventListener('pointercancel',up);canvas.addEventListener('pointerleave',()=>{if(drawing)up()});
-      $('mhBoardPen')?.addEventListener('click',()=>setTool('pen'));$('mhBoardEraser')?.addEventListener('click',()=>setTool('eraser'));$('mhBoardUndo')?.addEventListener('click',undo);$('mhBoardClear')?.addEventListener('click',clearBoard);
+      canvas.addEventListener('pointerdown',down);
+      canvas.addEventListener('pointermove',move);
+      canvas.addEventListener('pointerup',up);
+      canvas.addEventListener('pointercancel',up);
+      canvas.addEventListener('pointerleave',()=>{if(drawing)up()});
     }
+    const bindButton=(id,handler)=>{
+      const button=$(id);
+      if(button&&button.dataset.mhWbButtonBound!=='1'){
+        button.dataset.mhWbButtonBound='1';
+        button.addEventListener('click',handler);
+      }
+    };
+    bindButton('mhBoardPen',()=>setTool('pen'));
+    bindButton('mhBoardEraser',()=>setTool('eraser'));
+    bindButton('mhBoardUndo',undo);
+    bindButton('mhBoardClear',clearBoard);
     setTool('pen');
     if(channel&&!channelBound){channel.on('broadcast',{event:'whiteboard'},({payload})=>receive(payload));channel.on('broadcast',{event:'class'},({payload})=>receive(payload));channelBound=true}
   }
