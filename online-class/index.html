@@ -162,11 +162,18 @@ function prepareAdminDisplay(){if(!controlMode)return;window.malawiClassRole=rol
 function clearClassFile(){sharedFile=null;$('classFilePanel').classList.add('hidden');$('classFileView').innerHTML='';$('classFileMeta').textContent='';$('classFileTitle').textContent='📄 Classroom File';$('classFileStop').classList.add('hidden')}
 async function renderClassFile(file){
  if(!file?.url)return;
+ const fileKey=String(file.path||file.url);
+ const box=$('classFileView');
+ if(sharedFile&&String(sharedFile.path||sharedFile.url)===fileKey&&box?.children.length){
+  $('classFilePanel').classList.remove('hidden');
+  if(controlMode)adminShowDisplay('adminFileView','📄');else if(role==='student'){prepareStudentDisplay();studentShowDisplay('file','📄 Shared Classroom File');}
+  return;
+ }
  sharedFile=file;
  $('classFilePanel').classList.remove('hidden');if(controlMode)adminShowDisplay('adminFileView','📄');else if(role==='student'){prepareStudentDisplay();studentShowDisplay('file','📄 Shared Classroom File');}
  $('classFileTitle').textContent='📄 '+(file.name||'Classroom File');
  $('classFileMeta').textContent=((file.mime||'File')+' · '+Math.max(0,Math.round((Number(file.size)||0)/1024))+' KB');
- const box=$('classFileView');box.innerHTML='';
+ box.innerHTML='';
  const mime=String(file.mime||'').toLowerCase(),name=String(file.name||'');
  if(mime==='application/pdf'||/\.pdf$/i.test(name)){
   box.innerHTML='<div style="padding:18px;text-align:center;color:#667085">Loading PDF inside classroom…</div>';
@@ -235,8 +242,12 @@ async function shareClassFile(file){
   const {data:pub}=supabaseClient.storage.from('subject-resources').getPublicUrl(data.path);
   const shared={name:file.name,mime:file.type||'application/octet-stream',size:file.size,url:pub.publicUrl,path:data.path,sharedAt:Date.now()};
   try{sessionStorage.setItem('malawihub_current_class_file:'+classId,JSON.stringify(shared))}catch(e){}
-  // Deliver the file before local rendering, which may take time for large PDFs.
-  await send({type:'display',action:'file',file:shared});
+  // Use both classroom delivery paths so students receive the file even if one event is missed.
+  const deliveries=await Promise.allSettled([
+   channel.send({type:'broadcast',event:'class-file',payload:{code:roomCode,action:'show',file:shared}}),
+   send({type:'display',action:'file',file:shared})
+  ]);
+  if(deliveries.every(result=>result.status==='rejected'))throw new Error('Could not send the file to students. Please retry.');
   await renderClassFile(shared);
   $('status').textContent='FILE SHARED';
  }catch(e){
@@ -265,7 +276,7 @@ $('modePanel').classList.add('hidden');if(controlMode)prepareAdminDisplay(); $('
  .on('broadcast',{event:'notes'},({payload})=>{if(!['teacher','admin'].includes(role)&&payload.code===roomCode){ $('notes').value=payload.notes;$('saveState').textContent='Live'; }})
  .on('broadcast',{event:'private-note'},({payload})=>{if(payload.code!==roomCode||['teacher','admin'].includes(role))return;if(payload.action==='show'){privateNoteShown=true;$('studentSharedNoteText').textContent=payload.content||'';$('studentSharedNote').classList.remove('hidden');$('privateNoteState').textContent='Teacher has shared a note';}else if(payload.action==='hide'){privateNoteShown=false;$('studentSharedNote').classList.add('hidden');$('studentSharedNoteText').textContent='';$('privateNoteState').textContent='Private — not shared';}})
  .on('broadcast',{event:'chat'},({payload})=>{if(payload.code===roomCode)addChat(payload.name,payload.text)})
- .on('broadcast',{event:'class-file'},async({payload})=>{if(cleanCode(String(payload.code||''))!==cleanCode(roomCode)||role!=='student'||(payload.to&&payload.to!==getMyId()))return;if(payload.action==='show'&&payload.file){await prepareStudentDisplay();await renderClassFile(payload.file);studentShowDisplay('file','📄 Shared Classroom File');msg('FILE SHARED')}else if(payload.action==='hide'){clearClassFile();studentShowDisplay('live','🎥 Live Classroom');msg(paused?'PAUSED':'LIVE')}})
+ .on('broadcast',{event:'class-file'},async({payload})=>{if(cleanCode(String(payload.code||''))!==cleanCode(roomCode)||role!=='student'||(payload.to&&payload.to!==getMyId()))return;if(payload.action==='show'&&payload.file){try{prepareStudentDisplay();await renderClassFile(payload.file);studentShowDisplay('file','📄 Shared Classroom File');msg('FILE SHARED')}catch(e){console.error('Student classroom file render failed',e);const box=$('classFileView');if(box)box.innerHTML='<div style="padding:16px;color:#b42318;text-align:center">The file arrived but could not be displayed. Try opening the file using the download option.</div>';studentShowDisplay('file','📄 Shared Classroom File')}}else if(payload.action==='hide'){clearClassFile();studentShowDisplay('live','🎥 Live Classroom');msg(paused?'PAUSED':'LIVE')}})
  .on('broadcast',{event:'class-display'},async({payload})=>{if(role!=='student'||cleanCode(String(payload.code||''))!==cleanCode(roomCode)||(payload.to&&payload.to!==getMyId()))return;const rawView=String(payload.view||'live');const aliases={adminLiveView:'live',adminFileView:'file',adminWhiteboardView:'whiteboard',adminNotesView:'notes',adminChatView:'chat',chat:'chat',video:'video'};const candidate=aliases[rawView]||rawView;const view=['live','file','whiteboard','notes','chat','video'].includes(candidate)?candidate:'live';prepareStudentDisplay();if(view==='file'&&!sharedFile)return;if(view==='file'&&!$('classFileView').children.length)await renderClassFile(sharedFile);studentShowDisplay(view,view==='live'?'🎥 Live Classroom':(payload.title||''));if(view==='whiteboard')requestAnimationFrame(()=>{window.MalawiHubInPageWhiteboard?.init();window.MalawiHubInPageWhiteboard?.resize()});})
  .on('broadcast',{event:'presence'},({payload})=>{if(payload.code!==roomCode)return;if(payload.action==='join'){state.students.set(payload.id,payload.name);renderStudents()}if(payload.action==='leave'){state.students.delete(payload.id);removePeer(payload.id);renderStudents()}});
  try{await new Promise((resolve,reject)=>channel.subscribe((s,e)=>{if(s==='SUBSCRIBED')resolve();else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'||s==='CLOSED')reject(e||Error('Realtime status: '+s))}));}catch(e){console.error('MalawiHub classroom realtime subscription failed',{roomCode,role,error:e});msg('Live connection failed. Use Exit / Re-enter Class to retry. '+(e?.message||''));if(role==='student'){prepareStudentDisplay();$('studentExitClassBtn').textContent='🚪 Exit / Re-enter Class';$('studentExitClassBtnBottom').textContent='🚪 Exit / Re-enter Class';}throw e;}window.malawiClassChannel=channel;if(window.MalawiHubInPageWhiteboard)window.MalawiHubInPageWhiteboard.init();msg('Connected');if(controlMode)await loadAdminStudents();
