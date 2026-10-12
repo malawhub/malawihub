@@ -292,10 +292,15 @@ async function shareClassFile(file){
   if(stateError)throw new Error('The file uploaded, but classroom sharing state could not be saved: '+stateError.message);
   try{sessionStorage.setItem('malawihub_current_class_file:'+classId,JSON.stringify(shared))}catch(e){}
   // Use both classroom delivery paths so students receive the file even if one event is missed.
-  const delivery=await channel.send({type:'broadcast',event:'class-file',payload:{code:roomCode,action:'show',file:shared}});
-  if(delivery?.status && delivery.status!=='ok')throw new Error('The file was saved, but live delivery failed ('+delivery.status+'). Students may need to re-enter the class.');
+  let delivered=false;
+  try{
+   const delivery=await channel.send({type:'broadcast',event:'class-file',payload:{code:roomCode,action:'show',file:shared}});
+   delivered=!delivery?.status||delivery.status==='ok';
+   if(!delivered)console.warn('Shared file saved but live broadcast was not acknowledged:',delivery.status);
+  }catch(deliveryError){console.warn('Shared file saved but live broadcast failed; student recovery sync will retry',deliveryError)}
+  // The database state is already saved, so students can recover this file through their sync check.
   await renderClassFile(shared);
-  $('status').textContent='FILE SHARED';
+  $('status').textContent=delivered?'FILE SHARED':'FILE SAVED · SYNCING STUDENTS';
  }catch(e){
   console.error('Class file upload failed',e);
   alert('Could not upload the file for classroom display. '+(e?.message||'Check your connection and Admin storage permission.'));
