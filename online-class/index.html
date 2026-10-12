@@ -135,6 +135,9 @@ function prepareStudentDisplay(){
 }
 function studentShowDisplay(view,title){
  if(role!=='student')return;
+ // Every display pathway must respect an active shared file, including WebRTC view signals.
+ // The teacher's explicit Stop Sharing clears sharedFile before returning students to live view.
+ if(view==='live'&&sharedFile?.url){view='file';title='📄 Shared Classroom File';}
  const displayMap={live:'studentLiveView',file:'studentFileView',whiteboard:'studentWhiteboardView',notes:'studentNotesView'};
  const targetId=displayMap[view]||'studentLiveView';
  document.querySelectorAll('#studentDisplay .student-view').forEach(v=>v.classList.remove('active'));
