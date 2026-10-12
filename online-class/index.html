@@ -3,6 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>
+/* Keep the generic Online Class URL on the portal chooser; only explicit classroom URLs load the classroom engine. */
+(function(){
+  try {
+    const q = new URLSearchParams(location.search);
+    const explicitClassroom =
+      q.get('student') === '1' || q.get('role') === 'student' ||
+      q.get('teacher') === '1' || q.get('role') === 'teacher' ||
+      q.get('admin') === '1' || q.get('role') === 'admin' ||
+      q.get('mode') === 'teacher' || q.get('entered') === '1' ||
+      location.hash === '#admin';
+    if (explicitClassroom) return;
+    const inviteCode = (q.get('class') || q.get('code') || q.get('join_code') || '').trim();
+    if (inviteCode) {
+      const dest = new URL('../student-portal/', location.href);
+      dest.searchParams.set('class', inviteCode);
+      location.replace(dest.toString());
+    } else {
+      location.replace('./portal.html');
+    }
+  } catch (e) {
+    console.warn('Online Class portal redirect skipped', e);
+  }
+})();
+</script>
 <title>MalawiHub Online Class</title>
 <link rel="stylesheet" href="../css/style.css">
 <script>(function(){try{if(location.protocol==='http:'&&location.hostname==='malawihub.pages.dev'){location.replace('https://malawihub.pages.dev'+location.pathname+location.search+location.hash);return}}catch(e){}})();</script>
