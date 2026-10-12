@@ -463,7 +463,7 @@ async function handleSignal(p){
    if(view==='whiteboard') prepareStudentDisplay();
    if(view==='notes') prepareStudentDisplay();
    if(window.studentShowDisplay) window.studentShowDisplay(view, view==='live'?'🎥 Live Classroom':(p.title||''));
-   if(view==='whiteboard') requestAnimationFrame(()=>window.MalawiHubInPageWhiteboard?.resize());
+   if(view==='whiteboard') requestAnimationFrame(()=>{window.MalawiHubInPageWhiteboard?.init();window.MalawiHubInPageWhiteboard?.resize()});
   }else if(p.action==='file-scroll'){
    applyStudentFileScroll(Number(p.ratio)||0);
   }
