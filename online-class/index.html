@@ -165,7 +165,16 @@ function prepareAdminDisplay(){if(!controlMode)return;window.malawiClassRole=rol
   const chatPanel=$('chat')?.closest('.panel');
   if(chatPanel&&!$('adminChatView').contains(chatPanel))$('adminChatView').appendChild(chatPanel); const privatePanel=$('privateNotes')?.closest('.private-note-panel'); if(privatePanel&&!$('adminPrivateView').contains(privatePanel))$('adminPrivateView').appendChild(privatePanel);adminShowDisplay('adminLiveView','🎥')}
 function clearClassFile(){sharedFile=null;$('classFilePanel').classList.add('hidden');$('classFileView').innerHTML='';$('classFileMeta').textContent='';$('classFileTitle').textContent='📄 Classroom File';$('classFileStop').classList.add('hidden')}
+const classFileRenderPromises=new Map();
 async function renderClassFile(file){
+ if(!file?.url)return;
+ const key=String(file.path||file.url);
+ if(classFileRenderPromises.has(key))return classFileRenderPromises.get(key);
+ const pending=renderClassFileInternal(file).finally(()=>classFileRenderPromises.delete(key));
+ classFileRenderPromises.set(key,pending);
+ return pending;
+}
+async function renderClassFileInternal(file){
  if(!file?.url)return;
  const fileKey=String(file.path||file.url);
  const box=$('classFileView');
