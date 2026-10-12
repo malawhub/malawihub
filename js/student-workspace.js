@@ -19,6 +19,7 @@
     ".mh-student-head #mhStudentTimer{margin-left:auto;font-variant-numeric:tabular-nums;font-size:20px}"+
     ".mh-student-mic{width:42px;height:42px;border:0;border-radius:11px;background:#f2f4f7;display:grid;place-items:center;font-size:20px;cursor:pointer}"+
     ".mh-student-mic.active{background:#0d6efd;color:#fff}"+
+    ".mh-student-exit{border:0;border-radius:10px;background:#dc3545;color:#fff;font-weight:700;padding:10px 12px;min-height:42px;cursor:pointer;white-space:nowrap}"+
     ".mh-student-body{flex:1;min-height:0;position:relative;background:#101828}"+
     ".mh-student-view{display:none;height:100%;min-height:calc(100vh - 60px);overflow:auto;background:#fff}"+
     ".mh-student-view.active{display:block}.mh-student-view.live{background:#101828}"+
@@ -35,6 +36,7 @@
    '<span id="mhStudentTitle">🎥 Live Classroom</span>'+
    '<span id="mhStudentTimer">00:00</span>'+
    '<button class="mh-student-mic" id="mhStudentMic" title="Microphone" aria-label="Microphone">🎙</button>'+
+   '<button class="mh-student-exit" id="mhStudentExit" type="button">🚪 Exit / Re-enter Class</button>'+
    '</div>'+
    '<div class="mh-student-body">'+
    '<div class="mh-student-view active live" id="mhStudentLive"></div>'+
@@ -138,6 +140,22 @@
    mic.onclick=()=>{
     const legacy=document.getElementById("micBtn");
     if(legacy)legacy.click();
+   };
+  }
+
+  // Keep the exit/re-entry control visible in the replacement student UI.
+  // Reuse the classroom engine cleanup so audio, timers and realtime channels are released.
+  const exitButton=document.getElementById("mhStudentExit");
+  if(exitButton){
+   exitButton.onclick=()=>{
+    const legacy=document.getElementById("studentExitClassBtn");
+    if(legacy&&typeof legacy.onclick==="function")legacy.click();
+    else {
+     const code=(new URLSearchParams(location.search).get("code")||sessionStorage.getItem("malawihub_class_code")||"").trim().toUpperCase();
+     if(code)sessionStorage.setItem("malawihub_class_code",code);
+     sessionStorage.setItem("malawihub_student_portal","1");
+     location.href="../student-portal/?v=20261012-exit-reenter";
+    }
    };
   }
 
