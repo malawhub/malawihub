@@ -260,6 +260,9 @@ async function shareClassFile(file){
   if(error)throw error;
   const {data:pub}=supabaseClient.storage.from('subject-resources').getPublicUrl(data.path);
   const shared={name:file.name,mime:file.type||'application/octet-stream',size:file.size,url:pub.publicUrl,path:data.path,sharedAt:Date.now()};
+  // Persist the active file so students can recover it even if the realtime broadcast is missed.
+  const {error:stateError}=await supabaseClient.from('online_classes').update({shared_file:shared}).eq('id',classId);
+  if(stateError)throw new Error('The file uploaded, but classroom sharing state could not be saved: '+stateError.message);
   try{sessionStorage.setItem('malawihub_current_class_file:'+classId,JSON.stringify(shared))}catch(e){}
   // Use both classroom delivery paths so students receive the file even if one event is missed.
   const deliveries=await Promise.allSettled([
@@ -275,6 +278,7 @@ async function shareClassFile(file){
 }
 async function stopClassFile(){
  if(!controlMode||!channel)return;
+ try{const {error}=await supabaseClient.from('online_classes').update({shared_file:null}).eq('id',classId);if(error)throw error;}catch(e){console.warn('Could not clear persisted shared file state',e)}
  clearClassFile();
  await channel.send({type:'broadcast',event:'class-file',payload:{code:roomCode,action:'hide'}});
  adminShowDisplay('adminLiveView','🎥 Live Classroom');
@@ -298,6 +302,8 @@ $('modePanel').classList.add('hidden');if(controlMode)prepareAdminDisplay(); $('
  .on('broadcast',{event:'class-display'},async({payload})=>{if(role!=='student'||cleanCode(String(payload.code||''))!==cleanCode(roomCode)||(payload.to&&payload.to!==getMyId()))return;const rawView=String(payload.view||'live');const aliases={adminLiveView:'live',adminFileView:'file',adminWhiteboardView:'whiteboard',adminNotesView:'notes',adminChatView:'chat',chat:'chat',video:'video'};const candidate=aliases[rawView]||rawView;const view=['live','file','whiteboard','notes','chat','video'].includes(candidate)?candidate:'live';prepareStudentDisplay();if(view==='file'&&payload.file)await renderClassFile(payload.file);if(view==='file'&&!sharedFile)return;if(view==='file'&&!$('classFileView').children.length)await renderClassFile(sharedFile);studentShowDisplay(view,view==='live'?'🎥 Live Classroom':(payload.title||''));if(view==='whiteboard')requestAnimationFrame(()=>{window.MalawiHubInPageWhiteboard?.init();window.MalawiHubInPageWhiteboard?.resize()});})
  .on('broadcast',{event:'presence'},({payload})=>{if(payload.code!==roomCode)return;if(payload.action==='join'){state.students.set(payload.id,payload.name);renderStudents()}if(payload.action==='leave'){state.students.delete(payload.id);removePeer(payload.id);renderStudents()}});
  try{await new Promise((resolve,reject)=>channel.subscribe((s,e)=>{if(s==='SUBSCRIBED')resolve();else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'||s==='CLOSED')reject(e||Error('Realtime status: '+s))}));}catch(e){console.error('MalawiHub classroom realtime subscription failed',{roomCode,role,error:e});msg('Live connection failed. Use Exit / Re-enter Class to retry. '+(e?.message||''));if(role==='student'){prepareStudentDisplay();$('studentExitClassBtn').textContent='🚪 Exit / Re-enter Class';$('studentExitClassBtnBottom').textContent='🚪 Exit / Re-enter Class';}throw e;}window.malawiClassChannel=channel;if(window.MalawiHubInPageWhiteboard)window.MalawiHubInPageWhiteboard.init();msg('Connected');if(controlMode)await loadAdminStudents();
+ // Reconcile the latest shared file from the database; broadcasts alone can be missed by late or reconnecting students.
+ if(role==='student'){try{const {data:latestClass,error:fileStateError}=await supabaseClient.from('online_classes').select('shared_file').eq('id',classId).maybeSingle();if(fileStateError)throw fileStateError;if(latestClass?.shared_file?.url){prepareStudentDisplay();await renderClassFile(latestClass.shared_file);studentShowDisplay('file','📄 Shared Classroom File');msg('FILE SHARED')}}catch(e){console.warn('Could not restore current shared classroom file',e)}}
  if(role==='student'){
   $('adminControls').classList.add('hidden');
   $('startBtn').classList.add('hidden');$('screenBtn').classList.add('hidden');$('endBtn').classList.add('hidden');
