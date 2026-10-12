@@ -292,10 +292,8 @@ async function shareClassFile(file){
   if(stateError)throw new Error('The file uploaded, but classroom sharing state could not be saved: '+stateError.message);
   try{sessionStorage.setItem('malawihub_current_class_file:'+classId,JSON.stringify(shared))}catch(e){}
   // Use both classroom delivery paths so students receive the file even if one event is missed.
-  const deliveries=await Promise.allSettled([
-   channel.send({type:'broadcast',event:'class-file',payload:{code:roomCode,action:'show',file:shared}})
-  ]);
-  if(deliveries.every(result=>result.status==='rejected'))throw new Error('Could not send the file to students. Please retry.');
+  const delivery=await channel.send({type:'broadcast',event:'class-file',payload:{code:roomCode,action:'show',file:shared}});
+  if(delivery?.status && delivery.status!=='ok')throw new Error('The file was saved, but live delivery failed ('+delivery.status+'). Students may need to re-enter the class.');
   await renderClassFile(shared);
   $('status').textContent='FILE SHARED';
  }catch(e){
@@ -304,10 +302,22 @@ async function shareClassFile(file){
  }finally{if(btn){btn.disabled=false;btn.textContent='📄 File'}}
 }
 async function stopClassFile(){
- if(!controlMode||!channel)return;
- try{const {error}=await supabaseClient.from('online_classes').update({shared_file:null}).eq('id',classId);if(error)throw error;}catch(e){console.warn('Could not clear persisted shared file state',e)}
+ if(!controlMode||!channel||!classId)return;
+ // Clear the durable state first. If this fails, do not tell students to hide the file:
+ // their recovery poll would otherwise read the old row and reopen it.
+ try{
+  const {error}=await supabaseClient.from('online_classes').update({shared_file:null}).eq('id',classId);
+  if(error)throw error;
+ }catch(e){
+  console.error('Could not clear persisted shared file state',e);
+  alert('The shared file is still active because MalawiHub could not save the stop-sharing action. Check the connection and try again.');
+  return;
+ }
+ try{
+  const result=await channel.send({type:'broadcast',event:'class-file',payload:{code:roomCode,action:'hide'}});
+  if(result?.status && result.status!=='ok')console.warn('Stop-sharing broadcast was not acknowledged:',result.status);
+ }catch(e){console.warn('Stop-sharing broadcast failed; students will reconcile from the saved class state',e)}
  clearClassFile();
- await channel.send({type:'broadcast',event:'class-file',payload:{code:roomCode,action:'hide'}});
  adminShowDisplay('adminLiveView','🎥 Live Classroom');
  $('status').textContent=paused?'PAUSED':'LIVE';
 }
