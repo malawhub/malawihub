@@ -284,6 +284,31 @@ async function stopClassFile(){
  adminShowDisplay('adminLiveView','🎥 Live Classroom');
  $('status').textContent=paused?'PAUSED':'LIVE';
 }
+let studentSharedFileSyncTimer=null;
+function startStudentSharedFileSync(){
+ if(role!=='student'||!classId)return;
+ if(studentSharedFileSyncTimer)clearInterval(studentSharedFileSyncTimer);
+ const sync=async()=>{
+  try{
+   const {data,error}=await supabaseClient.from('online_classes').select('shared_file').eq('id',classId).maybeSingle();
+   if(error)throw error;
+   const latest=data?.shared_file;
+   const latestKey=latest?.url?String(latest.path||latest.url):'';
+   const currentKey=sharedFile?.url?String(sharedFile.path||sharedFile.url):'';
+   if(latestKey&&latestKey!==currentKey){
+    prepareStudentDisplay();
+    await renderClassFile(latest);
+    studentShowDisplay('file','📄 Shared Classroom File');
+    msg('FILE SHARED');
+   }else if(!latestKey&&currentKey){
+    clearClassFile();
+    studentShowDisplay('live','🎥 Live Classroom');
+    msg(paused?'PAUSED':'LIVE');
+   }
+  }catch(e){console.warn('Student shared-file sync check failed',e)}
+ };
+ studentSharedFileSyncTimer=setInterval(sync,2500);
+}
 async function setupRoom(){
  roomCode=cleanCode($('code').value);userName=$('name').value.trim()||(['teacher','admin'].includes(role)?'Teacher':'Student');
  if(!roomCode){alert('Enter a class code.');return}if(!window.supabaseClient){alert('Supabase is not available.');return}
@@ -303,7 +328,7 @@ $('modePanel').classList.add('hidden');if(controlMode)prepareAdminDisplay(); $('
  .on('broadcast',{event:'presence'},({payload})=>{if(payload.code!==roomCode)return;if(payload.action==='join'){state.students.set(payload.id,payload.name);renderStudents()}if(payload.action==='leave'){state.students.delete(payload.id);removePeer(payload.id);renderStudents()}});
  try{await new Promise((resolve,reject)=>channel.subscribe((s,e)=>{if(s==='SUBSCRIBED')resolve();else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'||s==='CLOSED')reject(e||Error('Realtime status: '+s))}));}catch(e){console.error('MalawiHub classroom realtime subscription failed',{roomCode,role,error:e});msg('Live connection failed. Use Exit / Re-enter Class to retry. '+(e?.message||''));if(role==='student'){prepareStudentDisplay();$('studentExitClassBtn').textContent='🚪 Exit / Re-enter Class';$('studentExitClassBtnBottom').textContent='🚪 Exit / Re-enter Class';}throw e;}window.malawiClassChannel=channel;if(window.MalawiHubInPageWhiteboard)window.MalawiHubInPageWhiteboard.init();msg('Connected');if(controlMode)await loadAdminStudents();
  // Reconcile the latest shared file from the database; broadcasts alone can be missed by late or reconnecting students.
- if(role==='student'){try{const {data:latestClass,error:fileStateError}=await supabaseClient.from('online_classes').select('shared_file').eq('id',classId).maybeSingle();if(fileStateError)throw fileStateError;if(latestClass?.shared_file?.url){prepareStudentDisplay();await renderClassFile(latestClass.shared_file);studentShowDisplay('file','📄 Shared Classroom File');msg('FILE SHARED')}}catch(e){console.warn('Could not restore current shared classroom file',e)}}
+ if(role==='student'){try{const {data:latestClass,error:fileStateError}=await supabaseClient.from('online_classes').select('shared_file').eq('id',classId).maybeSingle();if(fileStateError)throw fileStateError;if(latestClass?.shared_file?.url){prepareStudentDisplay();await renderClassFile(latestClass.shared_file);studentShowDisplay('file','📄 Shared Classroom File');msg('FILE SHARED')}}catch(e){console.warn('Could not restore current shared classroom file',e)}};startStudentSharedFileSync()
  if(role==='student'){
   $('adminControls').classList.add('hidden');
   $('startBtn').classList.add('hidden');$('screenBtn').classList.add('hidden');$('endBtn').classList.add('hidden');
@@ -579,7 +604,7 @@ async function toggleMic(){
 setMicIndicator(false);
 function exitStudentClass(){
  if(role!=='student')return;
- try{clearInterval(timerInt);localStream?.getTracks().forEach(t=>t.stop());screenStream?.getTracks().forEach(t=>t.stop());peers.forEach(p=>p.close());peers.clear();if(channel) supabaseClient.removeChannel(channel);if(resourceChannel) supabaseClient.removeChannel(resourceChannel);}catch(e){console.warn('Student class exit cleanup',e)}
+ try{clearInterval(timerInt);if(studentSharedFileSyncTimer)clearInterval(studentSharedFileSyncTimer);studentSharedFileSyncTimer=null;localStream?.getTracks().forEach(t=>t.stop());screenStream?.getTracks().forEach(t=>t.stop());peers.forEach(p=>p.close());peers.clear();if(channel) supabaseClient.removeChannel(channel);if(resourceChannel) supabaseClient.removeChannel(resourceChannel);}catch(e){console.warn('Student class exit cleanup',e)}
  sessionStorage.setItem('malawihub_student_portal','1');
  location.href='../student-portal/?v=20261007c';
 }
