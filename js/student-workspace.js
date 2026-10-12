@@ -145,7 +145,7 @@
   // never references removed elements.
   window.prepareStudentDisplay=()=>{document.body.classList.add("student-room");mount();show("live");};
   window.studentShowDisplay=(view,title)=>{
-   const map={studentLiveView:"live",studentFileView:"file",studentWhiteboardView:"whiteboard",live:"live",file:"file",whiteboard:"whiteboard",notes:"notes",chat:"chat"};
+   const map={studentLiveView:"live",studentFileView:"file",studentWhiteboardView:"whiteboard",live:"live",file:"file",whiteboard:"whiteboard",notes:"notes",chat:"chat",video:"video",students:"students"};
    show(map[view]||"live");
    const t=document.getElementById("mhStudentTitle");
    if(t&&title)t.textContent=title;
