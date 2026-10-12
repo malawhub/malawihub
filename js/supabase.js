@@ -88,4 +88,4 @@ if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",
 // Activity and visitor tracking deployment marker: 2026-09-27-stats1
 
 // Student workspace loader: 2026-09-30
-(function(){const p=(location.pathname||"").toLowerCase();if(!p.endsWith("/online-class/index.html")&&!p.endsWith("/online-class/"))return;const q=new URLSearchParams(location.search);if(q.get("student")!=="1"&&q.get("role")!=="student"&&sessionStorage.getItem("malawihub_student_portal")!=="1")return;const s=document.createElement("script");s.src="../js/student-workspace.js?v=20261012-student-display-sync";s.defer=true;document.head.appendChild(s)})();
+(function(){const p=(location.pathname||"").toLowerCase();if(!p.endsWith("/online-class/index.html")&&!p.endsWith("/online-class/"))return;const q=new URLSearchParams(location.search);if(q.get("student")!=="1"&&q.get("role")!=="student"&&sessionStorage.getItem("malawihub_student_portal")!=="1")return;const s=document.createElement("script");s.src="../js/student-workspace.js?v=20261012-student-exit-reenter";s.defer=true;document.head.appendChild(s)})();
