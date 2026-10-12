@@ -592,6 +592,9 @@ async function shareScreen(){
   screenStream=await capture({video:{frameRate:{ideal:15,max:30},cursor:'always'},audio:false});
   const track=screenStream.getVideoTracks()[0];
   if(!track)throw Error('No screen track was returned.');
+  // Keep the teacher's own preview aligned with what students are receiving.
+  const localPreview=$('remoteVideo');
+  if(localPreview){localPreview.srcObject=screenStream;localPreview.muted=true;localPreview.autoplay=true;localPreview.playsInline=true;localPreview.play().catch(()=>{});}
   const renegotiate=[];
   for(const [id,pc] of peers){
    let sender=pc.getSenders().find(s=>s.track?.kind==='video');
@@ -613,7 +616,19 @@ async function shareScreen(){
   else alert('Screen sharing could not start ('+name+'). Try again after allowing screen capture.');
  }
 }
-async function restoreCamera(){if(!localStream)return;screenStream?.getTracks().forEach(t=>t.stop());screenStream=null;const track=localStream.getVideoTracks()[0];for(const [id,pc] of peers){const sender=pc.getSenders().find(s=>s.track?.kind==='video');if(sender&&track)await sender.replaceTrack(track);else if(track)pc.addTrack(track,localStream)}$('screenBtn').textContent='🖥 Share Screen';}
+async function restoreCamera(){
+ if(!localStream)return;
+ screenStream?.getTracks().forEach(t=>t.stop());screenStream=null;
+ const track=localStream.getVideoTracks()[0];
+ for(const [id,pc] of peers){
+  const sender=pc.getSenders().find(s=>s.track?.kind==='video');
+  if(sender&&track)await sender.replaceTrack(track);
+  else if(track)pc.addTrack(track,localStream);
+ }
+ const localPreview=$('remoteVideo');
+ if(localPreview){localPreview.srcObject=track?localStream:null;localPreview.muted=true;localPreview.autoplay=true;localPreview.playsInline=true;if(track)localPreview.play().catch(()=>{});}
+ $('screenBtn').textContent='🖥 Share Screen';
+}
 function setMicIndicator(on){
  const labels=on?"🎙 ON":"🔇 OFF";
  const legacy=$("micBtn"),admin=$("adminMicBtn"),student=document.getElementById("mhStudentMic");
