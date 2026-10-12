@@ -3,6 +3,31 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script>
+/* Keep the generic Online Class URL on the portal chooser; only explicit classroom URLs load the classroom engine. */
+(function(){
+  try {
+    const q = new URLSearchParams(location.search);
+    const explicitClassroom =
+      q.get('student') === '1' || q.get('role') === 'student' ||
+      q.get('teacher') === '1' || q.get('role') === 'teacher' ||
+      q.get('admin') === '1' || q.get('role') === 'admin' ||
+      q.get('mode') === 'teacher' || q.get('entered') === '1' ||
+      location.hash === '#admin';
+    if (explicitClassroom) return;
+    const inviteCode = (q.get('class') || q.get('code') || q.get('join_code') || '').trim();
+    if (inviteCode) {
+      const dest = new URL('../student-portal/', location.href);
+      dest.searchParams.set('class', inviteCode);
+      location.replace(dest.toString());
+    } else {
+      location.replace('./portal.html');
+    }
+  } catch (e) {
+    console.warn('Online Class portal redirect skipped', e);
+  }
+})();
+</script>
 <title>MalawiHub Online Class</title>
 <link rel="stylesheet" href="../css/style.css">
 <script>(function(){try{if(location.protocol==='http:'&&location.hostname==='malawihub.pages.dev'){location.replace('https://malawihub.pages.dev'+location.pathname+location.search+location.hash);return}}catch(e){}})();</script>
@@ -24,7 +49,6 @@ body.student-room #classStudentsPanel,
 body.student-room #classChatPanel,
 body.student-room .student-display-head #studentExitClassBtnInline,
 body.student-room .student-toolbar,
-body.student-room #studentNotesView,
 body.student-room .class-wrap > .panel:not(#modePanel):not(#adminTopStatus) {display:none!important}
 body.student-room #studentDisplay {display:block!important;margin:0}
 body.student-room .student-display-head {justify-content:flex-start}
@@ -268,22 +292,37 @@ async function shareClassFile(file){
   if(stateError)throw new Error('The file uploaded, but classroom sharing state could not be saved: '+stateError.message);
   try{sessionStorage.setItem('malawihub_current_class_file:'+classId,JSON.stringify(shared))}catch(e){}
   // Use both classroom delivery paths so students receive the file even if one event is missed.
-  const deliveries=await Promise.allSettled([
-   channel.send({type:'broadcast',event:'class-file',payload:{code:roomCode,action:'show',file:shared}})
-  ]);
-  if(deliveries.every(result=>result.status==='rejected'))throw new Error('Could not send the file to students. Please retry.');
+  let delivered=false;
+  try{
+   const delivery=await channel.send({type:'broadcast',event:'class-file',payload:{code:roomCode,action:'show',file:shared}});
+   delivered=!delivery?.status||delivery.status==='ok';
+   if(!delivered)console.warn('Shared file saved but live broadcast was not acknowledged:',delivery.status);
+  }catch(deliveryError){console.warn('Shared file saved but live broadcast failed; student recovery sync will retry',deliveryError)}
+  // The database state is already saved, so students can recover this file through their sync check.
   await renderClassFile(shared);
-  $('status').textContent='FILE SHARED';
+  $('status').textContent=delivered?'FILE SHARED':'FILE SAVED · SYNCING STUDENTS';
  }catch(e){
   console.error('Class file upload failed',e);
   alert('Could not upload the file for classroom display. '+(e?.message||'Check your connection and Admin storage permission.'));
  }finally{if(btn){btn.disabled=false;btn.textContent='📄 File'}}
 }
 async function stopClassFile(){
- if(!controlMode||!channel)return;
- try{const {error}=await supabaseClient.from('online_classes').update({shared_file:null}).eq('id',classId);if(error)throw error;}catch(e){console.warn('Could not clear persisted shared file state',e)}
+ if(!controlMode||!channel||!classId)return;
+ // Clear the durable state first. If this fails, do not tell students to hide the file:
+ // their recovery poll would otherwise read the old row and reopen it.
+ try{
+  const {error}=await supabaseClient.from('online_classes').update({shared_file:null}).eq('id',classId);
+  if(error)throw error;
+ }catch(e){
+  console.error('Could not clear persisted shared file state',e);
+  alert('The shared file is still active because MalawiHub could not save the stop-sharing action. Check the connection and try again.');
+  return;
+ }
+ try{
+  const result=await channel.send({type:'broadcast',event:'class-file',payload:{code:roomCode,action:'hide'}});
+  if(result?.status && result.status!=='ok')console.warn('Stop-sharing broadcast was not acknowledged:',result.status);
+ }catch(e){console.warn('Stop-sharing broadcast failed; students will reconcile from the saved class state',e)}
  clearClassFile();
- await channel.send({type:'broadcast',event:'class-file',payload:{code:roomCode,action:'hide'}});
  adminShowDisplay('adminLiveView','🎥 Live Classroom');
  $('status').textContent=paused?'PAUSED':'LIVE';
 }
@@ -332,7 +371,7 @@ $('modePanel').classList.add('hidden');if(controlMode)prepareAdminDisplay(); $('
  .on('broadcast',{event:'class-file'},async({payload})=>{if(cleanCode(String(payload.code||''))!==cleanCode(roomCode)||role!=='student'||(payload.to&&payload.to!==getMyId()))return;if(payload.action==='show'&&payload.file){try{prepareStudentDisplay();await renderClassFile(payload.file);studentShowDisplay('file','📄 Shared Classroom File');msg('FILE SHARED')}catch(e){console.error('Student classroom file render failed',e);const box=$('classFileView');if(box)box.innerHTML='<div style="padding:16px;color:#b42318;text-align:center">The file arrived but could not be displayed. Try opening the file using the download option.</div>';studentShowDisplay('file','📄 Shared Classroom File')}}else if(payload.action==='hide'){clearClassFile();studentShowDisplay('live','🎥 Live Classroom');msg(paused?'PAUSED':'LIVE')}})
  .on('broadcast',{event:'class-display'},async({payload})=>{if(role!=='student'||cleanCode(String(payload.code||''))!==cleanCode(roomCode)||(payload.to&&payload.to!==getMyId()))return;const rawView=String(payload.view||'live');const aliases={adminLiveView:'live',adminFileView:'file',adminWhiteboardView:'whiteboard',adminNotesView:'notes',adminChatView:'chat',chat:'chat',video:'video'};const candidate=aliases[rawView]||rawView;let view=['live','file','whiteboard','notes','chat','video'].includes(candidate)?candidate:'live';prepareStudentDisplay();if(view==='file'&&payload.file)await renderClassFile(payload.file);if(view==='file'&&!sharedFile)return;if(view==='file'&&!$('classFileView').children.length)await renderClassFile(sharedFile);/* A delayed live-view event must not hide a file that remains actively shared. Stop Sharing clears shared_file and sends the explicit hide event. */if(view==='live'&&sharedFile?.url){view='file';if(!$('classFileView').children.length)await renderClassFile(sharedFile)}studentShowDisplay(view,view==='file'?'📄 Shared Classroom File':view==='live'?'🎥 Live Classroom':(payload.title||''));if(view==='whiteboard')requestAnimationFrame(()=>{window.MalawiHubInPageWhiteboard?.init();window.MalawiHubInPageWhiteboard?.resize()});})
  .on('broadcast',{event:'presence'},({payload})=>{if(payload.code!==roomCode)return;if(payload.action==='join'){state.students.set(payload.id,payload.name);renderStudents()}if(payload.action==='leave'){state.students.delete(payload.id);removePeer(payload.id);renderStudents()}});
- try{await new Promise((resolve,reject)=>channel.subscribe((s,e)=>{if(s==='SUBSCRIBED')resolve();else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'||s==='CLOSED')reject(e||Error('Realtime status: '+s))}));}catch(e){console.error('MalawiHub classroom realtime subscription failed',{roomCode,role,error:e});msg('Live connection failed. Use Exit / Re-enter Class to retry. '+(e?.message||''));if(role==='student'){prepareStudentDisplay();$('studentExitClassBtn').textContent='🚪 Exit / Re-enter Class';$('studentExitClassBtnBottom').textContent='🚪 Exit / Re-enter Class';}throw e;}window.malawiClassChannel=channel;if(window.MalawiHubInPageWhiteboard)window.MalawiHubInPageWhiteboard.init();msg('Connected');if(controlMode)await loadAdminStudents();
+ try{await new Promise((resolve,reject)=>{let settled=false;const finish=(fn,value)=>{if(settled)return;settled=true;clearTimeout(subscriptionTimeout);fn(value)};const subscriptionTimeout=setTimeout(()=>finish(reject,Error('Realtime connection timed out after 15 seconds. Check your connection and re-enter the class.')),15000);channel.subscribe((s,e)=>{if(s==='SUBSCRIBED')finish(resolve);else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'||s==='CLOSED')finish(reject,e||Error('Realtime status: '+s))});});}catch(e){console.error('MalawiHub classroom realtime subscription failed',{roomCode,role,error:e});msg('Live connection failed. Use Exit / Re-enter Class to retry. '+(e?.message||''));if(role==='student'){prepareStudentDisplay();$('studentExitClassBtn').textContent='🚪 Exit / Re-enter Class';$('studentExitClassBtnBottom').textContent='🚪 Exit / Re-enter Class';}throw e;}window.malawiClassChannel=channel;if(window.MalawiHubInPageWhiteboard)window.MalawiHubInPageWhiteboard.init();msg('Connected');if(controlMode)await loadAdminStudents();
  // Reconcile the latest shared file from the database; broadcasts alone can be missed by late or reconnecting students.
  if(role==='student'){try{const {data:latestClass,error:fileStateError}=await supabaseClient.from('online_classes').select('shared_file').eq('id',classId).maybeSingle();if(fileStateError)throw fileStateError;if(latestClass?.shared_file?.url){prepareStudentDisplay();await renderClassFile(latestClass.shared_file);studentShowDisplay('file','📄 Shared Classroom File');msg('FILE SHARED')}}catch(e){console.warn('Could not restore current shared classroom file',e)}};startStudentSharedFileSync()
  if(role==='student'){
@@ -558,6 +597,9 @@ async function shareScreen(){
   screenStream=await capture({video:{frameRate:{ideal:15,max:30},cursor:'always'},audio:false});
   const track=screenStream.getVideoTracks()[0];
   if(!track)throw Error('No screen track was returned.');
+  // Keep the teacher's own preview aligned with what students are receiving.
+  const localPreview=$('remoteVideo');
+  if(localPreview){localPreview.srcObject=screenStream;localPreview.muted=true;localPreview.autoplay=true;localPreview.playsInline=true;localPreview.play().catch(()=>{});}
   const renegotiate=[];
   for(const [id,pc] of peers){
    let sender=pc.getSenders().find(s=>s.track?.kind==='video');
@@ -579,7 +621,19 @@ async function shareScreen(){
   else alert('Screen sharing could not start ('+name+'). Try again after allowing screen capture.');
  }
 }
-async function restoreCamera(){if(!localStream)return;screenStream?.getTracks().forEach(t=>t.stop());screenStream=null;const track=localStream.getVideoTracks()[0];for(const [id,pc] of peers){const sender=pc.getSenders().find(s=>s.track?.kind==='video');if(sender&&track)await sender.replaceTrack(track);else if(track)pc.addTrack(track,localStream)}$('screenBtn').textContent='🖥 Share Screen';}
+async function restoreCamera(){
+ if(!localStream)return;
+ screenStream?.getTracks().forEach(t=>t.stop());screenStream=null;
+ const track=localStream.getVideoTracks()[0];
+ for(const [id,pc] of peers){
+  const sender=pc.getSenders().find(s=>s.track?.kind==='video');
+  if(sender&&track)await sender.replaceTrack(track);
+  else if(track)pc.addTrack(track,localStream);
+ }
+ const localPreview=$('remoteVideo');
+ if(localPreview){localPreview.srcObject=track?localStream:null;localPreview.muted=true;localPreview.autoplay=true;localPreview.playsInline=true;if(track)localPreview.play().catch(()=>{});}
+ $('screenBtn').textContent='🖥 Share Screen';
+}
 function setMicIndicator(on){
  const labels=on?"🎙 ON":"🔇 OFF";
  const legacy=$("micBtn"),admin=$("adminMicBtn"),student=document.getElementById("mhStudentMic");
