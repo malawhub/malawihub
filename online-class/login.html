@@ -42,10 +42,14 @@ body{background:#f5f7fb}.wrap{max-width:650px;margin:auto;padding:18px}.card{bac
 <p><a href="./landing.html">← Online Classes</a></p>
 </section></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/supabase.js"></script>
+<script src="../js/supabase.js?v=20261013-login-loop-diagnostic"></script>
 <script>
 const $=id=>document.getElementById(id),msg=$('msg'),params=new URLSearchParams(location.search);
 function showMsg(text,type=''){msg.textContent=text;msg.className='msg '+type}
+const routeError=params.get('error');
+if(routeError==='student_only')showMsg('Your password was accepted, but the classroom could not verify Student Portal access for this account. Please try Log in once more; if this message returns, the student access record needs repair.','error');
+else if(routeError==='verification')showMsg('Your password may be accepted, but the classroom could not verify your account because of a profile or database check. Please try again; if this repeats, this diagnostic helps us identify the exact failing check.','error');
+else if(routeError==='unauthorized')showMsg('This account does not have permission for that area. Please use the correct portal for your account.','error');
 function requestedClassCode(){return (params.get('class')||params.get('code')||params.get('join_code')||'').trim().toUpperCase()}
 function goToStudentArea(){
  const code=requestedClassCode()||sessionStorage.getItem('malawihub_class_code')||'';
