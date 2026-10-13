@@ -54,8 +54,12 @@ function requestedClassCode(){return (params.get('class')||params.get('code')||p
 function goToStudentArea(){
  const code=requestedClassCode()||sessionStorage.getItem('malawihub_class_code')||'';
  sessionStorage.setItem('malawihub_student_portal','1');
- if(code){sessionStorage.setItem('malawihub_class_code',code);location.replace('../student-portal/?code='+encodeURIComponent(code));}
- else location.replace('../student-portal/');
+ if(code){
+  sessionStorage.setItem('malawihub_class_code',code);
+  location.replace('../online-class/?student=1&role=student&code='+encodeURIComponent(code));
+ }else{
+  location.replace('../student-portal/');
+ }
 }
 $('continueLogin').addEventListener('click',()=>{location.href='./login.html'+(location.search||'')});
 $('showRegister').addEventListener('click',()=>{$('continueLogin').hidden=true;$('registerForm').hidden=false;$('loginForm').hidden=true;$('showRegister').hidden=true;showMsg('Create your student account using your name, email and a password.');});
@@ -116,8 +120,14 @@ $('loginForm').addEventListener('submit',async event=>{
    showMsg('Your account is signed in, but student access could not be verified. Please contact MalawiHub support.','error');
    return;
   }
-  const code=requestedClassCode();
-  if(code){sessionStorage.setItem('malawihub_class_code',code);sessionStorage.setItem('malawihub_student_portal','1');showMsg('Login successful. Opening your Student Portal…','success');location.replace('../student-portal/?code='+encodeURIComponent(code));return}
+  const code=requestedClassCode()||sessionStorage.getItem('malawihub_class_code')||'';
+  if(code){
+   sessionStorage.setItem('malawihub_class_code',code);
+   sessionStorage.setItem('malawihub_student_portal','1');
+   showMsg('Login successful. Returning to your class entry page…','success');
+   location.replace('../online-class/?student=1&role=student&code='+encodeURIComponent(code));
+   return;
+  }
   sessionStorage.setItem('malawihub_student_portal','1');showMsg('Login successful. Opening your Student Portal…','success');location.replace('../student-portal/');
  }catch(e){showMsg(e?.message||'Student login failed. Please check your details and try again.','error')}
  finally{button.disabled=false}
