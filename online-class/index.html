@@ -29,6 +29,10 @@ body.student-room .class-wrap > .panel:not(#modePanel):not(#adminTopStatus) {dis
 body.student-room #studentDisplay {display:block!important;margin:0}
 body.student-room .student-display-head {justify-content:flex-start}
 body.student-room #studentDisplayStatus {display:none!important}
+/* Before a student joins, keep the shared classroom page student-only too. */
+body.student-entry .grid2,
+body.student-entry #adminTopStatus,
+body.student-entry .class-wrap > .panel:not(#modePanel):not(#adminTopStatus) {display:none!important}
 </style></head>
 <body>
 <div class="class-wrap">
@@ -75,7 +79,7 @@ const studentPortalSession=sessionStorage.getItem('malawihub_student_portal')===
 const pageVersion='20261013-display-event-race-fix1';
 const adminMode=params.get('mode')==='admin'||params.get('admin')==='1'||params.get('role')==='admin'||location.hash==='#admin';
 const teacherPortalMode=!adminMode && (params.get('mode')==='teacher'||params.get('teacher')==='1'||params.get('role')==='teacher');
-const controlMode=adminMode||teacherPortalMode;if(controlMode)document.body.classList.add('teacher-room');
+const controlMode=adminMode||teacherPortalMode;if(controlMode)document.body.classList.add('teacher-room');else document.body.classList.add('student-entry');
 const studentPortalMode=!adminMode && !teacherPortalMode && (params.get('student')==='1'||params.get('role')==='student'||!!storedStudentCode||studentPortalSession);
 if(studentPortalMode && params.get('entered')!=='1'){ const inviteCode=(params.get('code')||storedStudentCode||'').trim().toUpperCase(); location.replace('../student-portal/'+(inviteCode?'?class='+encodeURIComponent(inviteCode)+'&v=20261011-student-dashboard-fix2':'?v=20261011-student-dashboard-fix2')); }
 if(adminMode){$('areaLabel').textContent='';} else if(teacherPortalMode){$('areaLabel').textContent='Teacher Portal · Private Classroom';} else {$('areaLabel').textContent='Student Portal · Private Classroom';}
@@ -118,7 +122,7 @@ function syncStudentTopBar(){if(role!=='student')return;const title=$('classTitl
 function prepareStudentDisplay(){
  if(role!=='student')return;
  window.malawiClassRole=role;window.malawiClassRoom=roomCode;window.malawiClassUserId=authUser?.id||'';window.malawiClassUserName=userName||'Student';window.malawiClassChannel=channel;
- document.body.classList.add('student-room');
+ document.body.classList.remove('student-entry');document.body.classList.add('student-room');
  $('studentTopBar').classList.remove('hidden');
  $('studentDisplay').classList.remove('hidden');
  const stage=document.querySelector('.stage');
@@ -328,7 +332,7 @@ function startStudentSharedFileSync(){
 }
 async function setupRoom(){
  roomCode=cleanCode($('code').value);userName=$('name').value.trim()||(['teacher','admin'].includes(role)?'Teacher':'Student');
- if(!roomCode){alert('Enter a class code.');return}if(!window.supabaseClient){alert('Supabase is not available.');return}
+ if(!roomCode){alert('Enter a class code.');return}if(!window.supabaseClient){alert('Supabase is not available.');return}if(role==='student'){document.body.classList.remove('student-entry');document.body.classList.add('student-room');$('studentDisplay').classList.remove('hidden');$('studentConnectionStatus').textContent='CONNECTING TO TEACHER…';$('studentConnectionStatus').style.color='#667085';}
  if(['teacher','admin'].includes(role)){authUser=await getAuthUser();if(!authUser){$('loginNotice').classList.remove('hidden');alert('Please sign in to MalawiHub before starting a teacher class.');return}const {data:profile}=await supabaseClient.from('profiles').select('role').eq('id',authUser.id).maybeSingle();if(!profile||!['teacher','admin'].includes(profile.role)){alert('Teacher or administrator access is required.');return}if(adminMode&&profile.role!=='admin'){alert('Administrator access is required for this class.');return}if(teacherPortalMode&&profile.role!=='teacher'&&profile.role!=='admin'){alert('Teacher access is required for this class.');return}role=adminMode?'admin':(profile.role==='admin'?'admin':'teacher')}
  if(role==='student'){authUser=await getAuthUser();if(!authUser){$('modePanel').classList.remove('hidden');$('modeTitle').textContent='Student sign-in required';$('modeHelp').textContent='Your student session is missing or expired. Return to the Student Portal, sign in, and join this class again.';$('studentBtn').classList.remove('hidden');$('studentBtn').textContent='↻ Retry Joining Class';alert('Your student session is missing or expired. Please sign in through the Student Portal, then re-enter the class.');return}}
  let data,error;
