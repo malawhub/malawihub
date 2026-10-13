@@ -81,6 +81,40 @@ body.student-room .mh-slide-footer{display:none!important}
  body.student-room #classFileView iframe,body.student-room #classFileView object,body.student-room #classFileView embed{height:calc(100dvh - 100px)!important;max-height:calc(100dvh - 100px)!important}
 }
 
+
+/* Teacher/admin classroom: use one full-width page, not side-by-side panels.
+   Make the active lesson or live video fill the available screen. */
+body.teacher-room,body.admin-room{overflow-x:hidden}
+body.teacher-room .class-wrap,body.admin-room .class-wrap{width:100%!important;max-width:none!important;box-sizing:border-box;padding:4px!important}
+body.teacher-room #adminClassDisplay,body.admin-room #adminClassDisplay{width:100%!important;height:calc(100dvh - 8px)!important;min-height:0!important;max-height:calc(100dvh - 8px)!important;box-sizing:border-box;margin:0!important;border-radius:8px!important;display:flex!important;flex-direction:column!important;overflow:hidden!important}
+body.teacher-room .admin-display-head,body.admin-room .admin-display-head{flex:0 0 auto;padding:5px 7px!important;gap:5px!important}
+body.teacher-room #adminDisplaySwitcher,body.admin-room #adminDisplaySwitcher{flex-wrap:nowrap!important;overflow-x:auto!important;max-width:100%;margin-left:auto!important}
+body.teacher-room #adminDisplaySwitcher .btn,body.admin-room #adminDisplaySwitcher .btn{padding:6px 8px!important;font-size:12px!important;flex:0 0 auto}
+body.teacher-room .admin-display-body,body.admin-room .admin-display-body{flex:1 1 auto!important;height:0!important;min-height:0!important;width:100%!important;position:relative!important;overflow:auto!important;box-sizing:border-box!important}
+body.teacher-room .admin-view,body.admin-room .admin-view{width:100%!important;min-width:0!important;min-height:0!important;max-height:none!important;box-sizing:border-box!important;margin:0!important}
+body.teacher-room .admin-view.active,body.admin-room .admin-view.active{display:block!important}
+body.teacher-room .admin-view.board-view.active,body.admin-room .admin-view.board-view.active{display:flex!important;height:100%!important;min-height:0!important;overflow:auto!important}
+body.teacher-room .mh-board-wrap,body.admin-room .mh-board-wrap{height:100%!important;min-height:0!important;width:100%!important}
+body.teacher-room .mh-board-canvas,body.admin-room .mh-board-canvas{width:100%!important;height:calc(100dvh - 145px)!important;min-height:220px!important;max-height:none!important;touch-action:pan-y}
+body.teacher-room .admin-view.file-view,body.admin-room .admin-view.file-view{padding:0!important;background:#fff!important;overflow:auto!important}
+body.teacher-room #classFilePanel,body.admin-room #classFilePanel{width:100%!important;min-height:0!important;max-height:none!important;box-sizing:border-box!important;margin:0!important;padding:4px!important;border-radius:0!important}
+body.teacher-room #classFileView,body.admin-room #classFileView{width:100%!important;max-width:100%!important;min-width:0!important;min-height:0!important;box-sizing:border-box!important;overflow:auto!important;margin:0!important;padding:0!important}
+body.teacher-room #classFileView img,body.teacher-room #classFileView video,body.teacher-room #classFileView canvas.mh-slide-canvas,body.admin-room #classFileView img,body.admin-room #classFileView video,body.admin-room #classFileView canvas.mh-slide-canvas{display:block!important;width:auto!important;max-width:100%!important;height:auto!important;max-height:calc(100dvh - 125px)!important;object-fit:contain!important;margin:0 auto!important}
+body.teacher-room #classFileView iframe,body.teacher-room #classFileView object,body.teacher-room #classFileView embed,body.admin-room #classFileView iframe,body.admin-room #classFileView object,body.admin-room #classFileView embed{display:block!important;width:100%!important;max-width:100%!important;height:calc(100dvh - 125px)!important;max-height:calc(100dvh - 125px)!important;min-height:0!important;border:0!important}
+body.teacher-room #classFileView .class-file-text,body.admin-room #classFileView .class-file-text{width:100%!important;max-width:100%!important;max-height:calc(100dvh - 125px)!important;min-height:0!important;box-sizing:border-box!important;overflow:auto!important;padding:8px!important;font-size:clamp(12px,2vw,17px)!important;line-height:1.4!important;overflow-wrap:anywhere!important}
+body.teacher-room .admin-view .stage,body.admin-room .admin-view .stage{width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;aspect-ratio:auto!important;display:grid!important;place-items:center!important;overflow:hidden!important;background:#05070b!important}
+body.teacher-room .admin-view .stage video,body.admin-room .admin-view .stage video{display:block!important;width:100%!important;height:100%!important;max-height:calc(100dvh - 95px)!important;object-fit:contain!important;background:#05070b!important}
+body.teacher-room #adminLiveView,body.admin-room #adminLiveView{height:100%!important;min-height:0!important;overflow:hidden!important}
+body.teacher-room .admin-view.notes-view,body.admin-room .admin-view.notes-view{padding:6px!important;overflow:auto!important}
+body.teacher-room .admin-view .notes,body.admin-room .admin-view .notes{width:100%!important;min-height:45dvh!important;box-sizing:border-box!important}
+@media(max-width:600px){
+ body.teacher-room #adminDisplaySwitcher,body.admin-room #adminDisplaySwitcher{gap:3px!important}
+ body.teacher-room #adminDisplaySwitcher .btn,body.admin-room #adminDisplaySwitcher .btn{padding:6px!important;font-size:11px!important}
+ body.teacher-room .admin-view .stage video,body.admin-room .admin-view .stage video{max-height:calc(100dvh - 85px)!important}
+ body.teacher-room #classFileView img,body.teacher-room #classFileView video,body.teacher-room #classFileView canvas.mh-slide-canvas,body.admin-room #classFileView img,body.admin-room #classFileView video,body.admin-room #classFileView canvas.mh-slide-canvas{max-height:calc(100dvh - 105px)!important}
+ body.teacher-room #classFileView iframe,body.teacher-room #classFileView object,body.teacher-room #classFileView embed,body.admin-room #classFileView iframe,body.admin-room #classFileView object,body.admin-room #classFileView embed{height:calc(100dvh - 105px)!important;max-height:calc(100dvh - 105px)!important}
+}
+
 </style></head>
 <body>
 <div class="class-wrap">
