@@ -201,11 +201,12 @@ async function renderClassFile(file){
 }
 async function renderClassFileInternal(file){
  if(!file?.url)return;
- const fileKey=String(file.path||file.url);
+ const fileKey=String(file.path||file.url),incomingPage=Math.max(1,Number(file.page)||1);
  const box=$('classFileView');
  if(sharedFile&&String(sharedFile.path||sharedFile.url)===fileKey&&box?.children.length){
   $('classFilePanel').classList.remove('hidden');
   if(controlMode)adminShowDisplay('adminFileView','📄');else if(role==='student'){prepareStudentDisplay();}
+  sharedFile={...sharedFile,page:incomingPage};if(classPdfDocument&&classPdfFileKey===fileKey&&incomingPage!==classPdfPage)await renderClassPdfPage(incomingPage);
   return;
  }
  const renderToken=++classFileRenderToken;
