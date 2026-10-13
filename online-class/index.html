@@ -624,9 +624,9 @@ async function startClassRecording(){
   const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Canvas recording is unavailable');
   const cameraTrack=localStream.getVideoTracks()[0];const cameraStream=cameraTrack?new MediaStream([cameraTrack]):null;
   const cameraVideo=cameraStream?makeRecordingVideo(cameraStream):null;
-  const screenVideo=screenStream?makeRecordingVideo(screenStream):null;
+  let screenVideo=screenStream?makeRecordingVideo(screenStream):null;
   const board=$('mhTeacherBoard');
-  const paint=()=>{try{drawRecordingFrame(ctx,canvas,screenVideo,cameraVideo,board)}catch(e){console.warn('Recording frame skipped',e)}classRecordingFrameHandle=requestAnimationFrame(paint)};
+  const paint=()=>{try{if(screenStream&&(!screenVideo||screenVideo.srcObject!==screenStream)){screenVideo=makeRecordingVideo(screenStream)}if(!screenStream&&screenVideo){screenVideo.pause();screenVideo.srcObject=null;screenVideo.remove();classRecordingVideoNodes=classRecordingVideoNodes.filter(v=>v!==screenVideo);screenVideo=null}drawRecordingFrame(ctx,canvas,screenVideo,cameraVideo,board)}catch(e){console.warn('Recording frame skipped',e)}classRecordingFrameHandle=requestAnimationFrame(paint)};
   paint();
   if(!canvas.captureStream)throw new Error('Canvas capture is not supported by this browser');
   classRecordingCanvasStream=canvas.captureStream(15);
