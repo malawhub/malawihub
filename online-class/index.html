@@ -183,18 +183,27 @@ async function renderClassFileInternal(file){
  const box=$('classFileView');
  if(sharedFile&&String(sharedFile.path||sharedFile.url)===fileKey&&box?.children.length){
   $('classFilePanel').classList.remove('hidden');
-  if(controlMode)adminShowDisplay('adminFileView','📄');else if(role==='student'){prepareStudentDisplay();}
+  if(controlMode)adminShowDisplay('adminFileView','📄');else if(role==='student'){prepareStudentDisplay();studentShowDisplay('file','📄 Shared Classroom File');}
   return;
  }
  const renderToken=++classFileRenderToken;
  sharedFile=file;
- $('classFilePanel').classList.remove('hidden');if(controlMode)adminShowDisplay('adminFileView','📄');else if(role==='student'){prepareStudentDisplay();}
+ $('classFilePanel').classList.remove('hidden');
+ if(controlMode)adminShowDisplay('adminFileView','📄');
+ else if(role==='student'){
+  prepareStudentDisplay();
+  // Make the file view visible before starting PDF/image rendering. Rendering into a
+  // display:none panel can leave mobile browsers showing a black/empty preview.
+  studentShowDisplay('file','📄 Shared Classroom File');
+  await new Promise(resolve=>requestAnimationFrame(resolve));
+ }
  $('classFileTitle').textContent='📄 '+(file.name||'Classroom File');
  $('classFileMeta').textContent=((file.mime||'File')+' · '+Math.max(0,Math.round((Number(file.size)||0)/1024))+' KB');
  box.innerHTML='';
  const mime=String(file.mime||'').toLowerCase(),name=String(file.name||'');
  if(mime==='application/pdf'||/\.pdf$/i.test(name)){
-  box.innerHTML='<div style="padding:18px;text-align:center;color:#667085">Loading PDF inside classroom…</div>';
+  box.style.background='#fff';
+  box.innerHTML='<div style="padding:18px;text-align:center;color:#667085;background:#fff">Loading PDF inside classroom…</div>';
   try{
    const pdfjs=await import('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs');
    if(renderToken!==classFileRenderToken)return;
@@ -206,7 +215,7 @@ async function renderClassFileInternal(file){
    for(let n=1;n<=pdf.numPages;n++){
     const page=await pdf.getPage(n);if(renderToken!==classFileRenderToken)return;const viewport=page.getViewport({scale:1.35});
     const wrap=document.createElement('div');wrap.style.cssText='background:#fff;margin:0 0 10px;padding:8px;box-sizing:border-box;text-align:center';
-    const canvas=document.createElement('canvas');canvas.style.cssText='display:block;width:100%;height:auto;margin:auto';
+    const canvas=document.createElement('canvas');canvas.style.cssText='display:block;width:100%;height:auto;margin:auto;background:#fff';
     canvas.width=viewport.width;canvas.height=viewport.height;wrap.appendChild(canvas);box.appendChild(wrap);
     await page.render({canvasContext:canvas.getContext('2d'),viewport}).promise;
     if(renderToken!==classFileRenderToken)return;
@@ -215,13 +224,19 @@ async function renderClassFileInternal(file){
    if(renderToken!==classFileRenderToken)return;
    console.warn('classroom PDF canvas rendering failed; using browser PDF viewer',e);
    box.innerHTML='';
+   const fallback=document.createElement('div');
+   fallback.style.cssText='padding:14px;background:#fff;color:#344054;text-align:center';
+   fallback.textContent='The in-class PDF preview could not be rendered on this device. You can still open the original file below.';
+   const link=document.createElement('a');
+   link.href=file.url;link.target='_blank';link.rel='noopener';link.textContent='Open PDF';
+   link.style.cssText='display:block;margin:12px auto;padding:12px;background:#175cd3;color:#fff;border-radius:8px;text-decoration:none;max-width:220px';
    const frame=document.createElement('iframe');
    frame.src=file.url;
    frame.title=name||'Shared classroom PDF';
    frame.setAttribute('loading','eager');
    frame.setAttribute('allow','fullscreen');
    frame.style.cssText='display:block;width:100%;height:75vh;min-height:420px;border:0;background:#fff';
-   box.appendChild(frame);
+   box.append(fallback,link,frame);
   }
  }else if(mime.startsWith('image/')){
   const img=document.createElement('img');img.src=file.url;img.alt=name||'Classroom file';img.loading='eager';img.onerror=()=>{if(renderToken!==classFileRenderToken)return;box.innerHTML='';const note=document.createElement('div');note.style.cssText='padding:18px;text-align:center;color:#b42318';note.textContent='The image could not be loaded in the classroom.';const link=document.createElement('a');link.href=file.url;link.target='_blank';link.rel='noopener';link.textContent='Open or download the original file';link.style.cssText='display:block;padding:12px;text-align:center';box.append(note,link)};box.appendChild(img);
