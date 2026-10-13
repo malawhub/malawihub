@@ -1017,6 +1017,10 @@ function getTimerRemainingSeconds(){if(role==='student'&&Number.isFinite(student
 function startTimer(){clearInterval(timerInt);const syncTimer=()=>{if(!startedAt)return;const left=getTimerRemainingSeconds(),value=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');$('timer').textContent=value;if($('adminTimer'))$('adminTimer').textContent=value;if($('studentTimer'))$('studentTimer').textContent=value;if(controlMode&&channel&&Date.now()-lastTimerSyncAt>=3000){lastTimerSyncAt=Date.now();send({type:'timer-sync',from:getMyId(),to:'*',startedAt,duration,paused,pausedAt,pausedTotalMs,remainingSeconds:left}).catch(e=>console.warn('Timer sync broadcast failed',e))}if(left<=0){clearInterval(timerInt);if(['teacher','admin'].includes(role))endRoom(true);else endRoom(false)}};if($('adminTimer'))$('adminTimer').textContent=$('timer').textContent||'00:00';syncTimer();timerInt=setInterval(syncTimer,1000)}
 async function endRoom(broadcast=true){
  clearInterval(timerInt);timerInt=null;
+ // Reset every visible timer immediately for the teacher/admin and students.
+ if($('timer'))$('timer').textContent='00:00';
+ if($('adminTimer'))$('adminTimer').textContent='00:00';
+ if($('studentTimer'))$('studentTimer').textContent='00:00';
  // Notify students immediately, before waiting for any recording/export work.
  if(broadcast&&['teacher','admin'].includes(role)&&channel){
   try{await send({type:'end',from:getMyId(),to:'*'})}catch(e){console.warn('Could not broadcast class end',e)}
