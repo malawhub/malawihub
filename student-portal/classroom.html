@@ -10,14 +10,14 @@
 <script>
 (function(){
   const p=new URLSearchParams(location.search);
-  const code=(p.get('code')||sessionStorage.getItem('malawihub_class_code')||'').trim().toUpperCase();
+  const code=(p.get('code')||p.get('class')||p.get('join_code')||sessionStorage.getItem('malawihub_class_code')||'').trim().toUpperCase();
   if(!code){
     location.replace('./');
     return;
   }
   sessionStorage.setItem('malawihub_class_code',code);
   sessionStorage.setItem('malawihub_student_portal','1');
-  location.replace('../online-class/index.html?student=1&role=student&code='+encodeURIComponent(code)+'&entered=1&v=20261012-student-multirole-fix');
+  location.replace('../online-class/index.html?student=1&role=student&code='+encodeURIComponent(code)+'&entered=1&v=20261013-student-invite-fix');
 })();
 </script>
 </body>
