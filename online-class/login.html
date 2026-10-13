@@ -54,8 +54,8 @@ function requestedClassCode(){return (params.get('class')||params.get('code')||p
 function goToStudentArea(){
  const code=requestedClassCode()||sessionStorage.getItem('malawihub_class_code')||'';
  sessionStorage.setItem('malawihub_student_portal','1');
- if(code){sessionStorage.setItem('malawihub_class_code',code);location.replace('../student-portal/classroom.html?code='+encodeURIComponent(code));}
- else location.replace('../online-class/index.html?student=1&role=student');
+ if(code){sessionStorage.setItem('malawihub_class_code',code);location.replace('../online-class/?student=1&role=student&code='+encodeURIComponent(code));}
+ else location.replace('../online-class/?student=1&role=student');
 }
 $('continueLogin').addEventListener('click',()=>{location.href='./login.html'+(location.search||'')});
 $('showRegister').addEventListener('click',()=>{$('continueLogin').hidden=true;$('registerForm').hidden=false;$('loginForm').hidden=true;$('showRegister').hidden=true;showMsg('Create your student account using your name, email and a password.');});
@@ -117,8 +117,8 @@ $('loginForm').addEventListener('submit',async event=>{
    return;
   }
   const code=requestedClassCode();
-  if(code){sessionStorage.setItem('malawihub_class_code',code);sessionStorage.setItem('malawihub_student_portal','1');showMsg('Login successful. Opening your class…','success');location.replace('../student-portal/classroom.html?code='+encodeURIComponent(code));return}
-  sessionStorage.setItem('malawihub_student_portal','1');showMsg('Login successful. Opening Online Class…','success');location.replace('../online-class/index.html?student=1&role=student');
+  if(code){sessionStorage.setItem('malawihub_class_code',code);sessionStorage.setItem('malawihub_student_portal','1');showMsg('Login successful. Opening your class…','success');location.replace('../online-class/?student=1&role=student&code='+encodeURIComponent(code));return}
+  sessionStorage.setItem('malawihub_student_portal','1');showMsg('Login successful. Opening Online Class…','success');location.replace('../online-class/?student=1&role=student');
  }catch(e){showMsg(e?.message||'Student login failed. Please check your details and try again.','error')}
  finally{button.disabled=false}
 });
