@@ -1,1 +1,65 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>MalawiHub Student Portal</title><link rel="stylesheet" href="../css/style.css"><style>body{background:#f5f7fb}.wrap{max-width:650px;margin:auto;padding:18px}.card{background:#fff;border-radius:18px;padding:20px;margin:14px 0;box-shadow:0 5px 20px #0000000d}.input{width:100%;padding:12px;border:1px solid #ccd3df;border-radius:10px;margin:6px 0;box-sizing:border-box}.btn{width:100%;padding:12px;border:0;border-radius:10px;font-weight:800;cursor:pointer;margin-top:8px}.primary{background:#0d6efd;color:#fff}.muted{color:#667085;font-size:13px}.msg{margin-top:10px;padding:12px;border-radius:10px;background:#f8fafc;line-height:1.5}.success{background:#ecfdf3;border:1px solid #a7f3d0;color:#065f46}.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}</style></head><body><script>(function(){const q=new URLSearchParams(location.search);const code=(q.get('class')||q.get('code')||q.get('join_code')||'').trim();const dest=new URL('../student-portal/',location.href);if(code)dest.searchParams.set('class',code);dest.searchParams.set('v','20261012-unified-student-links');location.replace(dest.toString())})();</script><noscript><p style="padding:20px">Open the <a href="../student-portal/">Student Portal</a>.</p></noscript><div style="display:none"><div class="wrap"><div class="card"><h1>🇲🇼 MalawiHub Student Portal</h1><p class="muted">Private Online Class student area. It is separate from the Main MalawiHub and Business Hub.</p><p class="muted"><b>Student account:</b> Your administrator creates your username, email and password and sends the details to your email.</p><input id="username" class="input" placeholder="Username" autocomplete="username"><input id="password" class="input" type="password" placeholder="Password" autocomplete="current-password"><button id="login" class="btn primary">Log in as Student</button><p id="msg" class="msg"></p><p><a href="./landing.html">← Online Classes</a></p></div></div><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../js/supabase.js"></script><script>const $=id=>document.getElementById(id),msg=$('msg');function showMsg(text,type=''){msg.textContent=text;msg.className='msg '+type}$('login').onclick=async()=>{showMsg('Signing in…');try{const username=$('username').value.trim().toLowerCase();if(!username)throw Error('Enter your username.');const {data:p,error:pe}=await supabaseClient.from('profiles').select('id,email,role').ilike('username',username).maybeSingle();if(pe)throw pe;if(!p||p.role!=='student')throw Error('Student username not found.');if(!p.email)throw Error('This student account has no email.');const {data,error}=await supabaseClient.auth.signInWithPassword({email:p.email,password:$('password').value});if(error)throw error;showMsg('✅ Login successful. Opening the Student Portal…','success');location.href='./student.html'}catch(e){showMsg(e.message||'Student login failed.','error')}};</script></div></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MalawiHub Online Class — Student Login</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+body{background:#f5f7fb}.wrap{max-width:650px;margin:auto;padding:18px}.card{background:#fff;border-radius:18px;padding:20px;margin:14px 0;box-shadow:0 5px 20px #0000000d}.input{width:100%;padding:12px;border:1px solid #ccd3df;border-radius:10px;margin:6px 0;box-sizing:border-box}.btn{width:100%;padding:12px;border:0;border-radius:10px;font-weight:800;cursor:pointer;margin-top:8px}.primary{background:#0d6b3c;color:#fff}.muted{color:#667085;font-size:14px;line-height:1.5}.msg{margin-top:10px;padding:12px;border-radius:10px;background:#f8fafc;line-height:1.5}.success{background:#ecfdf3;border:1px solid #a7f3d0;color:#065f46}.error{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="card">
+<h1>🇲🇼 MalawiHub Online Class</h1>
+<p class="muted">Student Login · Private Classroom</p>
+<p class="muted">Log in with your student email and password to continue directly to the Online Class page.</p>
+<label for="email">Student email</label>
+<input id="email" class="input" type="email" placeholder="Student email" autocomplete="username" required>
+<label for="password">Password</label>
+<input id="password" class="input" type="password" placeholder="Password" autocomplete="current-password" required>
+<button id="login" class="btn primary" type="button">Log in as Student</button>
+<p id="msg" class="msg" role="status" aria-live="polite">Enter your student email and password.</p>
+<p><a href="./landing.html">← Online Classes</a></p>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script>
+(function(){
+'use strict';
+const $=id=>document.getElementById(id),button=$('login'),message=$('msg');
+function showMessage(text,type){message.textContent=text;message.className='msg'+(type?' '+type:'')}
+async function login(){
+ button.disabled=true;button.textContent='Signing in…';
+ try{
+  await window.mhSupabaseReady;
+  const email=$('email').value.trim().toLowerCase(),password=$('password').value;
+  if(!email||!password)throw Error('Enter your student email and password.');
+  const result=await supabaseClient.auth.signInWithPassword({email,password});
+  if(result.error)throw result.error;
+  const user=result.data.user;
+  const area=await supabaseClient.from('user_area_roles').select('area').eq('user_id',user.id).eq('area','student').maybeSingle();
+  if(area.error)throw area.error;
+  const profile=await supabaseClient.from('profiles').select('role').eq('id',user.id).maybeSingle();
+  if(profile.error)throw profile.error;
+  if(area.data?.area!=='student'&&profile.data?.role!=='student'){
+   await supabaseClient.auth.signOut();
+   throw Error('This account does not have Student access. Please use your Online Class student account.');
+  }
+  const name=(user.user_metadata&& (user.user_metadata.full_name||user.user_metadata.name))||'Student';
+  sessionStorage.setItem('malawihub_student_name',name);
+  sessionStorage.removeItem('malawihub_class_code');
+  sessionStorage.removeItem('malawihub_student_portal');
+  showMessage('Login successful. Opening MalawiHub Online Class…','success');
+  window.location.assign('./?v=20261013-student-login-connected');
+ }catch(e){showMessage(e.message||'Student login failed. Please try again.','error');button.disabled=false;button.textContent='Log in as Student'}
+}
+button.addEventListener('click',login);
+$('password').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
+$('email').addEventListener('keydown',e=>{if(e.key==='Enter')$('password').focus()});
+})();
+</script>
+</body>
+</html>
