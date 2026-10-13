@@ -56,7 +56,7 @@ function goToStudentArea(){
  sessionStorage.setItem('malawihub_student_portal','1');
  if(code){
   sessionStorage.setItem('malawihub_class_code',code);
-  location.replace('../online-class/?student=1&role=student&code='+encodeURIComponent(code));
+  location.replace('../online-class/?student=1&role=student&entered=1&code='+encodeURIComponent(code));
  }else{
   location.replace('../student-portal/');
  }
@@ -125,7 +125,7 @@ $('loginForm').addEventListener('submit',async event=>{
    sessionStorage.setItem('malawihub_class_code',code);
    sessionStorage.setItem('malawihub_student_portal','1');
    showMsg('Login successful. Returning to your class entry page…','success');
-   location.replace('../online-class/?student=1&role=student&code='+encodeURIComponent(code));
+   location.replace('../online-class/?student=1&role=student&entered=1&code='+encodeURIComponent(code));
    return;
   }
   sessionStorage.setItem('malawihub_student_portal','1');showMsg('Login successful. Opening your Student Portal…','success');location.replace('../student-portal/');
