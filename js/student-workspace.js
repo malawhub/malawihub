@@ -15,29 +15,18 @@
     "body.student-room .top,body.student-room #modePanel,body.student-room #adminTopStatus,body.student-room .grid2,body.student-room #studentTopBar{display:none!important}"+
     "body.student-room .class-wrap{max-width:100%;padding:0}"+
     "body.student-room #studentDisplay{display:flex!important;flex-direction:column;min-height:100vh;margin:0;border-radius:0;background:#101828;box-shadow:none}"+
-    ".mh-student-head{background:#fff;padding:8px 12px;display:flex;align-items:center;gap:12px;font-weight:700;min-height:44px;box-sizing:border-box}"+
-    ".mh-student-head #mhStudentTimer{margin-left:auto;font-variant-numeric:tabular-nums;font-size:20px}"+
-    ".mh-student-mic{width:42px;height:42px;border:0;border-radius:11px;background:#f2f4f7;display:grid;place-items:center;font-size:20px;cursor:pointer}"+
-    ".mh-student-mic.active{background:#0d6efd;color:#fff}"+
-    ".mh-student-exit{border:0;border-radius:10px;background:#dc3545;color:#fff;font-weight:700;padding:10px 12px;min-height:42px;cursor:pointer;white-space:nowrap}"+
     ".mh-student-body{flex:1;min-height:0;position:relative;background:#101828}"+
-    ".mh-student-view{display:none;height:100%;min-height:calc(100vh - 60px);overflow:auto;background:#fff}"+
+    ".mh-student-view{display:none;height:100%;min-height:100vh;overflow:auto;background:#fff}"+
     ".mh-student-view.active{display:block}.mh-student-view.live{background:#101828}"+
-    ".mh-student-view .stage{margin:0;border-radius:0;min-height:calc(100vh - 60px);height:100%}"+
+    ".mh-student-view .stage{margin:0;border-radius:0;min-height:100vh;height:100%}"+
     ".mh-student-view .panel{margin:0;border-radius:0;box-shadow:none}"+
-    ".mh-student-view .video-grid{grid-template-columns:1fr}.mh-student-board{display:block;width:100%;height:calc(100vh - 60px);min-height:360px;background:#fff;touch-action:none;cursor:crosshair}"+
-    "@media(max-width:600px){.mh-student-view,.mh-student-view .stage{min-height:calc(100vh - 58px)}}";
+    ".mh-student-view .video-grid{grid-template-columns:1fr}.mh-student-board{display:block;width:100%;height:100vh;min-height:360px;background:#fff;touch-action:none;cursor:crosshair}"+
+    "@media(max-width:600px){.mh-student-view,.mh-student-view .stage{min-height:100vh}}";
    document.head.appendChild(s);
   }
 
   display.className="student-display";
   display.innerHTML=
-   '<div class="mh-student-head">'+
-   '<span id="mhStudentTitle">🎥 Live Classroom</span>'+
-   '<span id="mhStudentTimer">00:00</span>'+
-   '<button class="mh-student-mic" id="mhStudentMic" title="Microphone" aria-label="Microphone">🎙</button>'+
-   '<button class="mh-student-exit" id="mhStudentExit" type="button">🚪 Exit / Re-enter Class</button>'+
-   '</div>'+
    '<div class="mh-student-body">'+
    '<div class="mh-student-view active live" id="mhStudentLive"></div>'+
    '<div class="mh-student-view" id="mhStudentFile"></div>'+
@@ -133,32 +122,6 @@
    if(title)title.textContent=x[1];
   }
 
-  // Keep the legacy classroom engine as the actual audio/WebRTC controller.
-  // The visible student microphone simply triggers that proven handler.
-  const mic=document.getElementById("mhStudentMic");
-  if(mic){
-   mic.onclick=()=>{
-    const legacy=document.getElementById("micBtn");
-    if(legacy)legacy.click();
-   };
-  }
-
-  // Keep the exit/re-entry control visible in the replacement student UI.
-  // Reuse the classroom engine cleanup so audio, timers and realtime channels are released.
-  const exitButton=document.getElementById("mhStudentExit");
-  if(exitButton){
-   exitButton.onclick=()=>{
-    const legacy=document.getElementById("studentExitClassBtn");
-    if(legacy&&typeof legacy.onclick==="function")legacy.click();
-    else {
-     const code=(new URLSearchParams(location.search).get("code")||sessionStorage.getItem("malawihub_class_code")||"").trim().toUpperCase();
-     if(code)sessionStorage.setItem("malawihub_class_code",code);
-     sessionStorage.setItem("malawihub_student_portal","1");
-     location.href="../student-portal/?v=20261012-exit-reenter";
-    }
-   };
-  }
-
   // Override the legacy display helpers so the new single-display layout
   // never references removed elements.
   window.prepareStudentDisplay=()=>{document.body.classList.add("student-room");mount();show("live");};
@@ -168,14 +131,6 @@
    const t=document.getElementById("mhStudentTitle");
    if(t&&title)t.textContent=title;
   };
-
-  const sourceTimer=document.getElementById("timer");
-  const syncTimer=()=>{
-   const t=document.getElementById("mhStudentTimer");
-   if(t&&sourceTimer)t.textContent=sourceTimer.textContent||"00:00";
-  };
-  syncTimer();
-  setInterval(syncTimer,500);
 
   mount();
   show("live");
