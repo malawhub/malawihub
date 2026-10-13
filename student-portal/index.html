@@ -57,14 +57,27 @@ const codeInput=document.getElementById('classCode');
 const incoming=(params.get('code')||params.get('class')||params.get('join_code')||sessionStorage.getItem('malawihub_class_code')||'').trim().toUpperCase();
 if(incoming){codeInput.value=incoming;sessionStorage.setItem('malawihub_class_code',incoming)}
 codeInput.addEventListener('input',()=>codeInput.setCustomValidity(''));
-document.getElementById('joinForm').addEventListener('submit',event=>{
+document.getElementById('joinForm').addEventListener('submit',async event=>{
  event.preventDefault();
  const code=codeInput.value.trim().toUpperCase();
  if(!code){codeInput.focus();codeInput.setCustomValidity('Enter the class code shared by your teacher.');codeInput.reportValidity();return}
  codeInput.setCustomValidity('');
  sessionStorage.setItem('malawihub_class_code',code);
  sessionStorage.setItem('malawihub_student_portal','1');
- location.href='../online-class/login.html?code='+encodeURIComponent(code);
+ const button=document.querySelector('#joinForm button[type="submit"]');
+ button.disabled=true;button.textContent='Opening class…';
+ try{
+  const {data,error}=await supabaseClient.auth.getSession();
+  if(error)throw error;
+  if(data?.session?.user){
+   location.href='../online-class/?student=1&role=student&entered=1&code='+encodeURIComponent(code);
+  }else{
+   location.href='../online-class/login.html?code='+encodeURIComponent(code);
+  }
+ }catch(e){
+  button.disabled=false;button.textContent='Join Class →';
+  location.href='../online-class/login.html?code='+encodeURIComponent(code);
+ }
 });
 const teacherUrl='https://malawihub.pages.dev/teacher-portal/';
 document.getElementById('copyInvite').addEventListener('click',async()=>{
