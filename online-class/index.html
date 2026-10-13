@@ -39,6 +39,13 @@ body.student-entry .grid2,
 body.student-entry #adminTopStatus,
 body.student-entry .class-wrap > .panel:not(#modePanel):not(#adminTopStatus) {display:none!important}
 .student-video-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;padding:10px;background:#101828}.student-video-tile{min-width:0;background:#1d2939;border:1px solid #475467;border-radius:10px;overflow:hidden;color:#fff}.student-video-tile video{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:#000}.student-video-tile .student-video-name{padding:6px 9px;font:700 13px/1.3 system-ui,sans-serif;overflow-wrap:anywhere}
+/* Student picture-in-picture: keep teacher video visible over shared teaching materials. */
+body.student-room .student-display-body{position:relative}
+body.student-room .stage.student-floating-stage{position:absolute!important;top:8px;right:8px;z-index:60;width:clamp(112px,27vw,190px);min-height:0!important;height:auto!important;aspect-ratio:16/9;display:block!important;margin:0!important;border:2px solid #fff;border-radius:12px!important;box-shadow:0 4px 18px #0006;overflow:hidden;background:#101828}
+body.student-room .stage.student-floating-stage video{display:block;width:100%;height:100%;max-height:none;min-height:0;aspect-ratio:16/9;object-fit:cover}
+body.student-room .stage.student-floating-stage #waiting{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:5px;font-size:11px!important;background:#101828}
+body.student-room .stage.student-floating-stage #remoteAudio{display:none}
+@media(max-width:480px){body.student-room .stage.student-floating-stage{width:116px;top:6px;right:6px;border-radius:9px!important}}
 </style></head>
 <body>
 <div class="class-wrap">
@@ -187,14 +194,27 @@ function prepareStudentDisplay(){
 }
 function studentShowDisplay(view,title){view=({studentLiveView:'live',studentFileView:'file',studentWhiteboardView:'whiteboard',studentNotesView:'notes'})[view]||view;
  if(role!=='student')return;
- // Follow the teacher's current display choice. A file may remain shared in the background
- // without forcing the student away from live video, notes or the whiteboard.
  const displayMap={live:'studentLiveView',file:'studentFileView',whiteboard:'studentWhiteboardView',notes:'studentNotesView'};
  const targetId=displayMap[view]||'studentLiveView';
+ const body=$('studentDisplay')?.querySelector('.student-display-body');
+ const stage=document.querySelector('.stage');
+ const liveView=$('studentLiveView');
+ // Keep the SAME live video element and WebRTC stream visible as a small floating tile
+ // while students follow shared files, the whiteboard or notes.
+ if(stage&&body&&liveView){
+  if(view==='live'){
+   stage.classList.remove('student-floating-stage');
+   liveView.appendChild(stage);
+  }else{
+   stage.classList.add('student-floating-stage');
+   body.appendChild(stage);
+  }
+ }
  document.querySelectorAll('#studentDisplay .student-view').forEach(v=>v.classList.remove('active'));
  $(targetId)?.classList.add('active');
  $('studentDisplayTitle').textContent=title||'🎥 Live Classroom';
- $('studentDisplayStatus').textContent=view==='file'?'📄 SHARED':view==='whiteboard'?'🧑‍🏫 WHITEBOARD':'LIVE';
+ $('studentDisplayStatus').textContent=view==='file'?'📄 SHARED · TEACHER VIDEO ON':view==='whiteboard'?'🧑‍🏫 WHITEBOARD · TEACHER VIDEO ON':view==='notes'?'📝 NOTES · TEACHER VIDEO ON':'LIVE';
+ if(view!=='live')wakeStudentMedia();
 }
 function wakeStudentMedia(){
  if(role!=='student')return;
