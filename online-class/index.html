@@ -39,9 +39,9 @@ body.student-room #studentDisplayStatus {display:none!important}
 <input id="code" class="input" placeholder="Class code (e.g. CHEM101)" maxlength="32">
 <input id="name" class="input" placeholder="Your name" maxlength="60">
 <button class="btn primary" id="studentBtn">Join as Student</button>
-<button class="btn" id="teacherBtn">Teacher</button>
+<button class="btn" id="teacherBtn" style="display:none" aria-hidden="true" tabindex="-1">Teacher</button>
 </div>
-<p id="modeHelp" class="muted small">Students need the class code and their name. The teacher controls the lesson, microphone, screen and timer.</p>
+<p id="modeHelp" class="muted small">Enter the class code shared with you and your name to join your classroom.</p>
 <div id="loginNotice" class="notice small hidden">Teacher mode requires a signed-in MalawiHub account.</div>
 </div>
 <div id="room" class="hidden"><div id="studentTopBar" class="student-top-bar hidden"><button class="btn" id="studentMoreBtn" title="More">…</button><button class="btn primary" id="studentTopMicBtn">🎙 Enable Microphone</button><button class="btn danger" id="studentExitClassBtn" type="button">🚪 Exit / Re-enter Class</button><b id="studentTopClass">Form 1</b><span id="studentTopRole">Student mode</span><span id="studentTopTimer" class="timer">00:00</span></div><div id="adminControls" class="panel admin-controls hidden" style="padding:0;background:transparent;box-shadow:none">
@@ -61,7 +61,7 @@ body.student-room #studentDisplayStatus {display:none!important}
 <div>
 <div class="panel" id="classStudentsPanel"><h3>👥 Students</h3><div id="students" class="student-list"><span class="muted">No students yet</span></div></div>
 <div class="panel" id="classChatPanel"><h3>💬 Class chat</h3><div id="chat" style="height:220px;overflow:auto;border:1px solid #e4e7ec;border-radius:10px;padding:10px"></div><div class="row" style="margin-top:8px"><input id="chatInput" class="input" placeholder="Write a message"><button class="btn primary" id="sendChat">Send</button></div></div>
-<div class="panel"><h3>Class features</h3><ul><li>Fixed class duration and automatic end</li><li>Teacher microphone and screen sharing</li><li>Shared whiteboard for teacher and students</li><li>Live synchronized notes with database saving</li><li>Download notes as text or save/print as PDF</li><li>Video resources inside the classroom</li><li>Student presence and chat</li></ul></div>
+
 </div></div>
 </div></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
