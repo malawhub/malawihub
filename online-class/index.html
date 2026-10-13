@@ -26,8 +26,12 @@ body.student-room .student-display-head #studentExitClassBtnInline,
 body.student-room .class-wrap > .panel:not(#modePanel):not(#adminTopStatus) {display:none!important}
 body.student-room .mh-slide-controls,
 body.student-room .mh-slide-footer {display:none!important}
-body.student-room .student-toolbar {display:flex!important;position:sticky;bottom:0;z-index:30}
+body.student-room #studentDisplay {display:flex!important;flex-direction:column!important}
+body.student-room .student-display-head {order:0;position:sticky;top:0;z-index:40;background:#fff;flex-wrap:wrap;align-items:center;gap:7px}
+body.student-room .student-display-body {order:1;flex:1;min-height:0}
+body.student-room .student-toolbar {order:0;display:flex!important;position:sticky;top:0;bottom:auto;z-index:45;justify-content:flex-start;flex-wrap:wrap;border-top:0;border-bottom:1px solid #e4e7ec;box-shadow:0 2px 8px #0000000d}
 body.student-room #studentTimer {font-size:18px;font-weight:800;white-space:nowrap;color:#101828;background:#f2f4f7;border-radius:8px;padding:5px 8px}
+body.student-room #studentExitClassBtnBottom {display:none!important}
 body.student-room #studentDisplay {display:block!important;margin:0}
 body.student-room .student-display-head {justify-content:flex-start}
 body.student-room #studentDisplayStatus {display:none!important}
