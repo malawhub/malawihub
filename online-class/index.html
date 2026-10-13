@@ -115,7 +115,37 @@ body.teacher-room .admin-view .notes,body.admin-room .admin-view .notes{width:10
  body.teacher-room #classFileView iframe,body.teacher-room #classFileView object,body.teacher-room #classFileView embed,body.admin-room #classFileView iframe,body.admin-room #classFileView object,body.admin-room #classFileView embed{height:calc(100dvh - 105px)!important;max-height:calc(100dvh - 105px)!important}
 }
 
-</style></head>
+</style>
+<style id="mh-teacher-fit-display-v2">
+/* Teacher display: show content in one full-width view. Wrap controls instead
+   of forcing horizontal scrolling; scale shared media to the available screen. */
+html,body.teacher-room,body.admin-room{max-width:100%;overflow-x:hidden!important}
+body.teacher-room .class-wrap,body.admin-room .class-wrap{min-width:0!important;overflow-x:hidden!important}
+body.teacher-room #adminClassDisplay,body.admin-room #adminClassDisplay{min-width:0!important}
+body.teacher-room .admin-display-head,body.admin-room .admin-display-head{width:100%!important;max-width:100%!important;box-sizing:border-box!important;flex-wrap:wrap!important;min-width:0!important}
+body.teacher-room #adminDisplaySwitcher,body.admin-room #adminDisplaySwitcher{display:flex!important;flex-wrap:wrap!important;justify-content:flex-end!important;overflow:visible!important;white-space:normal!important;max-width:100%!important;min-width:0!important;gap:4px!important}
+body.teacher-room #adminDisplaySwitcher .btn,body.admin-room #adminDisplaySwitcher .btn{flex:0 1 auto!important;min-width:0!important;white-space:normal!important;overflow-wrap:anywhere!important}
+body.teacher-room .admin-display-body,body.admin-room .admin-display-body{overflow-x:hidden!important;overflow-y:auto!important;min-width:0!important}
+body.teacher-room .admin-view,body.admin-room .admin-view{overflow-x:hidden!important;min-width:0!important;max-width:100%!important}
+body.teacher-room .admin-view.active,body.admin-room .admin-view.active{width:100%!important;max-width:100%!important}
+body.teacher-room #classFilePanel,body.admin-room #classFilePanel,body.teacher-room #classFileView,body.admin-room #classFileView{width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:hidden!important;box-sizing:border-box!important}
+body.teacher-room #classFileView img,body.admin-room #classFileView img,body.teacher-room #classFileView video,body.admin-room #classFileView video,body.teacher-room #classFileView canvas.mh-slide-canvas,body.admin-room #classFileView canvas.mh-slide-canvas{width:auto!important;max-width:100%!important;max-height:calc(100dvh - 135px)!important;height:auto!important;object-fit:contain!important}
+body.teacher-room #classFileView iframe,body.admin-room #classFileView iframe,body.teacher-room #classFileView object,body.admin-room #classFileView object,body.teacher-room #classFileView embed,body.admin-room #classFileView embed{width:100%!important;max-width:100%!important;height:calc(100dvh - 135px)!important;max-height:calc(100dvh - 135px)!important;min-height:0!important}
+body.teacher-room .admin-view .stage,body.admin-room .admin-view .stage{width:100%!important;max-width:100%!important;min-width:0!important}
+body.teacher-room .admin-view .stage video,body.admin-room .admin-view .stage video{width:100%!important;height:100%!important;max-width:100%!important;max-height:calc(100dvh - 135px)!important;object-fit:contain!important}
+body.teacher-room .admin-view.notes-view,body.admin-room .admin-view.notes-view{overflow-x:hidden!important}
+body.teacher-room .admin-view .notes,body.admin-room .admin-view .notes{width:100%!important;max-width:100%!important;box-sizing:border-box!important;overflow-wrap:anywhere!important}
+@media(max-width:600px){
+ body.teacher-room #adminDisplaySwitcher,body.admin-room #adminDisplaySwitcher{justify-content:flex-start!important}
+ body.teacher-room #adminDisplaySwitcher .btn,body.admin-room #adminDisplaySwitcher .btn{font-size:11px!important;padding:5px 6px!important}
+ body.teacher-room .admin-display-head,body.admin-room .admin-display-head{align-items:flex-start!important}
+ body.teacher-room .admin-display-body,body.admin-room .admin-display-body{padding:0!important}
+ body.teacher-room #classFileView iframe,body.admin-room #classFileView iframe,body.teacher-room #classFileView object,body.admin-room #classFileView object,body.teacher-room #classFileView embed,body.admin-room #classFileView embed{height:calc(100dvh - 150px)!important;max-height:calc(100dvh - 150px)!important}
+ body.teacher-room #classFileView img,body.admin-room #classFileView img,body.teacher-room #classFileView video,body.admin-room #classFileView video,body.teacher-room #classFileView canvas.mh-slide-canvas,body.admin-room #classFileView canvas.mh-slide-canvas{max-height:calc(100dvh - 150px)!important}
+}
+</style>
+
+</head>
 <body>
 <div class="class-wrap">
 <div class="top"><div class="brand">🇲🇼 MalawiHub Online Class</div><span id="areaLabel" class="muted small">Private classroom</span></div>
