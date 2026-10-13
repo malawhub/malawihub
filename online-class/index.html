@@ -133,7 +133,7 @@ function prepareStudentDisplay(){
  $('studentDisplayTitle').textContent='🎥 Live Classroom';
  $('studentDisplayStatus').textContent='LIVE';
 }
-function studentShowDisplay(view,title){view=({live:'studentLiveView',file:'studentFileView',whiteboard:'studentWhiteboardView',notes:'studentNotesView'})[view]||view;
+function studentShowDisplay(view,title){view=({studentLiveView:'live',studentFileView:'file',studentWhiteboardView:'whiteboard',studentNotesView:'notes'})[view]||view;
  if(role!=='student')return;
  // Every display pathway must respect an active shared file, including WebRTC view signals.
  // The teacher's explicit Stop Sharing clears sharedFile before returning students to live view.
