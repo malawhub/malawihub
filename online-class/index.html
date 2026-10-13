@@ -414,24 +414,32 @@ $('modePanel').classList.add('hidden');if(controlMode)prepareAdminDisplay(); $('
   $('notes').readOnly=true;$('showPrivateNote').classList.add('hidden');$('hidePrivateNote').classList.add('hidden');
   prepareStudentDisplay();
   if(data.status==='ended'){msg('Class ended');if(role==='student')loadClassRecording();await loadClassRecording();return}
-  if(data.status==='live'&&data.starts_at){startedAt=data.starts_at;duration=Number(data.duration_minutes)||duration;startTimer();$('waiting').classList.add('hidden');msg('LIVE');}
-  msg('Connected to class · waiting for teacher confirmation…');
-  $('studentConnectionStatus').textContent='CONNECTING TO TEACHER…';
+  if(data.status==='live'&&data.starts_at){
+   startedAt=data.starts_at;duration=Number(data.duration_minutes)||duration;startTimer();
+   $('waiting').classList.add('hidden');msg('LIVE');
+   $('studentConnectionStatus').textContent='CLASS IN PROGRESS · CONNECTING VIDEO…';
+  }else{
+   startedAt=null;clearInterval(timerInt);$('timer').textContent='00:00';$('studentTimer').textContent='00:00';
+   $('waiting').textContent='Waiting for the teacher to start the class…';
+   $('waiting').classList.remove('hidden');
+   $('studentConnectionStatus').textContent='WAITING FOR TEACHER';
+   $('studentConnectionStatus').style.color='#b54708';
+   msg('You have joined the class · waiting for the teacher to start…');
+  }
   await send({type:'join',from:getMyId(),name:userName,to:'*'});
   if(joinRetryTimer)clearInterval(joinRetryTimer);
   joinRetryCount=0;
+  // Keep announcing the student while waiting. This lets a teacher who opens the room
+  // later discover the student and establish the live connection without rejoining.
   joinRetryTimer=setInterval(async()=>{
-    if(!channel||role!=='student'||joinRetryCount>=4){
+    if(!channel||role!=='student'){
       if(joinRetryTimer){clearInterval(joinRetryTimer);joinRetryTimer=null;}
-      if(role==='student'&&joinRetryCount>=4){
-        $('studentConnectionStatus').textContent='TEACHER NOT CONNECTED';
-        msg('Class opened, but the teacher has not confirmed the connection. Check that both devices use the same class code.');
-      }
       return;
     }
     joinRetryCount++;
-    try{await send({type:'join',from:getMyId(),name:userName,to:'*'});}catch(e){console.warn('Student join retry failed',e);}
-  },2500);
+    try{await send({type:'join',from:getMyId(),name:userName,to:'*'});}
+    catch(e){console.warn('Student join retry failed',e);}
+  },3000);
   wakeStudentMedia();
 }
  else {$('adminControls').classList.toggle('hidden',!controlMode);$('startBtn').classList.toggle('hidden',controlMode);$('screenBtn').classList.toggle('hidden',controlMode);$('micBtn').classList.toggle('hidden',controlMode);$('whiteboardBtn').classList.toggle('hidden',controlMode);$('endBtn').classList.toggle('hidden',controlMode);$('notes').readOnly=false;$('showPrivateNote').classList.remove('hidden');$('hidePrivateNote').classList.remove('hidden');if(data.status==='live'&&data.starts_at){startedAt=data.starts_at;startTimer();msg('LIVE');await loadNotes()} updateAdminPauseUI()}
@@ -569,7 +577,7 @@ async function handleSignal(p){
  else if(p.type==='ice'){
   const peerId=p.from;const pc=peers.get(peerId);if(pc&&p.candidate){if(pc.remoteDescription)try{await pc.addIceCandidate(p.candidate)}catch(e){if(!pc.ignoreOffer)console.warn('ICE',e)}else{if(!iceQueues.has(peerId))iceQueues.set(peerId,[]);iceQueues.get(peerId).push(p.candidate)}}
  }
- else if(role==='student'&&p.type==='timer-sync'){startedAt=p.startedAt||startedAt;duration=Number(p.duration)||duration;paused=!!p.paused;pausedAt=Number(p.pausedAt)||0;pausedTotalMs=Number(p.pausedTotalMs)||0;if(Number.isFinite(Number(p.remainingSeconds))){studentTimerAnchorRemaining=Math.max(0,Number(p.remainingSeconds));studentTimerAnchorAt=performance.now()}startTimer();msg(paused?'PAUSED · timer synchronized':'LIVE · timer synchronized')} else if(p.type==='start'){startedAt=p.startedAt;duration=Number(p.duration)||60;paused=!!p.paused;pausedAt=Number(p.pausedAt)||0;pausedTotalMs=Number(p.pausedTotalMs)||0;if(role==='student'&&Number.isFinite(Number(p.remainingSeconds))){studentTimerAnchorRemaining=Math.max(0,Number(p.remainingSeconds));studentTimerAnchorAt=performance.now()}startTimer();if(role!=='student')$('waiting').classList.add('hidden');msg(paused?'PAUSED':'LIVE');await loadNotes()} else if(p.type==='pause'){if(role==='student'){studentTimerAnchorRemaining=getTimerRemainingSeconds();studentTimerAnchorAt=performance.now()}paused=true;pausedAt=Number(p.at)||Date.now();clearInterval(timerInt);startTimer();if(controlMode)updateAdminPauseUI();else msg('PAUSED · waiting for class to resume');} else if(p.type==='resume'){if(paused&&pausedAt)pausedTotalMs+=Date.now()-pausedAt;paused=false;pausedAt=0;if(role==='student')studentTimerAnchorAt=performance.now();startTimer();if(controlMode)updateAdminPauseUI();else msg('LIVE');} 
+ else if(role==='student'&&p.type==='timer-sync'){startedAt=p.startedAt||startedAt;duration=Number(p.duration)||duration;paused=!!p.paused;pausedAt=Number(p.pausedAt)||0;pausedTotalMs=Number(p.pausedTotalMs)||0;if(Number.isFinite(Number(p.remainingSeconds))){studentTimerAnchorRemaining=Math.max(0,Number(p.remainingSeconds));studentTimerAnchorAt=performance.now()}$('waiting').classList.add('hidden');$('studentConnectionStatus').textContent='CLASS IN PROGRESS · CONNECTING VIDEO…';startTimer();msg(paused?'PAUSED · timer synchronized':'LIVE · timer synchronized')} else if(p.type==='start'){startedAt=p.startedAt;duration=Number(p.duration)||60;paused=!!p.paused;pausedAt=Number(p.pausedAt)||0;pausedTotalMs=Number(p.pausedTotalMs)||0;if(role==='student'&&Number.isFinite(Number(p.remainingSeconds))){studentTimerAnchorRemaining=Math.max(0,Number(p.remainingSeconds));studentTimerAnchorAt=performance.now()}startTimer();$('waiting').classList.add('hidden');if(role==='student')$('studentConnectionStatus').textContent='CLASS STARTED · CONNECTING VIDEO…';msg(paused?'PAUSED':'LIVE');await loadNotes()} else if(p.type==='pause'){if(role==='student'){studentTimerAnchorRemaining=getTimerRemainingSeconds();studentTimerAnchorAt=performance.now()}paused=true;pausedAt=Number(p.at)||Date.now();clearInterval(timerInt);startTimer();if(controlMode)updateAdminPauseUI();else msg('PAUSED · waiting for class to resume');} else if(p.type==='resume'){if(paused&&pausedAt)pausedTotalMs+=Date.now()-pausedAt;paused=false;pausedAt=0;if(role==='student')studentTimerAnchorAt=performance.now();startTimer();if(controlMode)updateAdminPauseUI();else msg('LIVE');} 
  else if(p.type==='end'){await endRoom(false)}
 }
 const remoteMediaStreams=new WeakMap();
