@@ -482,9 +482,10 @@ let classPdfResizeTimer=0,sharedViewFitTimer=0;
  }
  function fitWordDocumentPages(){
   const box=$('classFileView');if(!box)return;const pages=box.querySelectorAll('.mh-word-page-fit');if(!pages.length)return;
-  const vv=window.visualViewport;
-  const viewportWidth=Math.max(1,Math.round(vv?.width||document.documentElement.clientWidth||window.innerWidth));
-  const viewportHeight=Math.max(1,Math.round(vv?.height||document.documentElement.clientHeight||window.innerHeight));
+  // Use the layout viewport, not visualViewport: pinch-zoom changes visualViewport size
+  // and must not cause the document to be rescaled in the opposite direction.
+  const viewportWidth=Math.max(1,Math.round(document.documentElement.clientWidth||window.innerWidth));
+  const viewportHeight=Math.max(1,Math.round(document.documentElement.clientHeight||window.innerHeight));
   const landscape=viewportWidth>viewportHeight;
   const boxWidth=Math.max(1,box.getBoundingClientRect().width||box.clientWidth||viewportWidth);
   const availableWidth=Math.max(160,Math.min(boxWidth,viewportWidth)-16);
@@ -501,9 +502,10 @@ let classPdfResizeTimer=0,sharedViewFitTimer=0;
  }
  function fitSharedDocumentView(){
   const box=$('classFileView');if(!box)return;
-  const vv=window.visualViewport;
-  const viewportWidth=Math.max(1,Math.round(vv?.width||document.documentElement.clientWidth||window.innerWidth));
-  const viewportHeight=Math.max(1,Math.round(vv?.height||document.documentElement.clientHeight||window.innerHeight));
+  // Use the layout viewport, not visualViewport: pinch-zoom changes visualViewport size
+  // and must not cause the document to be rescaled in the opposite direction.
+  const viewportWidth=Math.max(1,Math.round(document.documentElement.clientWidth||window.innerWidth));
+  const viewportHeight=Math.max(1,Math.round(document.documentElement.clientHeight||window.innerHeight));
   const landscape=viewportWidth>viewportHeight;
   const maxHeight=Math.max(160,viewportHeight-(landscape?112:170));
   box.style.maxWidth='100%';box.style.minWidth='0';box.style.boxSizing='border-box';
@@ -515,7 +517,6 @@ let classPdfResizeTimer=0,sharedViewFitTimer=0;
  }
  window.addEventListener('resize',scheduleSharedViewRefit,{passive:true});
  window.addEventListener('orientationchange',scheduleSharedViewRefit,{passive:true});
- window.visualViewport?.addEventListener('resize',scheduleSharedViewRefit,{passive:true});
  window.screen?.orientation?.addEventListener?.('change',scheduleSharedViewRefit);
  if('ResizeObserver' in window){
   const sharedViewObserver=new ResizeObserver(()=>scheduleSharedViewRefit());
