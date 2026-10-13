@@ -1,0 +1,2 @@
+# Send legacy teacher-room URLs directly to the actual classroom at the edge.
+/online-class/teacher-room.html /online-class/index.html#teacher 302
