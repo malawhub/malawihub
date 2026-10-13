@@ -24,7 +24,7 @@ body.student-room #classStudentsPanel,
 body.student-room #classChatPanel,
 body.student-room .student-display-head #studentExitClassBtnInline,
 body.student-room .student-toolbar,
-body.student-room #studentNotesView,
+
 body.student-room .class-wrap > .panel:not(#modePanel):not(#adminTopStatus) {display:none!important}
 body.student-room #studentDisplay {display:block!important;margin:0}
 body.student-room .student-display-head {justify-content:flex-start}
@@ -133,7 +133,7 @@ function prepareStudentDisplay(){
  $('studentDisplayTitle').textContent='🎥 Live Classroom';
  $('studentDisplayStatus').textContent='LIVE';
 }
-function studentShowDisplay(view,title){
+function studentShowDisplay(view,title){view=({live:'studentLiveView',file:'studentFileView',whiteboard:'studentWhiteboardView',notes:'studentNotesView'})[view]||view;
  if(role!=='student')return;
  // Every display pathway must respect an active shared file, including WebRTC view signals.
  // The teacher's explicit Stop Sharing clears sharedFile before returning students to live view.
@@ -332,7 +332,7 @@ $('modePanel').classList.add('hidden');if(controlMode)prepareAdminDisplay(); $('
  .on('broadcast',{event:'class-file'},async({payload})=>{if(cleanCode(String(payload.code||''))!==cleanCode(roomCode)||role!=='student'||(payload.to&&payload.to!==getMyId()))return;if(payload.action==='show'&&payload.file){try{prepareStudentDisplay();await renderClassFile(payload.file);studentShowDisplay('file','📄 Shared Classroom File');msg('FILE SHARED')}catch(e){console.error('Student classroom file render failed',e);const box=$('classFileView');if(box)box.innerHTML='<div style="padding:16px;color:#b42318;text-align:center">The file arrived but could not be displayed. Try opening the file using the download option.</div>';studentShowDisplay('file','📄 Shared Classroom File')}}else if(payload.action==='hide'){clearClassFile();studentShowDisplay('live','🎥 Live Classroom');msg(paused?'PAUSED':'LIVE')}})
  .on('broadcast',{event:'class-display'},async({payload})=>{if(role!=='student'||cleanCode(String(payload.code||''))!==cleanCode(roomCode)||(payload.to&&payload.to!==getMyId()))return;const rawView=String(payload.view||'live');const aliases={adminLiveView:'live',adminFileView:'file',adminWhiteboardView:'whiteboard',adminNotesView:'notes',adminChatView:'chat',chat:'chat',video:'video'};const candidate=aliases[rawView]||rawView;let view=['live','file','whiteboard','notes','chat','video'].includes(candidate)?candidate:'live';prepareStudentDisplay();if(view==='file'&&payload.file)await renderClassFile(payload.file);if(view==='file'&&!sharedFile)return;if(view==='file'&&!$('classFileView').children.length)await renderClassFile(sharedFile);/* A delayed live-view event must not hide a file that remains actively shared. Stop Sharing clears shared_file and sends the explicit hide event. */if(view==='live'&&sharedFile?.url){view='file';if(!$('classFileView').children.length)await renderClassFile(sharedFile)}studentShowDisplay(view,view==='file'?'📄 Shared Classroom File':view==='live'?'🎥 Live Classroom':(payload.title||''));if(view==='whiteboard')requestAnimationFrame(()=>{window.MalawiHubInPageWhiteboard?.init();window.MalawiHubInPageWhiteboard?.resize()});})
  .on('broadcast',{event:'presence'},({payload})=>{if(payload.code!==roomCode)return;if(payload.action==='join'){state.students.set(payload.id,payload.name);renderStudents()}if(payload.action==='leave'){state.students.delete(payload.id);removePeer(payload.id);renderStudents()}});
- try{await new Promise((resolve,reject)=>channel.subscribe((s,e)=>{if(s==='SUBSCRIBED')resolve();else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'||s==='CLOSED')reject(e||Error('Realtime status: '+s))}));}catch(e){console.error('MalawiHub classroom realtime subscription failed',{roomCode,role,error:e});msg('Live connection failed. Use Exit / Re-enter Class to retry. '+(e?.message||''));if(role==='student'){prepareStudentDisplay();$('studentExitClassBtn').textContent='🚪 Exit / Re-enter Class';$('studentExitClassBtnBottom').textContent='🚪 Exit / Re-enter Class';}throw e;}window.malawiClassChannel=channel;if(window.MalawiHubInPageWhiteboard)window.MalawiHubInPageWhiteboard.init();msg('Connected');if(controlMode)await loadAdminStudents();
+ let realtimeTimeout;try{await Promise.race([new Promise((resolve,reject)=>channel.subscribe((s,e)=>{if(s==='SUBSCRIBED')resolve();else if(s==='CHANNEL_ERROR'||s==='TIMED_OUT'||s==='CLOSED')reject(e||Error('Realtime status: '+s))})),new Promise((_,reject)=>{realtimeTimeout=setTimeout(()=>reject(Error('Realtime connection timed out after 15 seconds. Check your connection and re-enter the class.')),15000)})]);}catch(e){console.error('MalawiHub classroom realtime subscription failed',{roomCode,role,error:e});msg('Live connection failed. Use Exit / Re-enter Class to retry. '+(e?.message||''));if(role==='student'){prepareStudentDisplay();$('studentExitClassBtn').textContent='🚪 Exit / Re-enter Class';$('studentExitClassBtnBottom').textContent='🚪 Exit / Re-enter Class';}throw e;}finally{clearTimeout(realtimeTimeout);}window.malawiClassChannel=channel;if(window.MalawiHubInPageWhiteboard)window.MalawiHubInPageWhiteboard.init();msg('Connected');if(controlMode)await loadAdminStudents();
  // Reconcile the latest shared file from the database; broadcasts alone can be missed by late or reconnecting students.
  if(role==='student'){try{const {data:latestClass,error:fileStateError}=await supabaseClient.from('online_classes').select('shared_file').eq('id',classId).maybeSingle();if(fileStateError)throw fileStateError;if(latestClass?.shared_file?.url){prepareStudentDisplay();await renderClassFile(latestClass.shared_file);studentShowDisplay('file','📄 Shared Classroom File');msg('FILE SHARED')}}catch(e){console.warn('Could not restore current shared classroom file',e)}};startStudentSharedFileSync()
  if(role==='student'){
@@ -486,6 +486,7 @@ async function handleSignal(p){
  else if(p.type==='start'){startedAt=p.startedAt;duration=Number(p.duration)||60;paused=false;pausedAt=0;pausedTotalMs=0;startTimer();if(role!=='student')$('waiting').classList.add('hidden');msg('LIVE');await loadNotes()} else if(p.type==='pause'){paused=true;pausedAt=Number(p.at)||Date.now();clearInterval(timerInt);if(controlMode)updateAdminPauseUI();else msg('PAUSED · waiting for class to resume');} else if(p.type==='resume'){if(paused&&pausedAt)pausedTotalMs+=Date.now()-pausedAt;paused=false;pausedAt=0;startTimer();if(controlMode)updateAdminPauseUI();else msg('LIVE');} 
  else if(p.type==='end'){await endRoom(false)}
 }
+const remoteMediaStreams=new WeakMap();
 function makePeer(id){
  if(peers.has(id))return peers.get(id);
  const pc=new RTCPeerConnection({iceServers:iceServers});
@@ -498,14 +499,25 @@ function makePeer(id){
  };
  pc.ontrack=e=>{
   if(!e.track)return;
-  const stream=e.streams?.[0]||new MediaStream([e.track]);
-  if(e.track.kind==='audio'){
-   const audio=ensureRemoteAudio(id);audio.srcObject=stream;audio.muted=false;audio.volume=1;audio.autoplay=true;audio.play().catch(()=>{});
-   if(role==='student'){$('remoteAudio').srcObject=stream;$('remoteAudio').muted=false;$('remoteAudio').volume=1;$('remoteAudio').autoplay=true;$('remoteAudio').play().catch(()=>{});}
+  let stream;
+  if(role==='student'){
+   stream=remoteMediaStreams.get(pc);
+   if(!stream){stream=new MediaStream();remoteMediaStreams.set(pc,stream);}
+   if(!stream.getTracks().includes(e.track))stream.addTrack(e.track);
+   const video=$('remoteVideo'),audio=$('remoteAudio');
+   video.srcObject=stream;video.autoplay=true;video.playsInline=true;video.muted=true;
+   audio.srcObject=stream;audio.autoplay=true;audio.muted=false;audio.volume=1;
+   video.play().catch(()=>{});audio.play().catch(()=>{});
+   prepareStudentDisplay();
+  }else{
+   stream=e.streams?.[0]||new MediaStream([e.track]);
+   if(e.track.kind==='audio'){
+    const audio=ensureRemoteAudio(id);audio.srcObject=stream;audio.muted=false;audio.volume=1;audio.autoplay=true;audio.play().catch(()=>{});
+   }
+   if(e.track.kind==='video'){$('remoteVideo').srcObject=stream;$('remoteVideo').autoplay=true;$('remoteVideo').playsInline=true;$('remoteVideo').play().catch(()=>{});}
   }
-  if(e.track.kind==='video'){$('remoteVideo').srcObject=stream;$('remoteVideo').autoplay=true;$('remoteVideo').playsInline=true;$('remoteVideo').play().catch(()=>{})}
-  if(role==='student')prepareStudentDisplay();
-  $('waiting').classList.add('hidden');msg(e.track.kind==='audio'?'Classroom audio connected':'Classroom display connected')
+  $('waiting').classList.add('hidden');
+  msg(e.track.kind==='audio'?'Classroom audio connected':'Classroom display connected');
  };
  pc.onconnectionstatechange=()=>{
   if(pc.connectionState==='failed'){try{pc.restartIce()}catch(e){console.warn('ICE restart failed',e)}}
