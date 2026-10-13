@@ -14,13 +14,28 @@ body{background:#f5f7fb}.wrap{max-width:650px;margin:auto;padding:18px}.card{bac
 <main class="wrap"><section class="card">
 <h1>🇲🇼 MalawiHub Online Class</h1>
 <p class="muted">Student Login · Private classroom access</p>
-<p class="muted"><b>Need an account?</b> Your administrator provides your student login details. Use the email address and password linked to that account.</p>
+<p class="muted">Log in to continue to your private classroom, or create a student account below.</p>
 <form id="loginForm">
 <label for="email">Email address</label>
 <input id="email" class="input" type="email" placeholder="Email address" autocomplete="username" required>
 <label for="password">Password</label>
 <input id="password" class="input" type="password" placeholder="Password" autocomplete="current-password" required>
 <button id="login" class="btn primary" type="submit">Log in as Student</button>
+</form>
+<button id="showRegister" class="btn primary" type="button">Create Account</button>
+<form id="registerForm" hidden style="margin-top:18px">
+<h2>Create Student Account</h2>
+<label for="fullName">Full name</label>
+<input id="fullName" class="input" type="text" autocomplete="name" minlength="2" maxlength="120" placeholder="Your full name" required>
+<label for="newEmail">Email address</label>
+<input id="newEmail" class="input" type="email" autocomplete="email" placeholder="Email address" required>
+<label for="newPassword">Create password</label>
+<input id="newPassword" class="input" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
+<label for="confirmPassword">Confirm password</label>
+<input id="confirmPassword" class="input" type="password" autocomplete="new-password" minlength="8" placeholder="Repeat password" required>
+<button id="register" class="btn primary" type="submit">Create Student Account</button>
+<button id="cancelRegister" class="btn" style="background:#eef2f7;color:#344054" type="button">Back to Login</button>
+<p class="muted">Use an email address you can access. If email confirmation is required, confirm your email before logging in.</p>
 </form>
 <p id="msg" class="msg" role="status" aria-live="polite"></p>
 <p><a href="./landing.html">← Online Classes</a></p>
@@ -31,6 +46,36 @@ body{background:#f5f7fb}.wrap{max-width:650px;margin:auto;padding:18px}.card{bac
 const $=id=>document.getElementById(id),msg=$('msg'),params=new URLSearchParams(location.search);
 function showMsg(text,type=''){msg.textContent=text;msg.className='msg '+type}
 function requestedClassCode(){return (params.get('class')||params.get('code')||params.get('join_code')||'').trim().toUpperCase()}
+function goToStudentArea(){
+ const code=requestedClassCode()||sessionStorage.getItem('malawihub_class_code')||'';
+ sessionStorage.setItem('malawihub_student_portal','1');
+ if(code){sessionStorage.setItem('malawihub_class_code',code);location.replace('../student-portal/classroom.html?code='+encodeURIComponent(code));}
+ else location.replace('../online-class/index.html?student=1&role=student');
+}
+$('showRegister').addEventListener('click',()=>{$('registerForm').hidden=false;$('loginForm').hidden=true;$('showRegister').hidden=true;showMsg('Create your student account using your name, email and a password.');});
+$('cancelRegister').addEventListener('click',()=>{$('registerForm').hidden=true;$('loginForm').hidden=false;$('showRegister').hidden=false;showMsg('');});
+$('registerForm').addEventListener('submit',async event=>{
+ event.preventDefault();const button=$('register');button.disabled=true;showMsg('Creating your student account…');
+ try{
+  const name=$('fullName').value.trim(),email=$('newEmail').value.trim().toLowerCase(),password=$('newPassword').value,confirm=$('confirmPassword').value;
+  if(name.length<2)throw Error('Enter your full name.');
+  if(password.length<8)throw Error('Your password must contain at least 8 characters.');
+  if(password!==confirm)throw Error('The passwords do not match.');
+  const redirectParams=new URLSearchParams();
+  const code=requestedClassCode()||sessionStorage.getItem('malawihub_class_code')||'';
+  if(code)redirectParams.set('code',code);
+  const redirectTo=location.origin+location.pathname+(redirectParams.toString()?'?'+redirectParams.toString():'');
+  const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:name},emailRedirectTo:redirectTo}});
+  if(error)throw error;
+  if(data.session&&data.user){
+   const {error:profileError}=await supabaseClient.from('profiles').upsert({id:data.user.id,email,full_name:name,role:'student'},{onConflict:'id'});
+   if(profileError)console.warn('Profile will be completed by the server trigger:',profileError.message);
+   showMsg('Account created. Opening Online Class…','success');goToStudentArea();return;
+  }
+  showMsg('Your account has been created. Check your email for a confirmation link, then return here and log in. If you joined through a class invitation, use that same invitation link again after confirming your email.','success');
+ }catch(e){showMsg(e?.message||'Could not create your account. Please try again.','error')}
+ finally{button.disabled=false}
+});
 $('loginForm').addEventListener('submit',async event=>{
  event.preventDefault();const button=$('login');button.disabled=true;showMsg('Signing in…');
  try{
