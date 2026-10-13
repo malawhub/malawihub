@@ -439,6 +439,12 @@ function ensureRemoteAudio(peerId){
 let displayScrollTimer=0;
 let lastDisplayScrollSent=0;
 function getDisplayFileScroller(){
+ // Follow the actual scrollable shared document element, rather than only the
+ // outer display wrapper. This makes long text/code documents follow the teacher.
+ const box=$('classFileView');
+ const text=box?.querySelector('.class-file-text');
+ if(text)return text;
+ if(box&&box.scrollHeight>box.clientHeight+2)return box;
  const el=role==='teacher'||role==='admin'?$('adminFileView'):($('studentFileView')||$('adminFileView'));
  return el;
 }
