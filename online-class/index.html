@@ -249,6 +249,21 @@ body.teacher-room #adminMore:not(.hidden){display:flex!important;flex:0 0 auto!i
   body.teacher-room .admin-tool{flex-basis:32px!important;width:32px!important;min-width:32px!important;height:32px!important;font-size:16px!important}
 }
 
+
+/* Recovery: keep the teacher's main classroom screen visible and give it real space. */
+body.teacher-room #adminControls:not(.hidden){display:flex!important;flex-direction:column!important;flex:1 1 auto!important;min-height:0!important;height:100%!important}
+body.teacher-room #adminClassDisplay{display:flex!important;flex:1 1 0!important;width:100%!important;height:auto!important;min-height:180px!important;max-height:none!important;visibility:visible!important;opacity:1!important}
+body.teacher-room .admin-display-head{flex:0 0 auto!important}
+body.teacher-room .admin-display-body{display:flex!important;flex:1 1 0!important;width:100%!important;height:auto!important;min-height:120px!important;max-height:none!important;visibility:visible!important;opacity:1!important;overflow:auto!important}
+body.teacher-room #adminLiveView.active,
+body.teacher-room #adminFileView.active,
+body.teacher-room #adminNotesView.active,
+body.teacher-room #adminPrivateView.active,
+body.teacher-room #adminChatView.active{display:block!important;flex:1 1 auto!important;width:100%!important;min-height:120px!important;visibility:visible!important;opacity:1!important}
+body.teacher-room #adminWhiteboardView.active{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;width:100%!important;min-height:120px!important;visibility:visible!important;opacity:1!important}
+body.teacher-room #adminLiveView .stage{display:grid!important;width:100%!important;height:100%!important;min-height:180px!important;max-height:none!important;visibility:visible!important;opacity:1!important}
+@media(max-width:700px){body.teacher-room #adminClassDisplay{min-height:160px!important}body.teacher-room .admin-display-body{min-height:120px!important}body.teacher-room #adminLiveView .stage{min-height:160px!important}}
+
 </style>
 
 </head>
