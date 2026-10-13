@@ -982,10 +982,34 @@ function ensureStudentVideoGrid(){if(!controlMode)return null;const live=$('admi
   $('waiting').classList.add('hidden');
   msg(e.track.kind==='audio'?'Classroom audio connected':'Classroom display connected');
  };
+ let recoveryTimer=null,lastIceRestartAt=0;
+ const restartPeerIce=()=>{
+  if(pc.connectionState==='closed'||!channel)return;
+  if(pc.signalingState!=='stable'){setTimeout(restartPeerIce,1200);return;}
+  if(Date.now()-lastIceRestartAt<5000)return;
+  lastIceRestartAt=Date.now();
+  try{
+   if(typeof pc.restartIce==='function')pc.restartIce();
+   else pc.createOffer({iceRestart:true}).then(async offer=>{if(pc.signalingState!=='stable')return;await pc.setLocalDescription(offer);await send({type:'offer',to:id,from:getMyId(),sdp:pc.localDescription})}).catch(e=>console.warn('ICE restart offer failed',id,e));
+   console.warn('Attempting WebRTC ICE recovery',id,pc.iceConnectionState,pc.connectionState);
+  }catch(e){console.warn('ICE restart failed',id,e);}
+ };
+ const schedulePeerRecovery=()=>{
+  clearTimeout(recoveryTimer);
+  recoveryTimer=setTimeout(()=>{if(['disconnected','failed'].includes(pc.iceConnectionState)||['disconnected','failed'].includes(pc.connectionState))restartPeerIce();},2200);
+ };
+ pc.oniceconnectionstatechange=()=>{
+  console.info('WebRTC ICE state',id,pc.iceConnectionState);
+  if(pc.iceConnectionState==='connected'||pc.iceConnectionState==='completed'){clearTimeout(recoveryTimer);lastIceRestartAt=0;}
+  else if(pc.iceConnectionState==='failed')restartPeerIce();
+  else if(pc.iceConnectionState==='disconnected')schedulePeerRecovery();
+ };
  pc.onconnectionstatechange=()=>{
-  if(pc.connectionState==='failed'){try{pc.restartIce()}catch(e){console.warn('ICE restart failed',e)}}
-  if(pc.connectionState==='disconnected')setTimeout(()=>{if(pc.connectionState==='disconnected'){try{pc.restartIce()}catch(e){}}},2500);
-  if(pc.connectionState==='closed')removePeer(id)
+  console.info('WebRTC connection state',id,pc.connectionState);
+  if(pc.connectionState==='connected'){clearTimeout(recoveryTimer);lastIceRestartAt=0;}
+  else if(pc.connectionState==='failed')restartPeerIce();
+  else if(pc.connectionState==='disconnected')schedulePeerRecovery();
+  else if(pc.connectionState==='closed'){clearTimeout(recoveryTimer);removePeer(id);}
  };
  if(localStream)localStream.getTracks().filter(t=>!(screenStream&&t.kind==='video')).forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});
  if(studentCameraStream)studentCameraStream.getVideoTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,studentCameraStream)});
