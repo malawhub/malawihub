@@ -38,6 +38,7 @@ body{background:#f5f7fb}.wrap{max-width:650px;margin:auto;padding:18px}.card{bac
 <p class="muted">Use an email address you can access. If email confirmation is required, confirm your email before logging in.</p>
 </form>
 <p id="msg" class="msg" role="status" aria-live="polite"></p>
+<button id="continueLogin" class="btn primary" type="button" hidden>Continue to Student Login</button>
 <p><a href="./landing.html">← Online Classes</a></p>
 </section></main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -52,8 +53,9 @@ function goToStudentArea(){
  if(code){sessionStorage.setItem('malawihub_class_code',code);location.replace('../student-portal/classroom.html?code='+encodeURIComponent(code));}
  else location.replace('../online-class/index.html?student=1&role=student');
 }
-$('showRegister').addEventListener('click',()=>{$('registerForm').hidden=false;$('loginForm').hidden=true;$('showRegister').hidden=true;showMsg('Create your student account using your name, email and a password.');});
-$('cancelRegister').addEventListener('click',()=>{$('registerForm').hidden=true;$('loginForm').hidden=false;$('showRegister').hidden=false;showMsg('');});
+$('continueLogin').addEventListener('click',()=>{location.href='./login.html'+(location.search||'')});
+$('showRegister').addEventListener('click',()=>{$('continueLogin').hidden=true;$('registerForm').hidden=false;$('loginForm').hidden=true;$('showRegister').hidden=true;showMsg('Create your student account using your name, email and a password.');});
+$('cancelRegister').addEventListener('click',()=>{$('registerForm').hidden=true;$('loginForm').hidden=false;$('showRegister').hidden=false;$('continueLogin').hidden=true;showMsg('');});
 $('registerForm').addEventListener('submit',async event=>{
  event.preventDefault();const button=$('register');button.disabled=true;showMsg('Creating your student account…');
  try{
@@ -72,7 +74,7 @@ $('registerForm').addEventListener('submit',async event=>{
    if(profileError)console.warn('Profile will be completed by the server trigger:',profileError.message);
    showMsg('Account created. Opening Online Class…','success');goToStudentArea();return;
   }
-  showMsg('Your account has been created. Check your email for a confirmation link, then return here and log in. If you joined through a class invitation, use that same invitation link again after confirming your email.','success');
+  showMsg('Your account details were submitted, but Supabase has not signed you in yet. Check your email for a confirmation link. Open that link first, then return here and log in to enter the portal. The portal cannot open a private classroom until the account is confirmed and signed in.','success');$('continueLogin').hidden=false;
  }catch(e){showMsg(e?.message||'Could not create your account. Please try again.','error')}
  finally{button.disabled=false}
 });
