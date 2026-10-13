@@ -3,21 +3,22 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MalawiHub Student Classroom</title>
+<meta name="robots" content="noindex,follow">
+<title>Opening Student Portal · MalawiHub</title>
 </head>
 <body>
-<p style="font-family:Arial,sans-serif;padding:20px">Opening your classroom…</p>
+<p style="font-family:Arial,sans-serif;padding:20px">Opening MalawiHub Student Portal…</p>
 <script>
 (function(){
-  const p=new URLSearchParams(location.search);
-  const code=(p.get('code')||p.get('class')||p.get('join_code')||sessionStorage.getItem('malawihub_class_code')||'').trim().toUpperCase();
-  if(!code){
-    location.replace('./');
-    return;
-  }
+ const p=new URLSearchParams(location.search);
+ const code=(p.get('code')||p.get('class')||p.get('join_code')||sessionStorage.getItem('malawihub_class_code')||'').trim().toUpperCase();
+ if(code){
   sessionStorage.setItem('malawihub_class_code',code);
   sessionStorage.setItem('malawihub_student_portal','1');
-  location.replace('../online-class/index.html?student=1&role=student&code='+encodeURIComponent(code)+'&entered=1&v=20261013-student-invite-fix');
+  location.replace('../online-class/login.html?code='+encodeURIComponent(code));
+ }else{
+  location.replace('./');
+ }
 })();
 </script>
 </body>
