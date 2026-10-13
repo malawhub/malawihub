@@ -46,6 +46,41 @@ body.student-room .stage.student-floating-stage video{display:block;width:100%;h
 body.student-room .stage.student-floating-stage #waiting{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:5px;font-size:11px!important;background:#101828}
 body.student-room .stage.student-floating-stage #remoteAudio{display:none}
 @media(max-width:480px){body.student-room .stage.student-floating-stage{width:116px;top:6px;right:6px;border-radius:9px!important}}
+
+/* Student classroom: one large, single-column page that fits the phone screen.
+   Keep teaching content full-width; never place lesson material beside another panel. */
+body.student-room{margin:0!important;overflow-x:hidden}
+body.student-room .class-wrap{width:100%!important;max-width:none!important;box-sizing:border-box;padding:4px!important}
+body.student-room #studentDisplay{width:100%!important;height:calc(100dvh - 8px)!important;min-height:0!important;max-height:calc(100dvh - 8px)!important;box-sizing:border-box;margin:0!important;border-radius:8px!important;overflow:hidden!important}
+body.student-room .student-display-head{flex:0 0 auto;padding:5px 7px!important;gap:5px!important}
+body.student-room .student-display-head .btn{padding:7px 9px!important;font-size:12px!important}
+body.student-room .student-toolbar{flex:0 0 auto;padding:4px!important;gap:5px!important;overflow-x:auto;justify-content:flex-start!important}
+body.student-room .student-toolbar .btn{height:36px!important;min-width:38px!important;padding:0 8px!important}
+body.student-room .student-display-body{flex:1 1 auto!important;height:0!important;min-height:0!important;overflow:hidden!important;position:relative!important}
+body.student-room .student-view{width:100%!important;min-width:0!important;height:100%!important;min-height:0!important;max-height:100%!important;box-sizing:border-box!important;overflow:auto!important}
+body.student-room .student-view.file-view{padding:0!important;display:none}
+body.student-room .student-view.file-view.active{display:block!important}
+body.student-room #classFilePanel{width:100%!important;height:100%!important;min-height:0!important;max-height:100%!important;box-sizing:border-box!important;margin:0!important;padding:0!important;overflow:auto!important;border-radius:0!important}
+body.student-room #classFileView{width:100%!important;max-width:100%!important;min-width:0!important;box-sizing:border-box!important;overflow:auto!important;padding:0!important;margin:0!important}
+body.student-room #classFileTitle,body.student-room #classFileMeta{font-size:12px!important;margin:2px 5px!important}
+body.student-room #classFileView img,body.student-room #classFileView video,body.student-room #classFileView canvas.mh-slide-canvas{display:block!important;max-width:100%!important;width:auto!important;max-height:calc(100dvh - 115px)!important;height:auto!important;object-fit:contain!important;margin:0 auto!important}
+body.student-room #classFileView iframe,body.student-room #classFileView object,body.student-room #classFileView embed{display:block!important;width:100%!important;max-width:100%!important;height:calc(100dvh - 115px)!important;max-height:calc(100dvh - 115px)!important;min-height:0!important;border:0!important}
+body.student-room #classFileView .class-file-text{width:100%!important;max-width:100%!important;max-height:calc(100dvh - 115px)!important;min-height:0!important;box-sizing:border-box!important;overflow:auto!important;padding:8px!important;font-size:clamp(12px,3.5vw,16px)!important;line-height:1.4!important;overflow-wrap:anywhere!important}
+body.student-room .student-video-grid{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:6px!important;width:100%!important;box-sizing:border-box!important}
+body.student-room .student-video-tile{width:100%!important;max-width:100%!important;box-sizing:border-box!important}
+body.student-room .student-video-tile video{width:100%!important;max-height:28dvh!important;object-fit:contain!important}
+body.student-room .stage.student-floating-stage{width:clamp(88px,23vw,132px)!important;max-width:30vw!important;top:5px!important;right:5px!important}
+body.student-room .stage.student-floating-stage video{width:100%!important;height:100%!important;object-fit:contain!important}
+body.student-room .mh-slide-footer{display:none!important}
+@media(max-width:480px){
+ body.student-room .class-wrap{padding:2px!important}
+ body.student-room #studentDisplay{height:calc(100dvh - 4px)!important;max-height:calc(100dvh - 4px)!important}
+ body.student-room .student-display-head{padding:4px!important}
+ body.student-room .student-display-head .btn{padding:6px 7px!important;font-size:11px!important}
+ body.student-room #classFileView img,body.student-room #classFileView video,body.student-room #classFileView canvas.mh-slide-canvas{max-height:calc(100dvh - 100px)!important}
+ body.student-room #classFileView iframe,body.student-room #classFileView object,body.student-room #classFileView embed{height:calc(100dvh - 100px)!important;max-height:calc(100dvh - 100px)!important}
+}
+
 </style></head>
 <body>
 <div class="class-wrap">
