@@ -85,12 +85,33 @@ $('loginForm').addEventListener('submit',async event=>{
   if(!email||!password)throw Error('Enter your email address and password.');
   const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});if(error)throw error;
   const user=data.user;if(!user)throw Error('Login did not return a student account.');
-  const [profileResult,areaResult]=await Promise.all([
+  let [profileResult,areaResult]=await Promise.all([
    supabaseClient.from('profiles').select('role').eq('id',user.id).maybeSingle(),
    supabaseClient.from('user_area_roles').select('area').eq('user_id',user.id).eq('area','student').maybeSingle()
   ]);
   if(profileResult.error)throw profileResult.error;if(areaResult.error)throw areaResult.error;
-  if(profileResult.data?.role!=='student'&&!areaResult.data?.area){await supabaseClient.auth.signOut();throw Error('This account does not have Student Portal access. Please contact your administrator.')}
+  // Complete student access for an authenticated account. RLS limits these writes to this user's own ID,
+  // and the database trigger prevents a normal user from assigning themselves a privileged profile role.
+  if(!profileResult.data){
+   const {error:insertProfileError}=await supabaseClient.from('profiles').insert({
+    id:user.id,email:user.email||email,full_name:user.user_metadata?.full_name||user.user_metadata?.name||email,role:'student'
+   });
+   if(insertProfileError)throw Error('You are signed in, but your student profile could not be created: '+insertProfileError.message);
+   profileResult=await supabaseClient.from('profiles').select('role').eq('id',user.id).maybeSingle();
+   if(profileResult.error)throw profileResult.error;
+  }
+  if(!areaResult.data){
+   const {error:areaInsertError}=await supabaseClient.from('user_area_roles').upsert({
+    user_id:user.id,area:'student',display_name:user.user_metadata?.full_name||user.user_metadata?.name||email
+   },{onConflict:'user_id,area'});
+   if(areaInsertError)throw Error('You are signed in, but student portal access could not be saved: '+areaInsertError.message);
+   areaResult=await supabaseClient.from('user_area_roles').select('area').eq('user_id',user.id).eq('area','student').maybeSingle();
+   if(areaResult.error)throw areaResult.error;
+  }
+  if(profileResult.data?.role!=='student'&&!areaResult.data?.area){
+   showMsg('Your account is signed in, but student access could not be verified. Please contact MalawiHub support.','error');
+   return;
+  }
   const code=requestedClassCode();
   if(code){sessionStorage.setItem('malawihub_class_code',code);sessionStorage.setItem('malawihub_student_portal','1');showMsg('Login successful. Opening your class…','success');location.replace('../student-portal/classroom.html?code='+encodeURIComponent(code));return}
   sessionStorage.setItem('malawihub_student_portal','1');showMsg('Login successful. Opening Online Class…','success');location.replace('../online-class/index.html?student=1&role=student');
