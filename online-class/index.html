@@ -102,7 +102,7 @@ if(studentPortalMode && params.get('entered')!=='1'){ const inviteCode=(params.g
 if(adminMode){$('areaLabel').textContent='';} else if(teacherPortalMode){$('areaLabel').textContent='Teacher Portal · Private Classroom';} else {$('areaLabel').textContent='Student Portal · Private Classroom';}
 if(adminMode||teacherPortalMode||studentPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent=adminMode?'Administrator Class':teacherPortalMode?'Teacher Class':'Student Class';$('modeHelp').textContent=adminMode?'Administrator mode. Only the administrator can control this class.':teacherPortalMode?'Teacher mode. Students join through the Student Portal using the class code.':'Student mode. Teacher and administrator controls are unavailable.';const codeFromUrl=params.get('code')||storedStudentCode;if(codeFromUrl)$('code').value=codeFromUrl;$('name').value=sessionStorage.getItem('malawihub_student_name')||'Student';if(studentPortalMode){$('studentBtn').classList.remove('hidden');$('studentBtn').textContent='↻ Retry Joining Class';}else $('modePanel').classList.add('hidden');}
 if(!adminMode&&!teacherPortalMode&&!studentPortalMode){const codeFromUrl=(params.get('code')||'').trim().toUpperCase();if(codeFromUrl)$('code').value=codeFromUrl;const savedStudentName=sessionStorage.getItem('malawihub_student_name');if(savedStudentName)$('name').value=savedStudentName;}
-let channel,resourceChannel,roomCode='',userName='',privateNoteShown=false,sharedFile=null,role=adminMode?'admin':(teacherPortalMode?'teacher':(studentPortalMode?'student':'')),localStream=null,studentCameraStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null,paused=false,pausedAt=0,pausedTotalMs=0,lastTimerSyncAt=0,classRecorder=null,classRecordingChunks=[],classRecordingMime='',classRecordingUploadPromise=null,studentTimerAnchorRemaining=null,studentTimerAnchorAt=0;
+let channel,resourceChannel,roomCode='',userName='',privateNoteShown=false,sharedFile=null,role=adminMode?'admin':(teacherPortalMode?'teacher':(studentPortalMode?'student':'')),localStream=null,studentCameraStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null,paused=false,pausedAt=0,pausedTotalMs=0,lastTimerSyncAt=0,classRecorder=null,classRecordingChunks=[],classRecordingMime='',classRecordingUploadPromise=null,classRecordingCanvas=null,classRecordingCanvasStream=null,classRecordingVideoNodes=[],classRecordingFrameHandle=0,studentTimerAnchorRemaining=null,studentTimerAnchorAt=0;
 let studentDisplayEventToken=0;let controllerPeerId='';const peers=new Map();const iceQueues=new Map();const state={students:new Map(),joined:new Map()};let myId='';let joinRetryTimer=null;let joinRetryCount=0;
 // WebRTC connectivity: use public STUN plus the configured short-lived Cloudflare TURN relay.
 let iceServers=[
@@ -581,33 +581,82 @@ function updateAdminPauseUI(){if(!controlMode)return;const b=$('adminPauseBtn');
 function getTimerRemainingSeconds(){if(role==='student'&&Number.isFinite(studentTimerAnchorRemaining)){const elapsed=paused?0:Math.max(0,Math.floor((performance.now()-studentTimerAnchorAt)/1000));return Math.max(0,Math.floor(studentTimerAnchorRemaining-elapsed))}if(!startedAt)return Math.max(0,duration*60);const now=paused&&pausedAt?pausedAt:Date.now(),elapsed=Math.max(0,Math.floor((now-new Date(startedAt).getTime()-pausedTotalMs)/1000));return Math.max(0,duration*60-elapsed)}
 function startTimer(){clearInterval(timerInt);const syncTimer=()=>{if(!startedAt)return;const left=getTimerRemainingSeconds(),value=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');$('timer').textContent=value;if($('adminTimer'))$('adminTimer').textContent=value;if(role==='student'&&$('studentTopTimer'))$('studentTopTimer').textContent=value;if(controlMode&&channel&&Date.now()-lastTimerSyncAt>=3000){lastTimerSyncAt=Date.now();send({type:'timer-sync',from:getMyId(),to:'*',startedAt,duration,paused,pausedAt,pausedTotalMs,remainingSeconds:left}).catch(e=>console.warn('Timer sync broadcast failed',e))}if(left<=0){clearInterval(timerInt);if(['teacher','admin'].includes(role))endRoom(true);else endRoom(false)}};if($('adminTimer'))$('adminTimer').textContent=$('timer').textContent||'00:00';syncTimer();timerInt=setInterval(syncTimer,1000)}
 async function endRoom(broadcast=true){clearInterval(timerInt);if(['teacher','admin'].includes(role))await finishClassRecording();if(controlMode&&sharedFile&&broadcast&&channel){try{await channel.send({type:'broadcast',event:'class-file',payload:{code:roomCode,action:'hide'}})}catch(e){}}clearClassFile();paused=false;pausedAt=0;pausedTotalMs=0;if(broadcast&&['teacher','admin'].includes(role)&&channel)await send({type:'end',from:getMyId(),to:'*'});msg('Class ended');$('startBtn').disabled=true;localStream?.getTracks().forEach(t=>t.stop());studentCameraStream?.getTracks().forEach(t=>t.stop());screenStream?.getTracks().forEach(t=>t.stop());peers.forEach(p=>p.close());peers.clear();if(['teacher','admin'].includes(role)&&classId)try{const q=supabaseClient.from('online_classes').update({status:'ended'}).eq('id',classId);if(role==='teacher')q.eq('teacher_id',authUser?.id);await q}catch(e){console.warn(e)}}
+function makeRecordingVideo(stream){
+ const video=document.createElement('video');video.muted=true;video.autoplay=true;video.playsInline=true;
+ video.setAttribute('playsinline','');video.style.cssText='position:fixed;left:-10000px;top:0;width:2px;height:2px;opacity:0;pointer-events:none';
+ video.srcObject=stream;document.body.appendChild(video);video.play().catch(()=>{});classRecordingVideoNodes.push(video);return video;
+}
+function drawRecordingFrame(ctx,canvas,screenVideo,cameraVideo,board){
+ const W=canvas.width,H=canvas.height,mainW=Math.round(W*.70),boardX=mainW;
+ ctx.fillStyle='#101828';ctx.fillRect(0,0,W,H);
+ const screenActive=!!(screenStream?.getVideoTracks().some(t=>t.readyState==='live')&&screenVideo?.readyState>=2&&screenVideo.videoWidth);
+ const mainVideo=screenActive?screenVideo:cameraVideo;
+ if(mainVideo?.readyState>=2&&mainVideo.videoWidth){
+  const sw=mainVideo.videoWidth,sh=mainVideo.videoHeight,scale=Math.min(mainW/sw,H/sh),dw=sw*scale,dh=sh*scale;
+  ctx.fillStyle='#000';ctx.fillRect(0,0,mainW,H);ctx.drawImage(mainVideo,(mainW-dw)/2,(H-dh)/2,dw,dh);
+ }else{
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,mainW,H);ctx.fillStyle='#344054';ctx.font='bold 30px sans-serif';ctx.fillText(screenActive?'Loading shared screen…':'MalawiHub Class Recording',36,60);
+ }
+ ctx.fillStyle='#fff';ctx.fillRect(boardX,0,W-boardX,H);
+ ctx.fillStyle='#101828';ctx.fillRect(boardX,0,W-boardX,62);ctx.fillStyle='#fff';ctx.font='bold 26px sans-serif';ctx.fillText('SHARED WHITEBOARD',boardX+22,40);
+ if(board&&board.width&&board.height){
+  const pad=18,areaW=W-boardX-pad*2,areaH=H-62-pad*2,scale=Math.min(areaW/board.width,areaH/board.height),dw=board.width*scale,dh=board.height*scale;
+  ctx.fillStyle='#fff';ctx.fillRect(boardX,62,W-boardX,H-62);ctx.drawImage(board,boardX+pad+(areaW-dw)/2,62+pad+(areaH-dh)/2,dw,dh);
+ }else{ctx.fillStyle='#667085';ctx.font='22px sans-serif';ctx.fillText('Whiteboard unavailable',boardX+24,112);}
+ if(screenActive&&cameraVideo?.readyState>=2&&cameraVideo.videoWidth){
+  const cw=260,ch=160,x=mainW-cw-24,y=H-ch-24;ctx.fillStyle='#fff';ctx.fillRect(x-4,y-4,cw+8,ch+8);
+  const scale=Math.min(cw/cameraVideo.videoWidth,ch/cameraVideo.videoHeight),dw=cameraVideo.videoWidth*scale,dh=cameraVideo.videoHeight*scale;
+  ctx.fillStyle='#000';ctx.fillRect(x,y,cw,ch);ctx.drawImage(cameraVideo,x+(cw-dw)/2,y+(ch-dh)/2,dw,dh);
+ }
+ ctx.fillStyle='rgba(16,24,40,.8)';ctx.fillRect(0,H-42,mainW,42);ctx.fillStyle='#fff';ctx.font='20px sans-serif';ctx.fillText(screenActive?'Shared screen + whiteboard':'Teacher camera + whiteboard',20,H-14);
+}
+function stopRecordingCompositor(){
+ if(classRecordingFrameHandle)cancelAnimationFrame(classRecordingFrameHandle);classRecordingFrameHandle=0;
+ classRecordingVideoNodes.forEach(v=>{try{v.pause();v.srcObject=null;v.remove()}catch(e){}});classRecordingVideoNodes=[];
+ classRecordingCanvasStream?.getTracks().forEach(t=>t.stop());classRecordingCanvasStream=null;classRecordingCanvas=null;
+}
 async function startClassRecording(){
  if(!['teacher','admin'].includes(role)||!classId||!localStream||!window.MediaRecorder)return;
  try{
   if(classRecorder&&classRecorder.state!=='inactive')return;
   classRecordingChunks=[];classRecordingMime='';
+  const canvas=document.createElement('canvas');canvas.width=1600;canvas.height=900;classRecordingCanvas=canvas;
+  const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Canvas recording is unavailable');
+  const cameraTrack=localStream.getVideoTracks()[0];const cameraStream=cameraTrack?new MediaStream([cameraTrack]):null;
+  const cameraVideo=cameraStream?makeRecordingVideo(cameraStream):null;
+  const screenVideo=screenStream?makeRecordingVideo(screenStream):null;
+  const board=$('mhTeacherBoard');
+  const paint=()=>{try{drawRecordingFrame(ctx,canvas,screenVideo,cameraVideo,board)}catch(e){console.warn('Recording frame skipped',e)}classRecordingFrameHandle=requestAnimationFrame(paint)};
+  paint();
+  if(!canvas.captureStream)throw new Error('Canvas capture is not supported by this browser');
+  classRecordingCanvasStream=canvas.captureStream(15);
+  localStream.getAudioTracks().forEach(t=>classRecordingCanvasStream.addTrack(t));
   const options=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].map(mimeType=>({mimeType})).find(o=>MediaRecorder.isTypeSupported(o.mimeType));
   classRecordingMime=options?.mimeType||'';
-  classRecorder=new MediaRecorder(localStream,options||undefined);
+  classRecorder=new MediaRecorder(classRecordingCanvasStream,options||undefined);
   classRecorder.ondataavailable=e=>{if(e.data&&e.data.size)classRecordingChunks.push(e.data)};
   classRecordingUploadPromise=new Promise(resolve=>{classRecorder.addEventListener('stop',resolve,{once:true})});
   classRecorder.start(1000);
-  console.log('Class recording started',classRecordingMime||'browser default');
- }catch(e){console.warn('Class recording could not start',e);classRecorder=null;msg('Class is live, but recording is not supported on this browser.');}
+  console.log('Composite class recording started',classRecordingMime||'browser default');
+ }catch(e){console.warn('Class recording could not start',e);classRecorder=null;stopRecordingCompositor();msg('Class is live, but recording is not supported on this browser.');}
 }
 async function finishClassRecording(){
  const recorder=classRecorder;if(!recorder)return;
  try{
-  if(recorder.state!=='inactive'){recorder.requestData();recorder.stop();await Promise.race([classRecordingUploadPromise||Promise.resolve(),new Promise(resolve=>setTimeout(resolve,5000))]);}
-  const chunks=classRecordingChunks.slice();classRecorder=null;classRecordingChunks=[];
+  if(recorder.state!=='inactive'){
+   const stopped=classRecordingUploadPromise||new Promise(resolve=>recorder.addEventListener('stop',resolve,{once:true}));
+   recorder.stop();await Promise.race([stopped,new Promise(resolve=>setTimeout(resolve,15000))]);
+   await new Promise(resolve=>setTimeout(resolve,100));
+  }
+  const chunks=classRecordingChunks.slice();classRecorder=null;classRecordingChunks=[];classRecordingUploadPromise=null;stopRecordingCompositor();
   if(!chunks.length||!classId||!supabaseClient)return;
   const blob=new Blob(chunks,{type:classRecordingMime||chunks[0]?.type||'video/webm'});if(!blob.size)return;
   const ext=blob.type.includes('mp4')?'mp4':'webm';const path='classes/'+classId+'/'+Date.now()+'.'+ext;
   const {data,error}=await supabaseClient.storage.from('class-recordings').upload(path,blob,{contentType:blob.type||'video/webm',cacheControl:'3600',upsert:false});if(error)throw error;
   const recording={path:data.path,mimeType:blob.type||'video/webm',size:blob.size,createdAt:new Date().toISOString(),title:(classData?.title||'Class')+' recording'};
   const {error:saveError}=await supabaseClient.from('online_classes').update({recording}).eq('id',classId);if(saveError)throw saveError;
-  classData={...(classData||{}),recording};console.log('Class recording saved',recording.path);
- }catch(e){console.error('Class recording upload failed',e);msg('Class ended, but the recording could not be saved: '+(e.message||'upload failed'))}
+  classData={...(classData||{}),recording};console.log('Composite class recording saved',recording.path);
+ }catch(e){console.error('Class recording upload failed',e);msg('Class ended, but the recording could not be saved: '+(e.message||'upload failed'));stopRecordingCompositor();}
 }
 async function loadClassRecording(){
  const panel=$('classRecordingPanel');if(!panel||!classId||role!=='student')return;
