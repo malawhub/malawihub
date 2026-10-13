@@ -4,92 +4,24 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,follow">
-<title>Student Portal · MalawiHub</title>
-<link rel="stylesheet" href="../css/style.css">
-<style>
-:root{color-scheme:light}body{margin:0;background:#f4f7fb;color:#101828;font-family:system-ui,-apple-system,Segoe UI,sans-serif}.wrap{max-width:980px;margin:auto;padding:18px}.head{background:#101828;color:#fff;border-radius:18px;padding:20px}.head a{color:#cfe0ff;text-decoration:none}.brand{font-size:22px;font-weight:800;margin-top:10px}.intro{padding:18px 4px 8px}.intro h1{margin:0 0 6px;font-size:clamp(25px,5vw,34px)}.muted{color:#667085;line-height:1.5}.join{background:#fff;padding:18px;border-radius:16px;box-shadow:0 4px 18px #0000000b;margin:14px 0}.join-row{display:flex;gap:10px;flex-wrap:wrap}.input{min-width:0;flex:1;padding:12px;border:1px solid #cbd5e1;border-radius:10px;font:inherit}.btn{display:inline-flex;justify-content:center;align-items:center;gap:7px;padding:12px 15px;border:0;border-radius:10px;font:700 14px system-ui;cursor:pointer;text-decoration:none}.primary{background:#0d6efd;color:#fff}.secondary{background:#eef2f7;color:#344054}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:14px 0}.tile{display:block;background:#fff;border:1px solid #e4e7ec;border-radius:15px;padding:17px;color:#101828;text-decoration:none;box-shadow:0 3px 12px #00000008}.tile:focus,.tile:hover{border-color:#84adff}.tile-icon{font-size:28px;line-height:1.2}.tile h2{font-size:17px;margin:10px 0 5px}.tile p{font-size:13px;line-height:1.5;color:#667085;margin:0}.invites{background:#eef4ff;border:1px solid #c7d7fe;border-radius:15px;padding:16px;margin:14px 0}.invite-actions{display:flex;gap:9px;flex-wrap:wrap}.account{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;background:#fff;border:1px solid #e4e7ec;border-radius:15px;padding:14px;margin-top:14px}.status{font-size:13px;color:#475467;overflow-wrap:anywhere}footer{padding:18px 0;color:#667085;font-size:12px}@media(max-width:520px){.join-row .btn{width:100%}.wrap{padding:12px}.head{padding:17px}}
-</style>
-</head>
-<body>
-<main class="wrap">
-<header class="head">
-<a href="../">← Back to MalawiHub</a>
-<div class="brand">🇲🇼 MalawiHub · Student Portal</div>
-</header>
-<section class="intro">
-<h1>Welcome to your Student Portal</h1>
-<p class="muted">Join your teacher’s class, access learning materials and invite a teacher to connect with you.</p>
-</section>
-<section class="join" aria-labelledby="joinTitle">
-<h2 id="joinTitle">Join a Teacher’s Class</h2>
-<p class="muted">Enter the class code your teacher shared. If you opened an invitation link, its code will be filled in for you.</p>
-<form id="joinForm" class="join-row">
-<input id="classCode" class="input" maxlength="32" autocomplete="off" placeholder="Class code (e.g. CHEM101)" aria-label="Class code">
-<button class="btn primary" type="submit">Join Class →</button>
-</form>
-</section>
-<h2>Learning and study tools</h2>
-<div class="grid">
-<a class="tile" href="../resources/"><div class="tile-icon" aria-hidden="true">📚</div><h2>MalawiHub Resources</h2><p>One place for subject notes, study materials and learning resources.</p></a>
-<a class="tile" href="../papers/"><div class="tile-icon" aria-hidden="true">📝</div><h2>Past Papers</h2><p>Find examination papers to practise and prepare.</p></a>
-<a class="tile" href="../online-class/?student=1&amp;role=student"><div class="tile-icon" aria-hidden="true">🧑‍🏫</div><h2>Shared Whiteboard and Class Notes</h2><p>Join your class to view the teacher’s shared board, notes and lesson materials.</p></a>
-</div>
-<section class="invites">
-<h2>Invite a Teacher</h2>
-<p class="muted">Send a teacher the invitation link so they can open the MalawiHub Teacher Portal and set up a class for you.</p>
-<div class="invite-actions">
-<a class="btn primary" id="whatsappInvite" href="https://wa.me/?text=Hello%21%20Please%20join%20me%20on%20MalawiHub%20Online%20Class%20and%20create%20a%20class%20for%20us%3A%20https%3A%2F%2Fmalawihub.pages.dev%2Fteacher-portal%2F">Invite on WhatsApp</a>
-<button class="btn secondary" id="copyInvite" type="button">Copy Teacher Invitation Link</button>
-</div>
-<p id="inviteStatus" class="status" role="status" aria-live="polite"></p>
-</section>
-<section class="account">
-<div><strong>Student Account</strong><div id="accountStatus" class="status">Checking your sign-in…</div></div>
-<button id="signOut" class="btn secondary" type="button">Sign out</button>
-</section>
-<footer>MalawiHub Online Class · Student access</footer>
-</main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../js/supabase.js?v=20261013-student-dashboard"></script>
+<title>Opening Student Login · MalawiHub</title>
 <script>
-const params=new URLSearchParams(location.search);
-const codeInput=document.getElementById('classCode');
-const incoming=(params.get('code')||params.get('class')||params.get('join_code')||sessionStorage.getItem('malawihub_class_code')||'').trim().toUpperCase();
-if(incoming){codeInput.value=incoming;sessionStorage.setItem('malawihub_class_code',incoming)}
-codeInput.addEventListener('input',()=>codeInput.setCustomValidity(''));
-document.getElementById('joinForm').addEventListener('submit',async event=>{
- event.preventDefault();
- const code=codeInput.value.trim().toUpperCase();
- if(!code){codeInput.focus();codeInput.setCustomValidity('Enter the class code shared by your teacher.');codeInput.reportValidity();return}
- codeInput.setCustomValidity('');
- sessionStorage.setItem('malawihub_class_code',code);
- sessionStorage.setItem('malawihub_student_portal','1');
- const button=document.querySelector('#joinForm button[type="submit"]');
- button.disabled=true;button.textContent='Opening class…';
- try{
-  const {data,error}=await supabaseClient.auth.getSession();
-  if(error)throw error;
-  if(data?.session?.user){
-   location.href='../online-class/?student=1&role=student&entered=1&code='+encodeURIComponent(code);
-  }else{
-   location.href='../online-class/login.html?code='+encodeURIComponent(code);
+(function () {
+  const params = new URLSearchParams(location.search);
+  const code = (params.get('code') || params.get('class') || params.get('join_code') || '').trim().toUpperCase();
+  if (code) {
+    try { sessionStorage.setItem('malawihub_class_code', code); } catch (_) {}
+    params.set('code', code);
+    params.delete('class');
+    params.delete('join_code');
   }
- }catch(e){
-  button.disabled=false;button.textContent='Join Class →';
-  location.href='../online-class/login.html?code='+encodeURIComponent(code);
- }
-});
-const teacherUrl='https://malawihub.pages.dev/teacher-portal/';
-document.getElementById('copyInvite').addEventListener('click',async()=>{
- const status=document.getElementById('inviteStatus');
- try{await navigator.clipboard.writeText(teacherUrl);status.textContent='Teacher invitation link copied.'}
- catch(e){status.textContent=teacherUrl;const range=document.createRange();const holder=document.createElement('input');holder.value=teacherUrl;holder.setAttribute('aria-label','Teacher invitation link');document.querySelector('.invites').appendChild(holder);holder.select();try{document.execCommand('copy');status.textContent='Teacher invitation link copied.'}catch(_){status.textContent='Copy this link and send it to your teacher: '+teacherUrl}holder.remove()}
-});
-(async()=>{
- const status=document.getElementById('accountStatus');
- try{const {data,error}=await supabaseClient.auth.getSession();if(error)throw error;const user=data?.session?.user;if(user){status.textContent=user.email||'Signed in';document.getElementById('signOut').addEventListener('click',async()=>{const {error}=await supabaseClient.auth.signOut();if(error){status.textContent='Could not sign out. Please try again.';return}location.replace('../online-class/login.html')})}else{status.textContent='Not signed in. Sign in when you join a class.';document.getElementById('signOut').textContent='Student Login';document.getElementById('signOut').addEventListener('click',()=>location.href='../online-class/login.html')}}
- catch(e){status.textContent='Account status unavailable';document.getElementById('signOut').textContent='Student Login';document.getElementById('signOut').addEventListener('click',()=>location.href='../online-class/login.html')}
+  const query = params.toString();
+  location.replace('../online-class/login.html' + (query ? '?' + query : '') + location.hash);
 })();
 </script>
+</head>
+<body>
+<p>Opening MalawiHub Student Login…</p>
+<noscript><p><a href="../online-class/login.html">Continue to Student Login</a></p></noscript>
 </body>
 </html>
