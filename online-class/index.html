@@ -1251,6 +1251,6 @@ $('privateNotes').addEventListener('input',()=>{clearTimeout(window.__privateNot
 window.addEventListener('beforeunload',()=>{if(channel&&roomCode)channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'leave',id:getMyId(),name:userName}});if(resourceChannel)supabaseClient.removeChannel(resourceChannel)});
 </script>
 <div id="classSlideFooter" class="mh-slide-footer hidden" aria-label="Classroom presentation page controls"></div>
-<script src="../js/classroom-whiteboard.js?v=20261012-whiteboard-rebind-after-view"></script>
+<script src="../js/classroom-whiteboard.js?v=20261014-vertical-stroke-fix"></script>
 </body>
 </html>
