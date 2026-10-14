@@ -61,16 +61,17 @@ public class MainActivity extends Activity {
             }
             @Override public void onPermissionRequest(final android.webkit.PermissionRequest request){
                 runOnUiThread(()->{
-                    if(request.getOrigin()!=null && request.getOrigin().toString().startsWith("https://malawihub.pages.dev/")){
-                        boolean micOk=Build.VERSION.SDK_INT<23 || checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED;
-                        boolean cameraOk=Build.VERSION.SDK_INT<23 || checkSelfPermission(android.Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED;
-                        java.util.ArrayList<String> allowed=new java.util.ArrayList<>();
-                        for(String resource:request.getResources()){
-                            if(android.webkit.PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource) && micOk) allowed.add(resource);
-                            if(android.webkit.PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(resource) && cameraOk) allowed.add(resource);
-                        }
-                        if(!allowed.isEmpty()) request.grant(allowed.toArray(new String[0])); else request.deny();
-                    } else request.deny();
+                    android.net.Uri origin=request.getOrigin();
+                    boolean trusted=origin!=null && "https".equalsIgnoreCase(origin.getScheme()) && "malawihub.pages.dev".equalsIgnoreCase(origin.getHost());
+                    if(!trusted){request.deny();return;}
+                    boolean micOk=Build.VERSION.SDK_INT<23 || checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED;
+                    boolean cameraOk=Build.VERSION.SDK_INT<23 || checkSelfPermission(android.Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED;
+                    java.util.ArrayList<String> allowed=new java.util.ArrayList<>();
+                    for(String resource:request.getResources()){
+                        if(android.webkit.PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(resource) && micOk) allowed.add(resource);
+                        if(android.webkit.PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(resource) && cameraOk) allowed.add(resource);
+                    }
+                    if(!allowed.isEmpty()) request.grant(allowed.toArray(new String[0])); else request.deny();
                 });
             }
         });
@@ -89,19 +90,31 @@ public class MainActivity extends Activity {
             @android.webkit.JavascriptInterface public void nativeStudentJoined(String id){if(nativeScreen!=null)nativeScreen.studentJoined(id);}
             @android.webkit.JavascriptInterface public void nativeSignal(String json){try{if(nativeScreen!=null)nativeScreen.signal(new JSONObject(json));}catch(Exception ignored){}}
         },"MalawiHubNative");
-        loadTeacherUrlAfterPermissions();
     }
     private void requestMediaPermissions(){
         if(Build.VERSION.SDK_INT>=23){
             boolean camera=checkSelfPermission(android.Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED;
             boolean mic=checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED;
-            if(!mic){ requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO},7002);return; } if(!camera){ requestPermissions(new String[]{android.Manifest.permission.CAMERA},7004);return; }
+            if(!mic || !camera){
+                java.util.ArrayList<String> missing=new java.util.ArrayList<>();
+                if(!mic) missing.add(android.Manifest.permission.RECORD_AUDIO);
+                if(!camera) missing.add(android.Manifest.permission.CAMERA);
+                requestPermissions(missing.toArray(new String[0]),7005);
+                return;
+            }
         }
         loadTeacherUrlAfterPermissions();
     }
-    private void showMediaPermissionError(){TextView m=text("Microphone permission is required for MalawiHub Live Class. Open Android Settings > Apps > teacher > Permissions and allow Microphone and Camera, then reopen the app.",16,Color.DKGRAY);m.setPadding(32,60,32,40);m.setGravity(Gravity.CENTER);setContentView(m);}
+    private void showMediaPermissionError(){TextView m=text("Camera and microphone permissions are required for MalawiHub Live Class. Allow both permissions in the Android permission prompt, then reopen the app.",16,Color.DKGRAY);m.setPadding(32,60,32,40);m.setGravity(Gravity.CENTER);setContentView(m);}
     private void loadTeacherUrlAfterPermissions(){if(webView!=null && webView.getUrl()==null) webView.loadUrl(TEACHER_URL);}
-    @Override public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] grantResults){super.onRequestPermissionsResult(requestCode,permissions,grantResults);if(requestCode==7002 || requestCode==7004){boolean mic=Build.VERSION.SDK_INT<23 || checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED; boolean camera=Build.VERSION.SDK_INT<23 || checkSelfPermission(android.Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED; if(mic)loadTeacherUrlAfterPermissions();else showMediaPermissionError();}}
+    @Override public void onRequestPermissionsResult(int requestCode,String[] permissions,int[] grantResults){
+        super.onRequestPermissionsResult(requestCode,permissions,grantResults);
+        if(requestCode==7005){
+            boolean mic=Build.VERSION.SDK_INT<23 || checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED;
+            boolean camera=Build.VERSION.SDK_INT<23 || checkSelfPermission(android.Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED;
+            if(mic && camera) loadTeacherUrlAfterPermissions(); else showMediaPermissionError();
+        }
+    }
         private void showError(){TextView m=text("Unable to open MalawiHub Teacher Portal. Check your internet connection and try again.",17,Color.DKGRAY);m.setPadding(40,80,40,40);setContentView(m);}
     
     @Override protected void onActivityResult(int requestCode,int resultCode,Intent data){
