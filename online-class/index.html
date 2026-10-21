@@ -366,6 +366,54 @@ input,select,textarea,button,video,iframe,canvas,img,table{max-width:100%}
  .mh-slide-canvas{max-height:calc(100dvh - 105px)}
 }
 </style>
+
+<style id="mh-orientation-class-fallback">
+/* Explicit orientation classes provide a fallback for mobile browsers that delay orientation media-query updates. */
+html.mh-device-portrait .class-wrap{width:100%;max-width:none;min-width:0}
+html.mh-device-portrait .grid2{grid-template-columns:minmax(0,1fr)!important}
+html.mh-device-landscape .class-wrap{width:100%;max-width:none;min-width:0;padding:5px 8px}
+html.mh-device-landscape .grid2{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)!important;gap:8px}
+html.mh-device-landscape .video-grid{grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr))}
+html.mh-device-landscape .learning-grid{grid-template-columns:repeat(auto-fit,minmax(min(125px,100%),1fr))}
+html.mh-device-landscape .admin-view .stage,html.mh-device-landscape .student-view .stage{height:calc(100dvh - 105px);min-height:120px}
+html.mh-device-landscape .mh-board-wrap{height:calc(100dvh - 75px);min-height:0}
+html.mh-device-landscape .mh-board-canvas{height:calc(100dvh - 125px);min-height:120px}
+html.mh-device-portrait .admin-view .stage,html.mh-device-portrait .student-view .stage{height:auto;min-height:38dvh}
+html.mh-device-portrait .mh-board-wrap{height:auto;min-height:0}
+html.mh-device-portrait .mh-board-canvas{height:calc(100dvh - 230px);min-height:220px}
+</style>
+<script id="mh-device-orientation-detection">
+(function(){
+  var root=document.documentElement;
+  var pending=false;
+  function updateDeviceOrientation(){
+    pending=false;
+    var w=Math.max(root.clientWidth||0,window.innerWidth||0);
+    var h=Math.max(root.clientHeight||0,window.innerHeight||0);
+    if(window.visualViewport){
+      w=Math.max(w,Math.round(window.visualViewport.width||0));
+      h=Math.max(h,Math.round(window.visualViewport.height||0));
+    }
+    var landscape=w>h;
+    root.classList.toggle('mh-device-landscape',landscape);
+    root.classList.toggle('mh-device-portrait',!landscape);
+    root.setAttribute('data-device-orientation',landscape?'landscape':'portrait');
+  }
+  function scheduleUpdate(){
+    if(pending)return;
+    pending=true;
+    if(window.requestAnimationFrame)window.requestAnimationFrame(updateDeviceOrientation);
+    else updateDeviceOrientation();
+  }
+  updateDeviceOrientation();
+  window.addEventListener('resize',scheduleUpdate,{passive:true});
+  window.addEventListener('orientationchange',function(){scheduleUpdate();setTimeout(scheduleUpdate,150);setTimeout(scheduleUpdate,400);},{passive:true});
+  window.addEventListener('pageshow',scheduleUpdate,{passive:true});
+  if(window.visualViewport)window.visualViewport.addEventListener('resize',scheduleUpdate,{passive:true});
+  if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener('change',scheduleUpdate);
+})();
+</script>
+
 </head>
 <body>
 <div class="class-wrap">
