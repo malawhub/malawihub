@@ -45,9 +45,9 @@
   function redraw(){if(!ctx)return;ctx.clearRect(0,0,canvas.clientWidth,canvas.clientHeight);strokes.forEach(s=>drawStroke(s,false))}
   function addStroke(s){const i=strokes.findIndex(x=>x.id===s.id);if(i>=0)strokes[i]=s;else strokes.push(s);redraw()}
   async function send(action,payload){if(!channel||!room)return;try{await channel.send({type:'broadcast',event:'whiteboard',payload:{code:room,type:'whiteboard',action,...payload}})}catch(e){console.warn('whiteboard send',e)}}
-  function down(e){if(!['teacher','admin','student'].includes(role))return;drawing=true;canvas.setPointerCapture?.(e.pointerId);const p=pos(e);current={id:(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random()),color:$('mhBoardColor')?.value||'#111111',size:Number($('mhBoardSize')?.value||4),eraser:tool==='eraser',points:[p],author:window.malawiClassUserId||''};strokes.push(current);drawStroke(current,false)}
-  function move(e){if(!drawing||!current)return;current.points.push(pos(e));drawStroke(current,true);const now=Date.now();if(now-lastSent>100){lastSent=now;send('whiteboard-segment',{stroke:{id:current.id,color:current.color,size:current.size,eraser:current.eraser,points:current.points.slice(-2),author:current.author}})}}
-  function up(){if(!drawing)return;drawing=false;if(current){send('whiteboard-stroke',{stroke:current});current=null}}
+  function down(e){if(!['teacher','admin','student'].includes(role))return;e.preventDefault();drawing=true;try{canvas.setPointerCapture?.(e.pointerId)}catch(_){}const p=pos(e);current={id:(crypto.randomUUID?crypto.randomUUID():Date.now()+'-'+Math.random()),color:$('mhBoardColor')?.value||'#111111',size:Number($('mhBoardSize')?.value||4),eraser:tool==='eraser',points:[p],author:window.malawiClassUserId||''};strokes.push(current);drawStroke(current,false)}
+  function move(e){if(!drawing||!current)return;e.preventDefault();const p=pos(e),last=current.points[current.points.length-1];if(!last||p.x!==last.x||p.y!==last.y){current.points.push(p);drawStroke(current,true)}const now=Date.now();if(now-lastSent>60){lastSent=now;send('whiteboard-segment',{stroke:{id:current.id,color:current.color,size:current.size,eraser:current.eraser,points:current.points.slice(-2),author:current.author}})}}
+  function up(e){if(e?.cancelable)e.preventDefault();if(!drawing)return;drawing=false;try{if(e?.pointerId!==undefined&&canvas.hasPointerCapture?.(e.pointerId))canvas.releasePointerCapture(e.pointerId)}catch(_){}if(current){send('whiteboard-stroke',{stroke:current});current=null}}
   function setTool(t){tool=t;$('mhBoardPen')?.classList.toggle('primary',t==='pen');$('mhBoardEraser')?.classList.toggle('primary',t==='eraser')}
   function clearBoard(){strokes=[];redraw();send('whiteboard-clear',{})}
   function undo(){if(!strokes.length)return;strokes.pop();redraw();send('whiteboard-state',{strokes})}
@@ -55,11 +55,11 @@
   function bind(){
     if(canvas.dataset.mhWbBound!=='1'){
       canvas.dataset.mhWbBound='1';
-      canvas.addEventListener('pointerdown',down);
-      canvas.addEventListener('pointermove',move);
-      canvas.addEventListener('pointerup',up);
-      canvas.addEventListener('pointercancel',up);
-      canvas.addEventListener('pointerleave',()=>{if(drawing)up()});
+      canvas.style.touchAction='none';
+      canvas.addEventListener('pointerdown',down,{passive:false});
+      canvas.addEventListener('pointermove',move,{passive:false});
+      canvas.addEventListener('pointerup',up,{passive:false});
+      canvas.addEventListener('pointercancel',up,{passive:false});
     }
     const bindButton=(id,handler)=>{
       const button=$(id);
