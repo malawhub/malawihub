@@ -307,6 +307,65 @@ html,body{width:100%;min-width:0}
  .admin-display-head #adminDisplaySwitcher .btn{padding:5px 7px}
 }
 </style>
+<style id="mh-whole-page-orientation">
+/* Whole Online Class page: respond to the device's current orientation, not only the teaching display. */
+html{width:100%;min-width:0;min-height:100%;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{width:100%;min-width:0;min-height:100dvh;margin:0;overflow-x:hidden;box-sizing:border-box}
+body *{box-sizing:border-box}
+.class-wrap{width:100%;max-width:none;min-width:0;margin:0 auto;padding:clamp(6px,1.6vw,16px)}
+.top,.row,.private-note-title,.admin-display-head,.student-display-head,.mh-board-toolbar,.student-toolbar{min-width:0;max-width:100%}
+.panel,.learning-links,.invites,.admin-display,.student-display,.class-file-panel,.private-note-panel{width:100%;min-width:0;max-width:100%}
+input,select,textarea,button,video,iframe,canvas,img,table{max-width:100%}
+.input{min-width:0}
+.grid2{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+.video-grid{grid-template-columns:repeat(auto-fit,minmax(min(250px,100%),1fr))}
+.learning-grid{grid-template-columns:repeat(auto-fit,minmax(min(145px,100%),1fr))}
+.admin-display-body,.student-display-body,.admin-view,.student-view,.mh-board-wrap,.class-file-view{min-width:0;max-width:100%}
+.admin-display-body,.student-display-body{height:auto}
+.mh-board-canvas{width:100%;max-width:100%;touch-action:none}
+.stage{width:100%;max-width:100%}
+@media (orientation:portrait){
+ body{overflow-x:hidden}
+ .class-wrap{padding:8px}
+ .top{align-items:flex-start}
+ .grid2{grid-template-columns:minmax(0,1fr)}
+ .video-grid{grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr))}
+ .learning-grid{grid-template-columns:repeat(auto-fit,minmax(min(135px,100%),1fr))}
+ .panel,.learning-links{padding:clamp(10px,3vw,16px)}
+ .admin-display,.student-display{border-radius:10px}
+ .admin-display-body,.student-display-body{min-height:0}
+ .admin-view,.student-view{min-height:0}
+ .admin-view .stage,.student-view .stage{min-height:38dvh;height:auto}
+ .mh-board-wrap{height:auto;min-height:0}
+ .mh-board-canvas{height:calc(100dvh - 230px);min-height:220px}
+}
+@media (orientation:landscape){
+ body{overflow-x:hidden}
+ .class-wrap{padding:5px 8px}
+ .top{gap:6px}
+ .brand{font-size:clamp(17px,2.5vw,22px)}
+ .panel,.learning-links{margin:6px 0;padding:clamp(7px,1.2vw,12px)}
+ .grid2{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:8px}
+ .video-grid{grid-template-columns:repeat(auto-fit,minmax(min(190px,100%),1fr));gap:7px}
+ .learning-grid{grid-template-columns:repeat(auto-fit,minmax(min(125px,100%),1fr));gap:7px}
+ .admin-display,.student-display{margin:5px 0;min-height:0;border-radius:8px}
+ .admin-display-head,.student-display-head{padding:4px 7px;gap:5px}
+ .admin-display-body,.student-display-body{min-height:0;height:auto}
+ .admin-view,.student-view{min-height:0}
+ .admin-view .stage,.student-view .stage{height:calc(100dvh - 105px);min-height:120px}
+ .mh-board-wrap{height:calc(100dvh - 75px);min-height:0}
+ .mh-board-canvas{height:calc(100dvh - 125px);min-height:120px}
+ .mh-board-toolbar,.student-toolbar{padding:3px;gap:4px}
+ .admin-toolbar,.admin-secondary-toolbar{max-width:100%;padding:3px;gap:3px}
+ .admin-tool{width:34px;height:34px;min-width:34px;font-size:16px}
+ .mh-slide-footer{padding:0 5px 5px}
+ .mh-slide-controls{padding:4px;gap:5px}
+ .class-file-view img{max-height:calc(100dvh - 100px)}
+ .mh-office-frame,.class-file-view iframe,.class-file-view object,.class-file-view embed{height:calc(100dvh - 105px);min-height:120px;max-height:calc(100dvh - 90px)}
+ .class-file-text{max-height:calc(100dvh - 105px)}
+ .mh-slide-canvas{max-height:calc(100dvh - 105px)}
+}
+</style>
 </head>
 <body>
 <div class="class-wrap">
