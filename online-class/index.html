@@ -897,16 +897,19 @@ function ensureRemoteAudio(peerId){
 let displayScrollTimer=0;
 let lastDisplayScrollSent=0;
 function getDisplayFileScroller(){
- // Choose the deepest scrollable part of the shared document on both devices.
+ // Resolve the currently visible, genuinely scrollable document surface. The
+ // active renderer can change after a file is loaded, so do not cache a stale node.
  const box=$('classFileView');
  const candidates=[
   box?.querySelector('.class-file-text'),
   box?.querySelector('.mh-word-preview'),
   box?.querySelector('.docx-wrapper'),
+  box?.querySelector('.mh-office-frame'),
+  box?.querySelector('iframe'),
   box,
   $('adminFileView'),
   $('studentFileView')
- ].filter(Boolean);
+ ].filter(el=>el&&el.getClientRects().length);
  return candidates.find(el=>el.scrollHeight>el.clientHeight+2)||candidates[0]||null;
 }
 function applyStudentFileScroll(ratio){
@@ -914,25 +917,34 @@ function applyStudentFileScroll(ratio){
  const el=getDisplayFileScroller();
  if(!el)return;
  const max=Math.max(0,el.scrollHeight-el.clientHeight);
- el.scrollTop=Math.max(0,Math.min(1,ratio))*max;
+ if(max>0)el.scrollTop=Math.max(0,Math.min(1,ratio))*max;
 }
 function wireTeacherFileScroll(){
  if(!controlMode)return;
- const el=getDisplayFileScroller();
- if(!el||el.dataset.mhScrollWired==='1')return;
- el.dataset.mhScrollWired='1';
+ const root=$('classFileView')||$('adminFileView');
+ if(!root||root.dataset.mhScrollWired==='1')return;
+ root.dataset.mhScrollWired='1';
  let pendingRatio=0;
- const publish=()=>{
+ const publish=(event)=>{
   if(!channel||!roomCode)return;
+  // Capture scrolls from whichever nested document surface the current renderer
+  // uses, rather than binding to just one element before the document is ready.
+  const source=event?.target;
+  const el=source&&source!==document&&source!==window&&source.scrollHeight>source.clientHeight+2
+    ?source:getDisplayFileScroller();
+  if(!el)return;
   const max=Math.max(0,el.scrollHeight-el.clientHeight);
-  pendingRatio=max?el.scrollTop/max:0;
+  if(!max)return;
+  pendingRatio=el.scrollTop/max;
   clearTimeout(displayScrollTimer);
-  displayScrollTimer=setTimeout(()=>send({type:'display',action:'file-scroll',ratio:pendingRatio}).catch(()=>{}),45);
+  displayScrollTimer=setTimeout(()=>{
+   send({type:'display',action:'file-scroll',ratio:pendingRatio}).catch(()=>{});
+  },35);
  };
- el.dataset.mhScrollWired='1';
- el.addEventListener('scroll',publish,{passive:true});
- // Send a final position after touch scrolling/inertial scrolling settles.
- el.addEventListener('touchend',()=>setTimeout(publish,180),{passive:true});
+ root.addEventListener('scroll',publish,{passive:true,capture:true});
+ // Also catch the occasional renderer that scrolls its own document/window.
+ window.addEventListener('scroll',publish,{passive:true});
+ root.addEventListener('touchend',()=>setTimeout(()=>publish({target:getDisplayFileScroller()}),180),{passive:true});
 }
 function textOffsetForPoint(root,node,offset){
  const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
