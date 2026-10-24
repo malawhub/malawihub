@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
       // Existing identities must prove ownership before teacher access is added.
       // Never grant teacher access to an email address based only on its text.
       const authHeader = req.headers.get("Authorization") || "";
-      const token = authHeader.replace(/^Bearer\\s+/i, "").trim();
+      const token = authHeader.replace(/^Bearer\s+/i, "").trim();
       if (!token) {
         return json({
           error: "An account with this email already exists. Log in with that account and password first, then create teacher access."
