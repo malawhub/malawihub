@@ -60,24 +60,36 @@ $('register').onclick=async()=>{
  if(!email||!email.includes('@')){show('Enter a valid teacher email.',true);return}
  if(password.length<8){show('Password must be at least 8 characters.',true);return}
  if(name.length<2){show('Enter your full name.',true);return}
- const b=$('register');b.disabled=true;b.textContent='Creating account…';
+ const b=$('register');b.disabled=true;b.textContent='Checking account…';
  try{
+  // Existing accounts must authenticate first. This also supports adding teacher
+  // access to a student's existing MalawiHub identity without changing its password.
+  const signed=await supabaseClient.auth.signInWithPassword({email,password});
+  if(!signed.error&&signed.data?.user){
+   const session=signed.data.session;
+   const {data:added,error:addError}=await supabaseClient.functions.invoke('teacher-self-register',{
+    body:{email,password,name},
+    headers:{Authorization:'Bearer '+session.access_token}
+   });
+   if(addError)throw addError;
+   if(added?.error)throw Error(added.error);
+   if(!added?.ok||!added?.teacher)throw Error('Teacher access could not be enabled.');
+   const ok=await openTeacherDashboard(signed.data.user);
+   if(!ok){await supabaseClient.auth.signOut();throw Error('Teacher access was added but could not be verified. Please try logging in again.')}
+   return;
+  }
+
+  // A failed login can mean this is a new email. The server safely rejects an
+  // existing email unless the caller has authenticated as that account.
+  b.textContent='Creating account…';
   const {data:created,error:createError}=await supabaseClient.functions.invoke('teacher-self-register',{body:{email,password,name}});
   if(createError)throw createError;
   if(created?.error)throw Error(created.error);
   if(!created?.ok||!created?.teacher)throw Error('Teacher account creation did not complete.');
   const {data:loginData,error:loginError}=await supabaseClient.auth.signInWithPassword({email,password});
-  if(loginError)throw loginError;
-  if(created?.multi_area){
-    // The existing Auth identity may already be a Student or Business user.
-    // Do not overwrite that area's profile role.
-    const {error:areaError}=await supabaseClient.from('user_area_roles').select('area').eq('user_id',loginData.user.id).eq('area','teacher').single();
-    if(areaError)throw areaError;
-  }else{
-    const ok=await openTeacherDashboard(loginData.user);
-    if(!ok){await supabaseClient.auth.signOut();throw Error('Teacher account was created but could not be verified. Please contact MalawiHub Admin.')}
-  }
-  location.href=teacherDashboardUrl;
+  if(loginError)throw Error('Teacher account was created, but sign-in failed. Please use Log in or reset your password.');
+  const ok=await openTeacherDashboard(loginData.user);
+  if(!ok){await supabaseClient.auth.signOut();throw Error('Teacher account was created but could not be verified. Please contact MalawiHub Admin.')}
  }catch(e){show(e.message||'Could not create teacher account.',true)}
  finally{b.disabled=false;b.textContent='Create Teacher Account'}
 };
