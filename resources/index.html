@@ -63,4 +63,4 @@ async function load(){
  list.innerHTML=filtered.map(r=>'<div class="card"><h3>'+esc(r.title)+'</h3><p><strong>'+esc(r.subject||'General')+'</strong> · '+esc(r.topic||r.category||'Academic resource')+'</p><p>'+esc(r.description||'Learning resource.')+'</p>'+(r.link?'<a href="'+esc(r.link)+'" target="_blank" rel="noopener">Open Resource</a>':'')+'</div>').join('');
 }
 search.addEventListener('input',load);load();
-</script></body></html>
+</script><script src="/js/official-app.js?v=2" defer></script></body></html>
