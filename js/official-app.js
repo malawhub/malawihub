@@ -21,6 +21,19 @@
   else if (/\/categories\/(calculators|student-tools)/.test(path) || /\/download\//.test(path)) app = { name: 'MalawiHub Apps', url: '/download/' };
   else if (/\/resources\//.test(path)) app = { name: 'MalawiHub Main Hub', url: releases + 'malawihub-world-v1.0.2/main-hub.apk' };
 
+  function addBadge() {
+    const hero = document.querySelector('.hero-modern .hero-badge');
+    if (hero && !document.querySelector('.mh-official-badge')) {
+      const badge = document.createElement('div');
+      badge.className = 'mh-official-badge';
+      badge.innerHTML = '<span class="mh-official-dot"></span>Official MalawiHub app';
+      hero.insertAdjacentElement('afterend', badge);
+    }
+  }
+  const badgeStyle = document.createElement('style');
+  badgeStyle.textContent = '.mh-official-badge{display:inline-flex;align-items:center;gap:7px;margin:8px 0 0;padding:7px 11px;border-radius:999px;background:#eaf7ef;color:#087f3f;font-size:12px;font-weight:800;letter-spacing:.2px;border:1px solid #ccebd8}.mh-official-dot{width:8px;height:8px;border-radius:50%;background:#087f3f;box-shadow:0 0 0 3px #d8f1e2}';
+  document.head.appendChild(badgeStyle);
+
   function showInstallButton() {
     if (document.getElementById('mh-feature-install') || document.documentElement.classList.contains('mh-app-installed')) return;
     if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true || document.referrer.startsWith('android-app://')) return;
@@ -51,6 +64,6 @@
     box.append(copy, link, close);
     document.body.appendChild(box);
   }
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { setTimeout(showInstallButton, 1200); });
-  else setTimeout(showInstallButton, 1200);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { addBadge(); setTimeout(showInstallButton, 1200); });
+  else { addBadge(); setTimeout(showInstallButton, 1200); }
 })();
