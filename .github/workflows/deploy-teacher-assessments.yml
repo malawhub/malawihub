@@ -1,0 +1,24 @@
+name: Deploy Teacher Assessments API
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "supabase/functions/teacher-assessments/**"
+      - ".github/workflows/deploy-teacher-assessments.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_ID: cdqrdovgdidzxmyygoee
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Deploy teacher assessments API
+        run: supabase functions deploy teacher-assessments --project-ref "$SUPABASE_PROJECT_ID" --use-api --no-verify-jwt
