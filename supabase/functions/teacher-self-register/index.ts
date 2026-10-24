@@ -47,42 +47,50 @@ Deno.serve(async (req) => {
     );
 
     if (existing) {
+      // Existing identities must prove ownership before teacher access is added.
+      // Never grant teacher access to an email address based only on its text.
+      const authHeader = req.headers.get("Authorization") || "";
+      const token = authHeader.replace(/^Bearer\\s+/i, "").trim();
+      if (!token) {
+        return json({
+          error: "An account with this email already exists. Log in with that account and password first, then create teacher access."
+        }, 409);
+      }
+
+      const { data: authData, error: authError } = await admin.auth.getUser(token);
+      if (authError || !authData.user || authData.user.id !== existing.id) {
+        return json({ error: "Please log in with the existing account for this email before adding teacher access." }, 401);
+      }
+
       const { data: existingProfile, error: profileError } = await admin
         .from("profiles")
         .select("role, full_name")
         .eq("id", existing.id)
         .maybeSingle();
-
       if (profileError) throw profileError;
-
       if (existingProfile?.role === "admin") {
         return json({ error: "Administrator accounts cannot be registered as teachers." }, 409);
       }
-
       if (existingProfile?.role === "teacher") {
-        return json({
-          error: "A teacher account with this email already exists. Please use Log in instead."
-        }, 409);
-      }
-
-      const { error: areaError } = await admin
-        .from("user_area_roles")
-        .upsert({
+        const { error: areaError } = await admin.from("user_area_roles").upsert({
           user_id: existing.id,
           area: "teacher",
-          display_name: name || existingProfile?.full_name || email
+          display_name: name || existingProfile.full_name || email
         }, { onConflict: "user_id,area" });
+        if (areaError) throw areaError;
+        return json({ ok: true, teacher: { id: existing.id, email, role: "teacher", name: name || existingProfile.full_name || email }, existing: true });
+      }
 
+      const { error: areaError } = await admin.from("user_area_roles").upsert({
+        user_id: existing.id,
+        area: "teacher",
+        display_name: name || existingProfile?.full_name || email
+      }, { onConflict: "user_id,area" });
       if (areaError) throw areaError;
 
       return json({
         ok: true,
-        teacher: {
-          id: existing.id,
-          email,
-          role: "teacher",
-          name: name || existingProfile?.full_name || email
-        },
+        teacher: { id: existing.id, email, role: "teacher", name: name || existingProfile?.full_name || email },
         existing: true,
         multi_area: true
       });
