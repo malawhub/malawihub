@@ -391,16 +391,16 @@ body.teacher-room #classFileView .mh-pdf-page-canvas,body.admin-room #classFileV
 #room.mh-classroom-fullscreen{position:fixed!important;inset:0!important;z-index:99999!important;width:100vw!important;height:100dvh!important;max-width:none!important;box-sizing:border-box!important;margin:0!important;padding:3px!important;overflow:hidden!important;background:#f5f7fb!important;display:flex!important;flex-direction:column!important;gap:3px!important;border-radius:0!important}
 #room.mh-classroom-fullscreen #adminTopStatus{display:none!important}
 #room.mh-classroom-fullscreen.admin-room #studentDisplay{display:none!important}
-#room.mh-classroom-fullscreen.admin-room #adminControls{display:block!important;flex:0 0 auto!important;margin:0!important;max-height:76px!important;overflow:visible!important}
+#room.mh-classroom-fullscreen.admin-room #adminControls{display:block!important;position:relative!important;z-index:100001!important;flex:0 0 auto!important;margin:0!important;max-height:none!important;overflow:visible!important}
 #room.mh-classroom-fullscreen.admin-room .admin-timer{display:none!important}
-#room.mh-classroom-fullscreen.admin-room .admin-toolbar,#room.mh-classroom-fullscreen.admin-room .admin-secondary-toolbar{padding:2px!important;gap:4px!important;border-radius:7px!important;box-shadow:none!important}
+#room.mh-classroom-fullscreen.admin-room .admin-toolbar,#room.mh-classroom-fullscreen.admin-room .admin-secondary-toolbar{padding:2px!important;gap:4px!important;flex-wrap:wrap!important;overflow:visible!important;white-space:normal!important;border-radius:7px!important;box-shadow:none!important}
 #room.mh-classroom-fullscreen.admin-room .admin-tool{width:30px!important;height:30px!important;min-width:30px!important;font-size:15px!important;border-radius:7px!important}
 #room.mh-classroom-fullscreen.admin-room #adminPausedBanner{padding:2px 5px!important;font-size:11px!important}
 #room.mh-classroom-fullscreen.admin-room #adminClassDisplay{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;min-height:0!important;height:auto!important;margin:0!important;overflow:hidden!important;border-radius:7px!important}
-#room.mh-classroom-fullscreen.admin-room .admin-display-head{flex:0 0 auto!important;gap:3px!important;padding:2px 4px!important;min-height:32px!important}
+#room.mh-classroom-fullscreen.admin-room .admin-display-head{position:relative!important;z-index:100002!important;flex:0 0 auto!important;gap:3px!important;padding:3px 4px!important;min-height:32px!important;flex-wrap:wrap!important}
 #room.mh-classroom-fullscreen.admin-room #adminDisplayTitle{font-size:11px!important}
-#room.mh-classroom-fullscreen.admin-room #adminDisplaySwitcher{gap:3px!important;flex-wrap:nowrap!important;overflow-x:auto!important}
-#room.mh-classroom-fullscreen.admin-room #adminDisplaySwitcher .btn{padding:3px 5px!important;font-size:10px!important}
+#room.mh-classroom-fullscreen.admin-room #adminDisplaySwitcher{position:relative!important;z-index:100003!important;gap:3px!important;flex:1 1 100%!important;justify-content:flex-start!important;flex-wrap:wrap!important;overflow:visible!important;white-space:normal!important;margin-left:0!important}
+#room.mh-classroom-fullscreen.admin-room #adminDisplaySwitcher .btn{padding:4px 6px!important;font-size:11px!important;flex:0 0 auto!important}
 #room.mh-classroom-fullscreen.admin-room .admin-display-body{flex:1 1 auto!important;min-height:0!important;height:auto!important;overflow:auto!important}
 #room.mh-classroom-fullscreen.admin-room .admin-view,#room.mh-classroom-fullscreen.admin-room .admin-view.active{height:100%!important;min-height:0!important;box-sizing:border-box!important}
 #room.mh-classroom-fullscreen.admin-room .admin-view.file-view{overflow:auto!important;padding:2px!important}
@@ -1444,7 +1444,7 @@ function setClassroomFullscreen(active){
  room.classList.toggle('mh-classroom-fullscreen',active);
  document.body.classList.toggle('mh-classroom-fullscreen-active',active);
  const btns=[$('adminClassroomFullscreenBtn'),$('studentClassroomFullscreenBtn')].filter(Boolean);
- btns.forEach(btn=>{btn.textContent=active?'⤢':'⛶';btn.title=active?'Exit full-screen classroom':'Expand classroom to full screen';btn.setAttribute('aria-label',btn.title);});
+ btns.forEach(btn=>{btn.textContent=active?'❐':'□';btn.title=active?'Restore classroom window':'Maximize classroom window';btn.setAttribute('aria-label',btn.title);});
 }
 async function toggleClassroomFullscreen(){
  const room=$('room');if(!room)return;
