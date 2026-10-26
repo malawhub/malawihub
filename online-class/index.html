@@ -411,7 +411,7 @@ body.teacher-room #classFileView .mh-pdf-page-canvas,body.admin-room #classFileV
 body.student-room #room.mh-classroom-fullscreen #adminControls,body.student-room #room.mh-classroom-fullscreen #adminClassDisplay,body.student-room #room.mh-classroom-fullscreen #adminTopStatus,body.student-room #room.mh-classroom-fullscreen .grid2{display:none!important}
 body.student-room #room.mh-classroom-fullscreen #studentDisplay{display:flex!important;flex:1 1 auto!important;flex-direction:column!important;min-height:0!important;height:100%!important;margin:0!important;overflow:hidden!important;border-radius:0!important}
 body.student-room #room.mh-classroom-fullscreen .student-display-head{flex:0 0 auto!important;gap:3px!important;padding:2px 4px!important;min-height:32px!important;flex-wrap:nowrap!important;overflow-x:auto!important}
-body.student-room #room.mh-classroom-fullscreen #studentDisplayTitle{font-size:11px!important;white-space:nowrap!important}
+body.student-room #room.mh-classroom-fullscreen #studentDisplayTitle{font-size:11px!important;white-space:nowrap!important}body.student-room #room.mh-classroom-fullscreen #studentExitClassBtnInline{display:none!important}
 body.student-room #room.mh-classroom-fullscreen #studentConnectionStatus,body.student-room #room.mh-classroom-fullscreen #studentDisplayStatus{font-size:9px!important}
 body.student-room #room.mh-classroom-fullscreen #studentTimer{font-size:11px!important;white-space:nowrap!important}
 body.student-room #room.mh-classroom-fullscreen .student-display-body{flex:1 1 auto!important;min-height:0!important;height:auto!important;overflow:auto!important}
@@ -1444,7 +1444,7 @@ function setClassroomFullscreen(active){
  room.classList.toggle('mh-classroom-fullscreen',active);
  document.body.classList.toggle('mh-classroom-fullscreen-active',active);
  const btns=[$('adminClassroomFullscreenBtn'),$('studentClassroomFullscreenBtn')].filter(Boolean);
- btns.forEach(btn=>{btn.textContent=active?'⛶':'⛶';btn.title=active?'Exit full-screen classroom':'Expand classroom to full screen';btn.setAttribute('aria-label',btn.title);});
+ btns.forEach(btn=>{btn.textContent=active?'⤢':'⛶';btn.title=active?'Exit full-screen classroom':'Expand classroom to full screen';btn.setAttribute('aria-label',btn.title);});
 }
 async function toggleClassroomFullscreen(){
  const room=$('room');if(!room)return;
