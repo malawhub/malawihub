@@ -386,6 +386,38 @@ html.mh-device-portrait .mh-board-canvas{height:calc(100dvh - 230px);min-height:
 body.teacher-room #classFileView:has(.mh-pdf-page),body.admin-room #classFileView:has(.mh-pdf-page),body.student-room #classFileView:has(.mh-pdf-page),body.teacher-room .admin-view.file-view:has(.mh-pdf-page),body.admin-room .admin-view.file-view:has(.mh-pdf-page),body.student-room .student-view.file-view:has(.mh-pdf-page){height:calc(100dvh - 210px)!important;max-height:calc(100dvh - 210px)!important;min-height:180px!important;box-sizing:border-box!important;overflow-x:auto!important;overflow-y:auto!important;overscroll-behavior:contain;touch-action:pan-x pan-y pinch-zoom}
 body.teacher-room #classFileView .mh-pdf-page-canvas,body.admin-room #classFileView .mh-pdf-page-canvas,body.student-room #classFileView .mh-pdf-page-canvas{max-width:none!important;max-height:none!important;touch-action:pan-x pan-y pinch-zoom}
 
+
+/* Teacher controls stay reachable on phones in normal and maximized classroom modes. */
+body.teacher-room #room:not(.mh-classroom-fullscreen) #adminControls,
+body.admin-room #room:not(.mh-classroom-fullscreen) #adminControls,
+#room.admin-room:not(.mh-classroom-fullscreen) #adminControls{
+ position:sticky!important;top:0!important;z-index:10000!important;
+ max-height:none!important;overflow:visible!important;
+}
+body.teacher-room #room:not(.mh-classroom-fullscreen) .admin-toolbar,
+body.admin-room #room:not(.mh-classroom-fullscreen) .admin-toolbar,
+#room.admin-room:not(.mh-classroom-fullscreen) .admin-toolbar{
+ position:sticky!important;top:0!important;z-index:10001!important;
+ display:flex!important;flex-wrap:wrap!important;justify-content:flex-start!important;
+ gap:5px!important;overflow:visible!important;white-space:normal!important;
+ background:#fff!important;padding:6px!important;box-shadow:0 3px 12px #10182820!important;
+}
+body.teacher-room #room:not(.mh-classroom-fullscreen) .admin-tool,
+body.admin-room #room:not(.mh-classroom-fullscreen) .admin-tool,
+#room.admin-room:not(.mh-classroom-fullscreen) .admin-tool{
+ flex:0 0 38px!important;width:38px!important;height:38px!important;min-width:38px!important;
+}
+#room.mh-classroom-fullscreen.admin-room #adminControls{position:sticky!important;top:0!important;z-index:100001!important;max-height:none!important;overflow:visible!important}
+#room.mh-classroom-fullscreen.admin-room .admin-toolbar{position:relative!important;top:auto!important;z-index:100002!important;display:flex!important;flex-wrap:wrap!important;overflow:visible!important;white-space:normal!important}
+#room.mh-classroom-fullscreen.admin-room #adminClassDisplay{min-height:0!important}
+@media(max-width:600px){
+ body.teacher-room #room:not(.mh-classroom-fullscreen) .admin-toolbar,
+ body.admin-room #room:not(.mh-classroom-fullscreen) .admin-toolbar,
+ #room.admin-room:not(.mh-classroom-fullscreen) .admin-toolbar{gap:4px!important;padding:4px!important}
+ body.teacher-room #room:not(.mh-classroom-fullscreen) .admin-tool,
+ body.admin-room #room:not(.mh-classroom-fullscreen) .admin-tool,
+ #room.admin-room:not(.mh-classroom-fullscreen) .admin-tool{flex-basis:36px!important;width:36px!important;height:36px!important;min-width:36px!important}
+}
 /* Compact, full-screen classroom layout with controls at the top and bottom. */
 #adminClassDisplay .mh-classroom-fullscreen-btn,#studentDisplay .mh-classroom-fullscreen-btn{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:32px;height:32px;min-width:32px;padding:0;font-size:18px}
 #room.mh-classroom-fullscreen{position:fixed!important;inset:0!important;z-index:99999!important;width:100vw!important;height:100dvh!important;max-width:none!important;box-sizing:border-box!important;margin:0!important;padding:3px!important;overflow:hidden!important;background:#f5f7fb!important;display:flex!important;flex-direction:column!important;gap:3px!important;border-radius:0!important}
