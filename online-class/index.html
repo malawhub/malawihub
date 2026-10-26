@@ -418,6 +418,16 @@ body.admin-room #room:not(.mh-classroom-fullscreen) .admin-tool,
  body.admin-room #room:not(.mh-classroom-fullscreen) .admin-tool,
  #room.admin-room:not(.mh-classroom-fullscreen) .admin-tool{flex-basis:36px!important;width:36px!important;height:36px!important;min-width:36px!important}
 }
+
+/* Fix maximized classroom file scrolling and keep restore control pinned above content. */
+#room.mh-classroom-fullscreen.admin-room #adminClassDisplay{min-height:0!important;overflow:hidden!important}
+#room.mh-classroom-fullscreen.admin-room .admin-display-head{position:sticky!important;top:0!important;z-index:100010!important;background:#f8fafc!important}
+#room.mh-classroom-fullscreen.admin-room .admin-display-body{flex:1 1 0!important;min-height:0!important;height:0!important;overflow-y:auto!important;overflow-x:auto!important;overscroll-behavior:contain!important;touch-action:pan-x pan-y pinch-zoom!important;-webkit-overflow-scrolling:touch!important}
+#room.mh-classroom-fullscreen.admin-room .admin-view.active{height:auto!important;min-height:100%!important}
+#room.mh-classroom-fullscreen.admin-room .admin-view.file-view.active{height:auto!important;min-height:100%!important;overflow:visible!important}
+#room.mh-classroom-fullscreen.admin-room .admin-view.file-view.active:has(.mh-pdf-page){height:auto!important;max-height:none!important;overflow:visible!important}
+#room.mh-classroom-fullscreen.admin-room .mh-pdf-page-canvas{max-width:none!important;max-height:none!important;touch-action:pan-x pan-y pinch-zoom!important}
+#room.mh-classroom-fullscreen .mh-classroom-fullscreen-btn{position:relative!important;z-index:100020!important;flex:0 0 32px!important;visibility:visible!important;pointer-events:auto!important}
 /* Compact, full-screen classroom layout with controls at the top and bottom. */
 #adminClassDisplay .mh-classroom-fullscreen-btn,#studentDisplay .mh-classroom-fullscreen-btn{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:32px;height:32px;min-width:32px;padding:0;font-size:18px}
 #room.mh-classroom-fullscreen{position:fixed!important;inset:0!important;z-index:99999!important;width:100vw!important;height:100dvh!important;max-width:none!important;box-sizing:border-box!important;margin:0!important;padding:3px!important;overflow:hidden!important;background:#f5f7fb!important;display:flex!important;flex-direction:column!important;gap:3px!important;border-radius:0!important}
