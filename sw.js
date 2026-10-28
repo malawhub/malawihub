@@ -3,6 +3,7 @@ const CORE_ASSETS = [
   '/',
   '/index.html',
   '/offline.html',
+  '/online-class/student-resources.html',
   '/css/style.css',
   '/js/app.js',
   '/manifest.json',
