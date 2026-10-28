@@ -28,7 +28,30 @@ public class MainActivity extends Activity {
     private static final String TEACHER_URL = "https://malawihub.pages.dev/teacher-portal/index.html?v=20260930-native-screen";
     private WebView webView; private ProgressBar progress; private final Handler handler=new Handler(); private android.webkit.ValueCallback<android.net.Uri[]> fileCallback; private static final int FILE_PICK_REQUEST=8001;
     private NativeScreenShareManager nativeScreen; private String pendingNativeRoom="", pendingNativeId="";
-    @Override protected void onCreate(Bundle state){super.onCreate(state);showBrandedSplash();handler.postDelayed(this::openTeacher,1200);}
+    @Override protected void onCreate(Bundle state){super.onCreate(state);applyAppPresentation();showBrandedSplash();handler.postDelayed(this::openTeacher,1200);}
+    private void applyAppPresentation(){
+        if(Build.VERSION.SDK_INT>=Build.VERSION_CODES.R){
+            getWindow().setDecorFitsSystemWindows(false);
+            android.view.WindowInsetsController controller=getWindow().getInsetsController();
+            if(controller!=null){
+                controller.hide(android.view.WindowInsets.Type.statusBars()|android.view.WindowInsets.Type.navigationBars());
+                controller.setSystemBarsBehavior(android.view.WindowInsetsController.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            }
+        }else{
+            getWindow().getDecorView().setSystemUiVisibility(
+                View.SYSTEM_UI_FLAG_FULLSCREEN
+                |View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                |View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                |View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                |View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                |View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+            );
+        }
+    }
+    @Override public void onWindowFocusChanged(boolean hasFocus){
+        super.onWindowFocusChanged(hasFocus);
+        if(hasFocus) applyAppPresentation();
+    }
     private void showBrandedSplash(){
         LinearLayout splash=new LinearLayout(this);splash.setOrientation(LinearLayout.VERTICAL);splash.setGravity(Gravity.CENTER);splash.setPadding(32,32,32,32);splash.setBackgroundColor(Color.WHITE);
         ImageView logo=new ImageView(this);logo.setImageResource(R.drawable.malawihub_logo);logo.setContentDescription("MalawiHub logo");splash.addView(logo,new LinearLayout.LayoutParams(150,150));
