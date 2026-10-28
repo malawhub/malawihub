@@ -1681,16 +1681,27 @@ function setClassroomFullscreen(active){
  const btns=[$('adminClassroomFullscreenBtn'),$('studentClassroomFullscreenBtn')].filter(Boolean);
  btns.forEach(btn=>{btn.textContent=active?'❐':'□';btn.title=active?'Restore classroom window':'Maximize classroom window';btn.setAttribute('aria-label',btn.title);});
 }
+let classroomFullscreenHistoryState=false;
 async function toggleClassroomFullscreen(){
  const room=$('room');if(!room)return;
  if(room.classList.contains('mh-classroom-fullscreen')){
   setClassroomFullscreen(false);
   if(document.fullscreenElement)try{await document.exitFullscreen()}catch(e){}
+  if(classroomFullscreenHistoryState){classroomFullscreenHistoryState=false;history.back()}
   return;
  }
  setClassroomFullscreen(true);
+ try{history.pushState({malawiHubClassroomFullscreen:true},'',location.href);classroomFullscreenHistoryState=true}catch(e){console.warn('Could not prepare Back-button fullscreen handling',e)}
  if(room.requestFullscreen)try{await room.requestFullscreen()}catch(e){/* CSS full-screen fallback remains active. */}
 }
+window.addEventListener('popstate',async()=>{
+ const room=$('room');
+ if(!room?.classList.contains('mh-classroom-fullscreen'))return;
+ setClassroomFullscreen(false);
+ if(document.fullscreenElement)try{await document.exitFullscreen()}catch(e){}
+ classroomFullscreenHistoryState=false;
+ try{history.pushState({malawiHubClassroomFullscreen:true},'',location.href);classroomFullscreenHistoryState=true}catch(e){}
+});
 $('adminClassroomFullscreenBtn')?.addEventListener('click',toggleClassroomFullscreen);
 $('studentClassroomFullscreenBtn')?.addEventListener('click',toggleClassroomFullscreen);
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&$('room')?.classList.contains('mh-classroom-fullscreen'))setClassroomFullscreen(false)});
