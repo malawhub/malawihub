@@ -604,7 +604,7 @@ if(adminMode){$('areaLabel').textContent='';} else if(teacherPortalMode){$('area
 if(adminMode||teacherPortalMode||studentPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent=adminMode?'Administrator Class':teacherPortalMode?'Teacher Class':'Student Class';$('modeHelp').textContent=adminMode?'Administrator mode. Only the administrator can control this class.':teacherPortalMode?'Teacher mode. Students join through the Student Portal using the class code.':'Student mode. Teacher and administrator controls are unavailable.';const codeFromUrl=params.get('code')||storedStudentCode;if(codeFromUrl)$('code').value=codeFromUrl;$('name').value=sessionStorage.getItem('malawihub_student_name')||'';if(studentPortalMode){$('studentBtn').classList.remove('hidden');$('studentBtn').textContent=codeFromUrl?'↻ Retry Joining Class':'Join Class';}else $('modePanel').classList.add('hidden');}
 if(!adminMode&&!teacherPortalMode&&!studentPortalMode){const codeFromUrl=(params.get('code')||'').trim().toUpperCase();if(codeFromUrl)$('code').value=codeFromUrl;const savedStudentName=sessionStorage.getItem('malawihub_student_name');if(savedStudentName)$('name').value=savedStudentName;}
 let channel,resourceChannel,roomCode='',userName='',privateNoteShown=false,sharedFile=null,role=adminMode?'admin':(teacherPortalMode?'teacher':(studentPortalMode?'student':'')),localStream=null,studentCameraStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null,paused=false,pausedAt=0,pausedTotalMs=0,lastTimerSyncAt=0,classRecorder=null,classRecordingChunks=[],classRecordingMime='',classRecordingUploadPromise=null,classRecordingCanvas=null,classRecordingCanvasStream=null,classRecordingVideoNodes=[],classRecordingFrameHandle=0,studentTimerAnchorRemaining=null,studentTimerAnchorAt=0;
-let studentDisplayEventToken=0;let controllerPeerId='';const peers=new Map();const iceQueues=new Map();const state={students:new Map(),joined:new Map()};let myId='';let joinRetryTimer=null;let joinRetryCount=0;
+let studentDisplayEventToken=0;let controllerPeerId='';const peers=new Map();const iceQueues=new Map();const classmatePeerIds=new Set();const state={students:new Map(),joined:new Map()};let myId='';let joinRetryTimer=null;let joinRetryCount=0;
 // WebRTC connectivity: use public STUN plus the configured short-lived Cloudflare TURN relay.
 let iceServers=[
  {urls:'stun:stun.l.google.com:19302'},
@@ -988,7 +988,7 @@ async function flushIce(peerId){
  for(const candidate of queued){try{await pc.addIceCandidate(candidate)}catch(e){console.warn('Queued ICE candidate failed',e)}}
 }
 function ensureRemoteAudio(peerId){
- if(role==='student')return $('remoteAudio');
+ if(role==='student'&&!classmatePeerIds.has(peerId))return $('remoteAudio');
  const safe=String(peerId).replace(/[^a-zA-Z0-9_-]/g,'_');
  let el=document.getElementById('remoteAudio-'+safe);
  if(!el){el=document.createElement('audio');el.id='remoteAudio-'+safe;el.autoplay=true;el.playsInline=true;el.controls=false;el.dataset.peerId=peerId;el.style.display='none';document.body.appendChild(el)}
@@ -1107,10 +1107,12 @@ function wireTeacherTextHighlight(){
 }
 async function handleSignal(p){
  if(['teacher','admin'].includes(role)&&p.type==='join'){
-  state.students.set(p.from,p.name);renderStudents();
+   const isNewStudent=!state.students.has(p.from);state.students.set(p.from,p.name);renderStudents();
   if(window.MalawiHubNative)window.MalawiHubNative.nativeStudentJoined(p.from);
   await channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'join',id:p.from,name:p.name}});
   await send({type:'join-ack',from:getMyId(),to:p.from,name:userName||'Teacher'});
+  // Share the current classmate roster only when a new student arrives.
+  if(isNewStudent)await send({type:'classmate-roster',from:getMyId(),to:'*',students:[...state.students.entries()].map(([id,name])=>({id,name}))});
   const joinedPeer=makePeer(p.from);
   // A student who joins after the teacher started needs the existing media tracks too.
   if(controlMode&&startedAt&&localStream){for(const track of localStream.getTracks()){if(!joinedPeer.getSenders().some(sender=>sender.track===track))joinedPeer.addTrack(track,localStream)}}
@@ -1122,8 +1124,18 @@ async function handleSignal(p){
    await send({type:'display',from:getMyId(),to:p.from,action:'view',view:currentView,title:window.__mhCurrentDisplayTitle||'🎥 Live Classroom',file:currentView==='file'?sharedFile:null});
   }
  }
- else if(p.type==='offer'){
-  const peerId=p.from;
+ else if(role==='student'&&p.type==='classmate-roster'){
+   state.students.clear();
+   (p.students||[]).forEach(student=>{
+    if(!student?.id||student.id===getMyId())return;
+    state.students.set(student.id,student.name||'Classmate');
+    classmatePeerIds.add(student.id);
+    makePeer(student.id);
+   });
+   renderClassmates();
+  }
+  else if(p.type==='offer'){
+   const peerId=p.from;
   const pc=makePeer(peerId);
   const offerCollision=pc.makingOffer||pc.signalingState!=='stable';
   pc.ignoreOffer=!pc.polite&&offerCollision;
@@ -1229,7 +1241,7 @@ function ensureStudentVideoGrid(){if(!controlMode)return null;const live=$('admi
  if(peers.has(id))return peers.get(id);
  const pc=new RTCPeerConnection({iceServers:iceServers});
  pc.__mhVideoTuneTimer=setInterval(()=>{tunePeerVideo(pc).catch(e=>console.warn('Video adaptation check failed',e))},6000);
- pc.makingOffer=false;pc.ignoreOffer=false;pc.polite=role!=='student';
+ pc.makingOffer=false;pc.ignoreOffer=false;pc.polite=role==='student'&&classmatePeerIds.has(id)?String(getMyId())>String(id):role!=='student';
  peers.set(id,pc);
  pc.onicecandidate=e=>{if(e.candidate)send({type:'ice',to:peerTarget(id),from:getMyId(),candidate:e.candidate})};
  pc.onnegotiationneeded=async()=>{
@@ -1243,9 +1255,17 @@ function ensureStudentVideoGrid(){if(!controlMode)return null;const live=$('admi
    stream=remoteMediaStreams.get(pc);
    if(!stream){stream=new MediaStream();remoteMediaStreams.set(pc,stream);}
    if(!stream.getTracks().includes(e.track))stream.addTrack(e.track);
-   const video=$('remoteVideo'),audio=$('remoteAudio');
-   video.srcObject=stream;video.autoplay=true;video.playsInline=true;video.muted=true;
-   audio.srcObject=stream;audio.autoplay=true;audio.muted=false;audio.volume=1;
+   if(classmatePeerIds.has(id)){
+     if(e.track.kind==='audio'){
+      const audio=ensureRemoteAudio(id);audio.srcObject=stream;audio.autoplay=true;audio.playsInline=true;audio.muted=false;audio.volume=1;
+      audio.play().catch(err=>console.warn('Classmate audio playback was blocked',id,err));
+      msg('Classmate audio connected');
+     }
+     return;
+    }
+    const video=$('remoteVideo'),audio=$('remoteAudio');
+    video.srcObject=stream;video.autoplay=true;video.playsInline=true;video.muted=true;
+    audio.srcObject=stream;audio.autoplay=true;audio.muted=false;audio.volume=1;
    if(e.track.kind==='video'){
     const connStatus=$('studentConnectionStatus');
     if(connStatus){connStatus.textContent='VIDEO TRACK RECEIVED · STARTING PLAYBACK';connStatus.style.color='#b54708';connStatus.style.fontWeight='800';}
@@ -1294,12 +1314,13 @@ function ensureStudentVideoGrid(){if(!controlMode)return null;const live=$('admi
   else if(pc.connectionState==='disconnected')schedulePeerRecovery();
   else if(pc.connectionState==='closed'){clearTimeout(recoveryTimer);removePeer(id);}
  };
- if(localStream)localStream.getTracks().filter(t=>!(screenStream&&t.kind==='video')).forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});
- if(studentCameraStream)studentCameraStream.getVideoTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,studentCameraStream)});
+ if(role==='student'&&classmatePeerIds.has(id)&&!pc.getTransceivers().some(t=>t.receiver.track?.kind==='audio'))pc.addTransceiver('audio',{direction:'sendrecv'});
+  if(localStream)localStream.getTracks().filter(t=>!(screenStream&&t.kind==='video')).forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});
+  if(studentCameraStream&&!(role==='student'&&classmatePeerIds.has(id)))studentCameraStream.getVideoTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,studentCameraStream)});
   if(screenStream)screenStream.getVideoTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,screenStream)});
  return pc;
 }
-function removePeer(id){const pc=peers.get(id);if(pc){clearInterval(pc.__mhVideoTuneTimer);pc.close();peers.delete(id)}const safe=String(id).replace(/[^a-zA-Z0-9_-]/g,'_');document.getElementById('student-video-tile-'+safe)?.remove();const audio=document.querySelector('[data-peer-id="'+String(id).replace(/"/g,'')+'"]');if(audio)audio.remove()}
+function removePeer(id){classmatePeerIds.delete(id);const pc=peers.get(id);if(pc){clearInterval(pc.__mhVideoTuneTimer);pc.close();peers.delete(id)}const safe=String(id).replace(/[^a-zA-Z0-9_-]/g,'_');document.getElementById('student-video-tile-'+safe)?.remove();const audio=document.querySelector('[data-peer-id="'+String(id).replace(/"/g,'')+'"]');if(audio)audio.remove()}
 async function loadAdminStudents(){if(role!=='admin'&&role!=='teacher'||!classId)return;try{const {data,error}=await supabaseClient.functions.invoke('online-class-teacher-admin',{body:{action:'list_class_students',class_id:classId}});if(error)throw error;state.joined.clear();(data?.students||[]).forEach(s=>state.joined.set(s.id,s.name||s.username||s.email||'Student'));renderStudents()}catch(e){console.warn('loadAdminStudents',e)}}
 async function loadNotes(){if(!classId)return;try{const {data,error}=await supabaseClient.from('class_notes').select('content').eq('class_id',classId).maybeSingle();if(error)throw error;if(data){$('notes').value=data.content||'';$('saveState').textContent='Loaded'}}catch(e){console.warn('loadNotes',e)}}
 async function saveNotes(){if(!classId||!['teacher','admin'].includes(role))return;try{const {error}=await supabaseClient.from('class_notes').upsert({class_id:classId,content:$('notes').value,updated_at:new Date().toISOString()});if(error)throw error;$('saveState').textContent='Saved'}catch(e){console.warn('saveNotes',e);$('saveState').textContent='Live only'}}
@@ -1483,7 +1504,7 @@ function setMicIndicator(on){
  if(admin){admin.textContent=on?"🎙":"🔇";admin.setAttribute("aria-pressed",String(on));admin.title=on?"Microphone ON":"Microphone OFF";admin.classList.toggle("primary",on);}
  if(student){student.textContent=on?"🎙":"🔇";student.setAttribute("aria-pressed",String(on));student.title=on?"Microphone ON":"Microphone OFF";student.classList.toggle("active",on);}
 }
-async function toggleStudentCamera(){if(role!=='student')return;const buttons=[$('studentCameraBtn')].filter(Boolean);if(studentCameraStream?.getVideoTracks().length){const track=studentCameraStream.getVideoTracks()[0];track.enabled=!track.enabled;buttons.forEach(b=>{b.textContent='📷';b.classList.toggle('primary',track.enabled);b.setAttribute('aria-pressed',String(track.enabled))});return;}if(!window.isSecureContext||!navigator.mediaDevices?.getUserMedia){alert('Camera access requires the secure MalawiHub website in a supported browser. Open https://malawihub.pages.dev/online-class/ in Chrome and try again.');return;}buttons.forEach(b=>{b.disabled=true;b.textContent='⏳'});try{studentCameraStream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:'user'}});const track=studentCameraStream.getVideoTracks()[0];if(!track)throw new Error('No camera video track was returned.');track.enabled=true;for(const [id,pc] of peers){if(!pc.getSenders().some(sender=>sender.track===track))pc.addTrack(track,studentCameraStream)}buttons.forEach(b=>{b.textContent='📷';b.classList.add('primary');b.setAttribute('aria-pressed','true')});msg('Your camera is on. The teacher can now see you when the connection is established.');}catch(e){console.error('Student camera start failed',e);studentCameraStream?.getTracks().forEach(t=>t.stop());studentCameraStream=null;buttons.forEach(b=>{b.textContent='📷';b.classList.remove('primary');b.setAttribute('aria-pressed','false')});alert(e?.name==='NotAllowedError'||e?.name==='PermissionDeniedError'?'Camera permission is blocked. Allow Camera for malawihub.pages.dev in your browser or Android app settings, then try again.':'Could not start your camera ('+(e?.name||e?.message||'unknown error')+'). Close other apps using the camera and try again.');}finally{buttons.forEach(b=>b.disabled=false)}}
+async function toggleStudentCamera(){if(role!=='student')return;const buttons=[$('studentCameraBtn')].filter(Boolean);if(studentCameraStream?.getVideoTracks().length){const track=studentCameraStream.getVideoTracks()[0];track.enabled=!track.enabled;buttons.forEach(b=>{b.textContent='📷';b.classList.toggle('primary',track.enabled);b.setAttribute('aria-pressed',String(track.enabled))});return;}if(!window.isSecureContext||!navigator.mediaDevices?.getUserMedia){alert('Camera access requires the secure MalawiHub website in a supported browser. Open https://malawihub.pages.dev/online-class/ in Chrome and try again.');return;}buttons.forEach(b=>{b.disabled=true;b.textContent='⏳'});try{studentCameraStream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:'user'}});const track=studentCameraStream.getVideoTracks()[0];if(!track)throw new Error('No camera video track was returned.');track.enabled=true;for(const [id,pc] of peers){if(role==='student'&&classmatePeerIds.has(id))continue;if(!pc.getSenders().some(sender=>sender.track===track))pc.addTrack(track,studentCameraStream)}buttons.forEach(b=>{b.textContent='📷';b.classList.add('primary');b.setAttribute('aria-pressed','true')});msg('Your camera is on. The teacher can now see you when the connection is established.');}catch(e){console.error('Student camera start failed',e);studentCameraStream?.getTracks().forEach(t=>t.stop());studentCameraStream=null;buttons.forEach(b=>{b.textContent='📷';b.classList.remove('primary');b.setAttribute('aria-pressed','false')});alert(e?.name==='NotAllowedError'||e?.name==='PermissionDeniedError'?'Camera permission is blocked. Allow Camera for malawihub.pages.dev in your browser or Android app settings, then try again.':'Could not start your camera ('+(e?.name||e?.message||'unknown error')+'). Close other apps using the camera and try again.');}finally{buttons.forEach(b=>b.disabled=false)}}
  async function toggleMic(){
  if(!['teacher','admin','student'].includes(role))return;
  if(role==='student')wakeStudentMedia();
