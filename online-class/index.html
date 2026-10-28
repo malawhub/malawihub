@@ -604,7 +604,7 @@ if(adminMode){$('areaLabel').textContent='';} else if(teacherPortalMode){$('area
 if(adminMode||teacherPortalMode||studentPortalMode){$('studentBtn').classList.add('hidden');$('teacherBtn').classList.add('hidden');$('modeTitle').textContent=adminMode?'Administrator Class':teacherPortalMode?'Teacher Class':'Student Class';$('modeHelp').textContent=adminMode?'Administrator mode. Only the administrator can control this class.':teacherPortalMode?'Teacher mode. Students join through the Student Portal using the class code.':'Student mode. Teacher and administrator controls are unavailable.';const codeFromUrl=params.get('code')||storedStudentCode;if(codeFromUrl)$('code').value=codeFromUrl;$('name').value=sessionStorage.getItem('malawihub_student_name')||'';if(studentPortalMode){$('studentBtn').classList.remove('hidden');$('studentBtn').textContent=codeFromUrl?'↻ Retry Joining Class':'Join Class';}else $('modePanel').classList.add('hidden');}
 if(!adminMode&&!teacherPortalMode&&!studentPortalMode){const codeFromUrl=(params.get('code')||'').trim().toUpperCase();if(codeFromUrl)$('code').value=codeFromUrl;const savedStudentName=sessionStorage.getItem('malawihub_student_name');if(savedStudentName)$('name').value=savedStudentName;}
 let channel,resourceChannel,roomCode='',userName='',privateNoteShown=false,sharedFile=null,role=adminMode?'admin':(teacherPortalMode?'teacher':(studentPortalMode?'student':'')),localStream=null,studentCameraStream=null,screenStream=null,startedAt=null,duration=60,timerInt=null,notesTimer=null,classId=null,authUser=null,classData=null,paused=false,pausedAt=0,pausedTotalMs=0,lastTimerSyncAt=0,classRecorder=null,classRecordingChunks=[],classRecordingMime='',classRecordingUploadPromise=null,classRecordingCanvas=null,classRecordingCanvasStream=null,classRecordingVideoNodes=[],classRecordingFrameHandle=0,studentTimerAnchorRemaining=null,studentTimerAnchorAt=0;
-let studentDisplayEventToken=0;let controllerPeerId='';const peers=new Map();const iceQueues=new Map();const classmatePeerIds=new Set();const state={students:new Map(),joined:new Map()};let myId='';let joinRetryTimer=null;let joinRetryCount=0;
+let studentDisplayEventToken=0;let controllerPeerId='';const peers=new Map();const iceQueues=new Map();const classmatePeerIds=new Set();const state={students:new Map(),joined:new Map()};let classmateRosterDirty=true;let myId='';let joinRetryTimer=null;let joinRetryCount=0;
 // WebRTC connectivity: use public STUN plus the configured short-lived Cloudflare TURN relay.
 let iceServers=[
  {urls:'stun:stun.l.google.com:19302'},
@@ -1107,12 +1107,12 @@ function wireTeacherTextHighlight(){
 }
 async function handleSignal(p){
  if(['teacher','admin'].includes(role)&&p.type==='join'){
-   const isNewStudent=!state.students.has(p.from);state.students.set(p.from,p.name);renderStudents();
+   const isNewStudent=!state.students.has(p.from);if(isNewStudent)classmateRosterDirty=true;state.students.set(p.from,p.name);renderStudents();
   if(window.MalawiHubNative)window.MalawiHubNative.nativeStudentJoined(p.from);
   await channel.send({type:'broadcast',event:'presence',payload:{code:roomCode,action:'join',id:p.from,name:p.name}});
   await send({type:'join-ack',from:getMyId(),to:p.from,name:userName||'Teacher'});
   // Share the current classmate roster only when a new student arrives.
-  if(isNewStudent)await send({type:'classmate-roster',from:getMyId(),to:'*',students:[...state.students.entries()].map(([id,name])=>({id,name}))});
+  if(classmateRosterDirty){try{await send({type:'classmate-roster',from:getMyId(),to:'*',students:[...state.students.entries()].map(([id,name])=>({id,name}))});classmateRosterDirty=false}catch(e){console.warn('Classmate roster broadcast failed; will retry on the next join announcement',e)}}
   const joinedPeer=makePeer(p.from);
   // A student who joins after the teacher started needs the existing media tracks too.
   if(controlMode&&startedAt&&localStream){for(const track of localStream.getTracks()){if(!joinedPeer.getSenders().some(sender=>sender.track===track))joinedPeer.addTrack(track,localStream)}}
