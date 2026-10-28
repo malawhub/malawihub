@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#087f3f">
+<title>MalawiHub Offline</title>
+<link rel="stylesheet" href="/css/style.css">
+<style>
+body{margin:0;background:#f5f8f6;color:#17251f;font-family:system-ui,Arial,sans-serif}.wrap{max-width:760px;margin:auto;padding:24px 16px}.card{background:#fff;border:1px solid #dce8e0;border-radius:18px;padding:22px;margin:16px 0;box-shadow:0 5px 20px #00000008}.status{display:inline-block;padding:7px 11px;border-radius:999px;background:#fff0d6;color:#7a4b00;font-weight:700;font-size:13px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.tile{display:block;padding:15px;border:1px solid #dce8e0;border-radius:12px;text-decoration:none;color:#14532d;font-weight:700}.tile span{display:block;color:#66756b;font-size:13px;font-weight:400;margin-top:5px}.note{line-height:1.6;color:#475569}button{padding:11px 15px;border:0;border-radius:10px;background:#087f3f;color:white;font-weight:700}
+</style>
+</head>
+<body><main class="wrap">
+<header><h1>🇲🇼 MalawiHub</h1><p>Learning tools, resources and student support.</p></header>
+<section class="card"><span id="status" class="status">Offline mode</span><h2>You can still use MalawiHub</h2><p class="note">The internet connection is unavailable. Open the tools and pages that are already stored on this device. Anything requiring a server will remain unavailable until you reconnect.</p><button id="retry" type="button">Check connection again</button></section>
+<section class="card"><h2>Available hub areas</h2><div class="grid">
+<a class="tile" href="/">Main Hub<span>Return to the cached homepage</span></a>
+<a class="tile" href="/tools/">Study tools<span>Works only for tools already downloaded</span></a>
+<a class="tile" href="/resources/">Learning resources<span>Previously cached pages and files only</span></a>
+<a class="tile" href="/papers/">Past papers<span>Previously cached papers only</span></a>
+</div></section>
+<section class="card"><h2>What is paused?</h2><p class="note">Server login and account verification, account registration, live online classes, audio/video, cloud uploads, payments and live synchronisation need an internet connection. This offline page does not grant admin or other account privileges.</p><p class="note">For best offline access, open the pages and download the files you need while online.</p></section>
+</main><script>
+const status=document.getElementById('status');
+function update(){const online=navigator.onLine;status.textContent=online?'Connection available — reload the page':'Offline mode';status.style.background=online?'#dcfce7':'#fff0d6';status.style.color=online?'#166534':'#7a4b00';}
+window.addEventListener('online',update);window.addEventListener('offline',update);document.getElementById('retry').addEventListener('click',()=>location.reload());update();
+</script></body></html>
