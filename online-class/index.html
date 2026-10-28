@@ -499,6 +499,78 @@ body.student-room #room.mh-classroom-fullscreen .student-toolbar #studentExitCla
 })();
 </script>
 
+<style id="mh-teacher-persistent-call-controls">
+/* Keep teacher call handlers visible while a shared file occupies the classroom display. */
+html:has(body.teacher-room),body.teacher-room{height:100%;overflow:hidden!important}
+body.teacher-room .class-wrap{height:100dvh!important;min-height:0!important;overflow:hidden!important}
+body.teacher-room #room:not(.hidden){height:100%!important;min-height:0!important;overflow:hidden!important}
+body.teacher-room #adminControls:not(.hidden){
+ display:flex!important;flex-direction:column!important;flex:1 1 auto!important;
+ width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;
+ overflow:hidden!important;position:relative!important;gap:4px!important
+}
+body.teacher-room #adminControls .admin-toolbar,
+body.teacher-room #adminControls .admin-secondary-toolbar{
+ position:relative!important;inset:auto!important;z-index:10020!important;
+ flex:0 0 auto!important;min-height:0!important;width:100%!important;
+ display:flex!important;flex-wrap:wrap!important;justify-content:center!important;
+ align-items:center!important;overflow:visible!important;white-space:normal!important;
+ box-sizing:border-box!important;background:#fff!important
+}
+body.teacher-room #adminControls .admin-toolbar{padding:4px!important;gap:4px!important}
+body.teacher-room #adminControls .admin-secondary-toolbar{padding:3px!important;gap:4px!important;margin:0!important}
+body.teacher-room #adminControls .admin-toolbar .admin-tool,
+body.teacher-room #adminControls .admin-secondary-toolbar .admin-tool{
+ flex:0 0 36px!important;width:36px!important;height:36px!important;min-width:36px!important
+}
+body.teacher-room #adminControls #adminClassDisplay{
+ display:flex!important;flex:1 1 0!important;width:100%!important;height:auto!important;
+ min-height:100px!important;max-height:none!important;overflow:hidden!important;
+ visibility:visible!important;opacity:1!important
+}
+body.teacher-room #adminControls .admin-display-head{
+ flex:0 0 auto!important;position:relative!important;z-index:10010!important;
+ max-width:100%!important;min-width:0!important;flex-wrap:wrap!important
+}
+body.teacher-room #adminControls #adminDisplaySwitcher{
+ display:flex!important;flex:1 1 100%!important;justify-content:flex-start!important;
+ flex-wrap:wrap!important;overflow:visible!important;white-space:normal!important;
+ max-width:100%!important;min-width:0!important;margin:0!important
+}
+body.teacher-room #adminControls #adminDisplaySwitcher .btn{
+ flex:0 1 auto!important;min-width:0!important;white-space:normal!important
+}
+body.teacher-room #adminControls .admin-display-body{
+ display:flex!important;flex:1 1 0!important;width:100%!important;height:auto!important;
+ min-height:0!important;max-height:none!important;overflow:auto!important;
+ position:relative!important;overscroll-behavior:contain
+}
+body.teacher-room #adminControls .admin-view.active{
+ flex:1 1 auto!important;min-height:0!important;max-width:100%!important
+}
+body.teacher-room #adminControls #adminFileView.active{
+ display:block!important;overflow:auto!important;overscroll-behavior:contain
+}
+body.teacher-room #adminControls #adminMore:not(.hidden){flex:0 0 auto!important;position:relative!important}
+@media(max-width:600px){
+ body.teacher-room #adminControls .admin-toolbar{gap:3px!important;padding:3px!important}
+ body.teacher-room #adminControls .admin-toolbar .admin-tool,
+ body.teacher-room #adminControls .admin-secondary-toolbar .admin-tool{
+  flex-basis:32px!important;width:32px!important;height:32px!important;min-width:32px!important;font-size:16px!important
+ }
+ body.teacher-room #adminControls #adminDisplaySwitcher .btn{font-size:11px!important;padding:4px 6px!important}
+}
+@media(max-height:650px){
+ body.teacher-room #adminControls{gap:2px!important}
+ body.teacher-room #adminControls .admin-toolbar,
+ body.teacher-room #adminControls .admin-secondary-toolbar{padding:2px!important;gap:2px!important}
+ body.teacher-room #adminControls .admin-toolbar .admin-tool,
+ body.teacher-room #adminControls .admin-secondary-toolbar .admin-tool{
+  flex-basis:30px!important;width:30px!important;height:30px!important;min-width:30px!important
+ }
+ body.teacher-room #adminControls #adminClassDisplay{min-height:80px!important}
+}
+</style>
 </head>
 <body>
 <div class="class-wrap">
