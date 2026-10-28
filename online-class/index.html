@@ -1192,11 +1192,43 @@ async function handleSignal(p){
  else if(p.type==='end'){await endRoom(false)}
 }
 const remoteMediaStreams=new WeakMap();
+/* Conservative per-peer video adaptation. Audio and classroom data are untouched.
+   Only tune camera video; screen sharing is left alone so PDFs and writing stay legible. */
+const mhVideoTuneState=new WeakMap();
+async function tunePeerVideo(pc){
+ if(!pc||pc.connectionState==='closed'||screenStream)return;
+ const sender=pc.getSenders().find(s=>s.track?.kind==='video'&&
+  (s.track===localStream?.getVideoTracks()[0]||studentCameraStream?.getVideoTracks().includes(s.track)));
+ if(!sender)return;
+ let stats;
+ try{stats=await pc.getStats()}catch(_){return}
+ let pair=null;
+ stats.forEach(r=>{if(r.type==='candidate-pair'&&r.state==='succeeded'&&(r.selected||r.nominated))pair=r});
+ if(!pair)return;
+ const available=Number(pair.availableOutgoingBitrate);
+ const rtt=Number(pair.currentRoundTripTime);
+ const previous=mhVideoTuneState.get(pc)||'normal';
+ let next=previous;
+ if((Number.isFinite(available)&&available>0&&available<280000)||(Number.isFinite(rtt)&&rtt>0.45))next='low';
+ else if((Number.isFinite(available)&&available>520000)&&(!Number.isFinite(rtt)||rtt<0.30))next='normal';
+ if(next===previous)return;
+ const params=sender.getParameters();
+ if(!params.encodings?.length)return;
+ params.encodings=params.encodings.map(encoding=>({
+  ...encoding,
+  maxBitrate:next==='low'?160000:400000,
+  maxFramerate:next==='low'?10:15,
+  scaleResolutionDownBy:next==='low'?2:1
+ }));
+ try{await sender.setParameters(params);mhVideoTuneState.set(pc,next);console.info('Adaptive classroom video',next,available,rtt)}
+ catch(e){console.warn('Could not adjust classroom video bitrate',e)}
+}
 function ensureStudentVideoGrid(){if(!controlMode)return null;const live=$('adminLiveView');if(!live)return null;let grid=$('studentVideoGrid');if(!grid){grid=document.createElement('div');grid.id='studentVideoGrid';grid.className='student-video-grid';grid.setAttribute('aria-label','Student live cameras');const stage=live.querySelector('.stage');if(stage&&stage.parentNode===live)stage.insertAdjacentElement('afterend',grid);else live.appendChild(grid)}return grid}
  function showStudentVideo(id,stream){const grid=ensureStudentVideoGrid();if(!grid||!stream)return;const safe=String(id).replace(/[^a-zA-Z0-9_-]/g,'_');let tile=document.getElementById('student-video-tile-'+safe);if(!tile){tile=document.createElement('div');tile.id='student-video-tile-'+safe;tile.className='student-video-tile';const video=document.createElement('video');video.autoplay=true;video.playsInline=true;video.muted=true;video.setAttribute('aria-label','Student camera');const name=document.createElement('div');name.className='student-video-name';name.textContent=state.students.get(id)||'Student';tile.append(video,name);grid.appendChild(tile)}const video=tile.querySelector('video');if(video.srcObject!==stream)video.srcObject=stream;video.play().catch(()=>{});const name=tile.querySelector('.student-video-name');if(name)name.textContent=state.students.get(id)||'Student';grid.classList.remove('hidden')}
  function makePeer(id){
  if(peers.has(id))return peers.get(id);
  const pc=new RTCPeerConnection({iceServers:iceServers});
+ pc.__mhVideoTuneTimer=setInterval(()=>{tunePeerVideo(pc).catch(e=>console.warn('Video adaptation check failed',e))},6000);
  pc.makingOffer=false;pc.ignoreOffer=false;pc.polite=role!=='student';
  peers.set(id,pc);
  pc.onicecandidate=e=>{if(e.candidate)send({type:'ice',to:peerTarget(id),from:getMyId(),candidate:e.candidate})};
@@ -1267,7 +1299,7 @@ function ensureStudentVideoGrid(){if(!controlMode)return null;const live=$('admi
   if(screenStream)screenStream.getVideoTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,screenStream)});
  return pc;
 }
-function removePeer(id){const pc=peers.get(id);if(pc){pc.close();peers.delete(id)}const safe=String(id).replace(/[^a-zA-Z0-9_-]/g,'_');document.getElementById('student-video-tile-'+safe)?.remove();const audio=document.querySelector('[data-peer-id="'+String(id).replace(/"/g,'')+'"]');if(audio)audio.remove()}
+function removePeer(id){const pc=peers.get(id);if(pc){clearInterval(pc.__mhVideoTuneTimer);pc.close();peers.delete(id)}const safe=String(id).replace(/[^a-zA-Z0-9_-]/g,'_');document.getElementById('student-video-tile-'+safe)?.remove();const audio=document.querySelector('[data-peer-id="'+String(id).replace(/"/g,'')+'"]');if(audio)audio.remove()}
 async function loadAdminStudents(){if(role!=='admin'&&role!=='teacher'||!classId)return;try{const {data,error}=await supabaseClient.functions.invoke('online-class-teacher-admin',{body:{action:'list_class_students',class_id:classId}});if(error)throw error;state.joined.clear();(data?.students||[]).forEach(s=>state.joined.set(s.id,s.name||s.username||s.email||'Student'));renderStudents()}catch(e){console.warn('loadAdminStudents',e)}}
 async function loadNotes(){if(!classId)return;try{const {data,error}=await supabaseClient.from('class_notes').select('content').eq('class_id',classId).maybeSingle();if(error)throw error;if(data){$('notes').value=data.content||'';$('saveState').textContent='Loaded'}}catch(e){console.warn('loadNotes',e)}}
 async function saveNotes(){if(!classId||!['teacher','admin'].includes(role))return;try{const {error}=await supabaseClient.from('class_notes').upsert({class_id:classId,content:$('notes').value,updated_at:new Date().toISOString()});if(error)throw error;$('saveState').textContent='Saved'}catch(e){console.warn('saveNotes',e);$('saveState').textContent='Live only'}}
