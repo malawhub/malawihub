@@ -41,7 +41,8 @@ self.addEventListener('fetch', event => {
   // Never cache private dashboards, authentication pages, or online-class pages.
   // Offline access must not turn cached screens into an authentication bypass.
   const path = url.pathname.toLowerCase();
-  const sensitivePath = /\/(admin|teacher-portal|student-portal|online-class|business-portal)(\/|$)/.test(path);
+  const offlineNotesPage = path === '/online-class/student-resources.html';
+  const sensitivePath = !offlineNotesPage && /\/(admin|teacher-portal|student-portal|online-class|business-portal)(\/|$)/.test(path);
   if (sensitivePath) return;
 
   event.respondWith((async () => {
