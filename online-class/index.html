@@ -786,12 +786,22 @@ function studentShowDisplay(view,title){view=({studentLiveView:'live',studentFil
  $('studentDisplayStatus').textContent=view==='file'?'📄 SHARED · TEACHER VIDEO ON':view==='whiteboard'?'🧑‍🏫 WHITEBOARD · TEACHER VIDEO ON':view==='notes'?'📝 NOTES · TEACHER VIDEO ON':'LIVE';
  if(view!=='live')wakeStudentMedia();
 }
+function resumeRemoteAudioPlayback(){
+ const audioElements=[...document.querySelectorAll('audio[data-peer-id]')];
+ const mainAudio=$('remoteAudio');if(mainAudio)audioElements.push(mainAudio);
+ audioElements.forEach(audio=>{
+  if(!audio.srcObject)return;
+  audio.autoplay=true;audio.playsInline=true;audio.muted=false;audio.volume=1;
+  audio.play().catch(err=>console.warn('Remote audio playback needs a user gesture or reconnection',audio.dataset.peerId||'teacher',err));
+ });
+}
 function wakeStudentMedia(){
  if(role!=='student')return;
- $('remoteAudio')?.play().catch(()=>{});
+ resumeRemoteAudioPlayback();
  $('remoteVideo')?.play().catch(()=>{});
- document.querySelectorAll('audio[data-peer-id]').forEach(a=>a.play().catch(()=>{}));
 }
+document.addEventListener('pointerdown',resumeRemoteAudioPlayback,true);
+document.addEventListener('keydown',resumeRemoteAudioPlayback,true);
 let classScreenRotation=0;
 function applyClassScreenRotation(degrees,broadcast=false){classScreenRotation=((Number(degrees)||0)%360+360)%360;const rotated=classScreenRotation===90||classScreenRotation===270;if(controlMode)$("adminClassDisplay")?.classList.toggle("mh-rotated",rotated);else if(role==="student")$("studentDisplay")?.classList.toggle("mh-rotated",rotated);const ab=$("adminRotateBtn"),rb=$("adminRotateResetBtn"),sb=$("studentRotateBtn");if(ab){ab.textContent=rotated?"↺":"↻";ab.title=rotated?"Rotate screen back to normal":"Rotate classroom screen 90 degrees clockwise";ab.setAttribute("aria-pressed",String(rotated));}if(rb){rb.disabled=!rotated;rb.style.opacity=rotated?"1":".55";rb.title=rotated?"Reset screen rotation":"Screen is already upright";}if(sb){sb.textContent=rotated?"↺ Reset":"↻ Rotate";sb.title=rotated?"Reset classroom screen rotation":"Rotate classroom screen 90 degrees clockwise";sb.setAttribute("aria-pressed",String(rotated));}if(broadcast&&controlMode&&channel&&roomCode){channel.send({type:"broadcast",event:"class-rotation",payload:{code:roomCode,rotation:classScreenRotation}}).catch(e=>console.warn("rotation broadcast",e));send({type:"display",action:"rotation",rotation:classScreenRotation,to:"*"}).catch(()=>{});}}
 function rotateClassScreen(){applyClassScreenRotation(classScreenRotation===0?90:0,true)}
@@ -1099,6 +1109,18 @@ function ensureRemoteAudio(peerId){
  if(!el){el=document.createElement('audio');el.id='remoteAudio-'+safe;el.autoplay=true;el.playsInline=true;el.controls=false;el.dataset.peerId=peerId;el.style.display='none';document.body.appendChild(el)}
  return el;
 }
+function ensureLocalAudioSender(pc,stream=localStream){
+ const track=stream?.getAudioTracks().find(t=>t.readyState==='live');
+ if(!pc||!track||pc.connectionState==='closed')return false;
+ const transceiver=pc.getTransceivers().find(t=>t.receiver?.track?.kind==='audio'||t.sender?.track?.kind==='audio');
+ if(transceiver){
+  if(transceiver.direction==='recvonly'||transceiver.direction==='inactive')transceiver.direction='sendrecv';
+  if(transceiver.sender.track!==track)transceiver.sender.replaceTrack(track).catch(e=>console.warn('Could not attach microphone to existing audio sender',e));
+  return true;
+ }
+ pc.addTrack(track,stream);
+ return true;
+}
 let displayScrollTimer=0;
 let lastDisplayScrollSent=0;
 function getDisplayFileScroller(){
@@ -1220,7 +1242,10 @@ async function handleSignal(p){
   if(classmateRosterDirty){try{await send({type:'classmate-roster',from:getMyId(),to:'*',students:[...state.students.entries()].map(([id,name])=>({id,name}))});classmateRosterDirty=false}catch(e){console.warn('Classmate roster broadcast failed; will retry on the next join announcement',e)}}
   const joinedPeer=makePeer(p.from);
   // A student who joins after the teacher started needs the existing media tracks too.
-  if(controlMode&&startedAt&&localStream){for(const track of localStream.getTracks()){if(!joinedPeer.getSenders().some(sender=>sender.track===track))joinedPeer.addTrack(track,localStream)}}
+  if(controlMode&&startedAt&&localStream){
+   ensureLocalAudioSender(joinedPeer,localStream);
+   for(const track of localStream.getVideoTracks()){if(!joinedPeer.getSenders().some(sender=>sender.track===track))joinedPeer.addTrack(track,localStream)}
+  }
   if(controlMode){
    if(startedAt){await send({type:'start',from:getMyId(),to:p.from,startedAt,duration,paused,pausedAt,pausedTotalMs,remainingSeconds:getTimerRemainingSeconds()});await send({type:'timer-sync',from:getMyId(),to:p.from,startedAt,duration,paused,pausedAt,pausedTotalMs,remainingSeconds:getTimerRemainingSeconds()});if(paused)await send({type:'pause',from:getMyId(),to:p.from,at:pausedAt});}
    const currentView=window.__mhCurrentDisplay||'live';
@@ -1420,12 +1445,12 @@ function ensureStudentVideoGrid(){if(!controlMode)return null;const live=$('admi
   else if(pc.connectionState==='closed'){clearTimeout(recoveryTimer);removePeer(id);}
  };
  if(role==='student'&&classmatePeerIds.has(id)&&!pc.getTransceivers().some(t=>t.receiver.track?.kind==='audio'))pc.addTransceiver('audio',{direction:'sendrecv'});
-  if(localStream)localStream.getTracks().filter(t=>!(screenStream&&t.kind==='video')).forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});
-  if(studentCameraStream&&!(role==='student'&&classmatePeerIds.has(id)))studentCameraStream.getVideoTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,studentCameraStream)});
-  if(screenStream)screenStream.getVideoTracks().forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,screenStream)});
+  if(localStream)localStream.getTracks().filter(t=>t.readyState==='live'&&!(screenStream&&t.kind==='video')).forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,localStream)});
+  if(studentCameraStream&&!(role==='student'&&classmatePeerIds.has(id)))studentCameraStream.getVideoTracks().filter(t=>t.readyState==='live').forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,studentCameraStream)});
+  if(screenStream)screenStream.getVideoTracks().filter(t=>t.readyState==='live').forEach(t=>{if(!pc.getSenders().some(s=>s.track===t))pc.addTrack(t,screenStream)});
  return pc;
 }
-function removePeer(id){classmatePeerIds.delete(id);const pc=peers.get(id);if(pc){clearInterval(pc.__mhVideoTuneTimer);pc.close();peers.delete(id)}const safe=String(id).replace(/[^a-zA-Z0-9_-]/g,'_');document.getElementById('student-video-tile-'+safe)?.remove();const audio=document.querySelector('[data-peer-id="'+String(id).replace(/"/g,'')+'"]');if(audio)audio.remove()}
+function removePeer(id){classmatePeerIds.delete(id);iceQueues.delete(id);const pc=peers.get(id);if(pc){clearInterval(pc.__mhVideoTuneTimer);pc.close();peers.delete(id)}const safe=String(id).replace(/[^a-zA-Z0-9_-]/g,'_');document.getElementById('student-video-tile-'+safe)?.remove();const audio=document.querySelector('[data-peer-id="'+String(id).replace(/"/g,'')+'"]');if(audio){audio.pause();audio.srcObject=null;audio.remove()}}
 async function loadAdminStudents(){if(role!=='admin'&&role!=='teacher'||!classId)return;try{const {data,error}=await supabaseClient.functions.invoke('online-class-teacher-admin',{body:{action:'list_class_students',class_id:classId}});if(error)throw error;state.joined.clear();(data?.students||[]).forEach(s=>state.joined.set(s.id,s.name||s.username||s.email||'Student'));renderStudents()}catch(e){console.warn('loadAdminStudents',e)}}
 async function loadNotes(){if(!classId)return;try{const {data,error}=await supabaseClient.from('class_notes').select('content').eq('class_id',classId).maybeSingle();if(error)throw error;if(data){$('notes').value=data.content||'';$('saveState').textContent='Loaded'}}catch(e){console.warn('loadNotes',e)}}
 async function saveNotes(){if(!classId||!['teacher','admin'].includes(role))return;try{const {error}=await supabaseClient.from('class_notes').upsert({class_id:classId,content:$('notes').value,updated_at:new Date().toISOString()});if(error)throw error;$('saveState').textContent='Saved'}catch(e){console.warn('saveNotes',e);$('saveState').textContent='Live only'}}
@@ -1469,7 +1494,9 @@ async function endRoom(broadcast=true){
  msg('Class ended');
  if($('startBtn'))$('startBtn').disabled=true;
  localStream?.getTracks().forEach(t=>t.stop());studentCameraStream?.getTracks().forEach(t=>t.stop());screenStream?.getTracks().forEach(t=>t.stop());
- peers.forEach(p=>p.close());peers.clear();
+ localStream=null;studentCameraStream=null;screenStream=null;
+ peers.forEach(p=>{clearInterval(p.__mhVideoTuneTimer);p.close()});peers.clear();iceQueues.clear();
+ if(['teacher','admin'].includes(role))classmateRosterDirty=true;
  if(['teacher','admin'].includes(role)&&classId)try{const q=supabaseClient.from('online_classes').update({status:'ended'}).eq('id',classId);if(role==='teacher')q.eq('teacher_id',authUser?.id);await q}catch(e){console.warn(e)}
 }
 function makeRecordingVideo(stream){
@@ -1613,22 +1640,30 @@ async function toggleStudentCamera(){if(role!=='student')return;const buttons=[$
  async function toggleMic(){
  if(!['teacher','admin','student'].includes(role))return;
  if(role==='student')wakeStudentMedia();
- if(!localStream){
-  try{
+ try{
+  if(!localStream){
    localStream=['teacher','admin'].includes(role)?await getClassMedia():await getMicrophoneStream();
+   for(const pc of peers.values())ensureLocalAudioSender(pc,localStream);
    setMicIndicator(true);
-   for(const [id,pc] of peers){
-     if(!pc.getSenders().some(s=>s.track?.kind==='audio'))pc.addTrack(localStream.getAudioTracks()[0],localStream);
-   }
-   return;
-  }catch(e){
-   console.error('Microphone access failed',e);
-   alert(e.name==='NotAllowedError'||e.name==='PermissionDeniedError'?'Microphone access is blocked for MalawiHub. Allow Microphone for malawihub.pages.dev in site settings, then try again.':'Microphone access failed. Check this site’s microphone permission.');
    return;
   }
+  let track=localStream.getAudioTracks().find(t=>t.readyState==='live');
+  if(!track){
+   const recovered=await getMicrophoneStream();
+   track=recovered.getAudioTracks()[0];
+   localStream.getAudioTracks().forEach(old=>{localStream.removeTrack(old);old.stop()});
+   localStream.addTrack(track);
+   for(const pc of peers.values())ensureLocalAudioSender(pc,localStream);
+   setMicIndicator(true);
+   return;
+  }
+  track.enabled=!track.enabled;
+  setMicIndicator(track.enabled);
+  if(track.enabled)for(const pc of peers.values())ensureLocalAudioSender(pc,localStream);
+ }catch(e){
+  console.error('Microphone access/recovery failed',e);
+  alert(e.name==='NotAllowedError'||e.name==='PermissionDeniedError'?'Microphone access is blocked for MalawiHub. Allow Microphone for malawihub.pages.dev in site settings, then try again.':'Microphone access failed. Check this site’s microphone permission and close other apps using it.');
  }
- const t=localStream.getAudioTracks()[0];
- if(t){t.enabled=!t.enabled;setMicIndicator(t.enabled);if(t.enabled&&role==='student'){for(const [id,pc] of peers){if(!pc.getSenders().some(s=>s.track?.kind==='audio'))pc.addTrack(t,localStream)}}}
 }
 setMicIndicator(false);
 function exitStudentClass(){
