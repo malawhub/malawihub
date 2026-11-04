@@ -1,9 +1,14 @@
-/sitemap.xml
-  Content-Type: application/xml; charset=UTF-8
-  X-Robots-Tag: all
+/business/*
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
 
-/robots.txt
-  Content-Type: text/plain; charset=UTF-8
+/business/sw.js
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+
+/business/manifest.json
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
+
+/business/index.html
+  Cache-Control: no-store, no-cache, must-revalidate, max-age=0
 
 /admin/*
   Cache-Control: no-store, no-cache, must-revalidate, max-age=0
