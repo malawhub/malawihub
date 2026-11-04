@@ -31,7 +31,7 @@ async function finishTrial(name){
    const {data:{user}}=await client.auth.getUser();
    const name=user?.user_metadata?.business_trial_name||'My Business';
    try{await finishTrial(name)}catch(e){show(e.message||'Could not finish trial registration. Sign in and contact MalawiHub if this continues.','error')}
-  }else show('Email verified. Please sign in below to complete your seven-day trial.','success');
+  }else {show('Email verified successfully. Now sign in with the email address and password you used to register. Your private trial workspace will be completed after sign-in.','success');const link=document.createElement('a');link.href='./?verified=1';link.textContent='Continue to Business sign in';link.style.cssText='display:block;text-align:center;margin-top:12px;padding:13px;border-radius:10px;background:#087f5b;color:white;text-decoration:none;font-weight:800';msg.appendChild(link);}
  }
 })();
 form.addEventListener('submit',async e=>{
