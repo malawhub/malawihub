@@ -37,7 +37,7 @@ window.supabaseClient=supabaseClient;
 })();
 
 (function normalizeBusinessInviteUrl(){if(!location.pathname.includes("/business"))return;const h=location.hash||"";if(!h.startsWith("#invite="))return;const t=h.slice(8);if(!t)return;const u=new URL(location.href);u.hash="";u.searchParams.set("invite",t);history.replaceState(null,document.title,u.pathname+u.search)})();
-(function loadBusinessBranding(){if(!location.pathname.includes("/business"))return;const s=document.createElement("script");s.src="../business/brand.js?v=2";s.defer=true;document.head.appendChild(s);const p=document.createElement("script");p.src="../business/app-polish.js?v=2";p.defer=true;document.head.appendChild(p)})();
+// Business Hub branding injection removed: retain the original single sign-in page and blue interface.
 async function updateMalawiHubLastSeen(){
  try{
   const {data:{user}}=await supabaseClient.auth.getUser();
