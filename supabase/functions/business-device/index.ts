@@ -18,6 +18,19 @@ const hash = async (s: string) => {
 };
 const bearer = (r: Request) => r.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
 
+// Rejection sampling avoids modulo bias; pairing codes have 8 decimal digits.
+function generatePairingCode() {
+  let code = "";
+  while (code.length < 8) {
+    const bytes = crypto.getRandomValues(new Uint8Array(16));
+    for (const byte of bytes) {
+      if (byte < 250) code += String(byte % 10);
+      if (code.length === 8) break;
+    }
+  }
+  return code;
+}
+
 async function subscriptionCurrent(workspaceId: string) {
   const { data, error } = await admin.from("business_subscriptions")
     .select("status,expires_at").eq("workspace_id", workspaceId).maybeSingle();
