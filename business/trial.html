@@ -17,12 +17,43 @@
 <script>
 const client=window.supabaseClient,form=document.getElementById('trialForm'),msg=document.getElementById('message'),btn=document.getElementById('submit');
 function show(text,kind){msg.className=kind;msg.textContent=text}
-form.addEventListener('submit',async e=>{e.preventDefault();const business_name=document.getElementById('business').value.trim(),full_name=document.getElementById('fullname').value.trim(),email=document.getElementById('email').value.trim(),password=document.getElementById('password').value,confirm=document.getElementById('confirm').value;
-if(password!==confirm)return show('The passwords do not match.','error');if(password.length<8)return show('Use a password with at least 8 characters.','error');
-btn.disabled=true;btn.textContent='Creating your private workspace…';msg.textContent='';
-try{const {data,error}=await client.functions.invoke('business-trial-register',{body:{business_name,full_name,email,password}});if(error){let detail=error.message;try{const body=await error.context.json();if(body?.error)detail=body.error}catch(_){}throw new Error(detail)}if(data?.error)throw new Error(data.error);
-const {error:loginError}=await client.auth.signInWithPassword({email,password});if(loginError)throw new Error('Your trial was created, but automatic sign-in did not complete. Return to Business Hub and sign in with your email and password.');
-show('Your private seven-day trial is ready. Opening your Business Hub…','success');setTimeout(()=>location.replace('employee.html'),500);
-}catch(err){show(err.message||'Could not create the trial. Please try again.','error');btn.disabled=false;btn.textContent='Create my private 7-day trial'}
-});
-</script></body></html>
+async function finishTrial(name){
+ const {data,error}=await client.rpc('business_create_trial_workspace',{workspace_name:name});
+ if(error)throw error;
+ show('Your private seven-day trial is ready. Opening your Business Hub…','success');
+ setTimeout(()=>location.replace('employee.html'),500);
+}
+(async()=>{
+ const params=new URLSearchParams(location.search);
+ if(params.get('complete')==='1'){
+  const {data:{session}}=await client.auth.getSession();
+  if(session){
+   const {data:{user}}=await client.auth.getUser();
+   const name=user?.user_metadata?.business_trial_name||'My Business';
+   try{await finishTrial(name)}catch(e){show(e.message||'Could not finish trial registration. Sign in and contact MalawiHub if this continues.','error')}
+  }else show('Email verified. Please sign in below to complete your seven-day trial.','success');
+ }
+})();
+form.addEventListener('submit',async e=>{
+ e.preventDefault();
+ const business_name=document.getElementById('business').value.trim(),full_name=document.getElementById('fullname').value.trim(),email=document.getElementById('email').value.trim(),password=document.getElementById('password').value,confirm=document.getElementById('confirm').value;
+ if(password!==confirm)return show('The passwords do not match.','error');
+ if(password.length<8)return show('Use a password with at least 8 characters.','error');
+ btn.disabled=true;btn.textContent='Creating your account…';msg.textContent='';
+ try{
+  const {data,error}=await client.auth.signUp({
+   email,password,
+   options:{emailRedirectTo:location.origin+'/business/trial.html?complete=1',data:{full_name,business_trial:true,business_trial_name:business_name}}
+  });
+  if(error)throw error;
+  if(data.session){
+   const {data:created,error:createError}=await client.rpc('business_create_trial_workspace',{workspace_name:business_name});
+   if(createError)throw createError;
+   show('Your private seven-day trial is ready. Opening your Business Hub…','success');
+   setTimeout(()=>location.replace('employee.html'),500);
+  }else{
+   show('Check your email and verify your address. Open the verification link on this device to finish creating your private seven-day trial. No payment is required now.','success');
+   btn.disabled=false;btn.textContent='Verification email sent';
+  }
+ }catch(err){show(err.message||'Could not create the trial. Please try again.','error');btn.disabled=false;btn.textContent='Create my private 7-day trial'}
+});</script></body></html>
