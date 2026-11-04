@@ -87,7 +87,7 @@ Deno.serve(async r => {
 
     if (b.action === "claim") {
       const code = String(b.pairing_code || "").trim();
-      if (!/^\d{6}$/.test(code)) return json({ error: "Invalid pairing code" }, 400);
+      if (!/^\d{8}$/.test(code)) return json({ error: "Invalid pairing code" }, 400);
       const codeHash = await hash(code);
       const { data: d, error: lookupError } = await admin
         .from("business_device_connections")
