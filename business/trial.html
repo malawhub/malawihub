@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Start your 7-day Business Trial | MalawiHub</title>
+<meta name="description" content="Create your own private MALIXA Business Hub workspace and test it free for seven days.">
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,sans-serif;background:#f3f7f5;color:#17251f}.wrap{max-width:620px;margin:auto;padding:22px}.top a{color:#087f5b;font-weight:700;text-decoration:none}.card{background:#fff;border:1px solid #e3ebe6;border-radius:18px;padding:22px;margin-top:18px;box-shadow:0 6px 24px #0000000b}h1{font-size:27px;margin:12px 0 8px}.muted{color:#66756e;line-height:1.5;font-size:14px}.trial{background:#effcf4;border:1px solid #b7ebc6;border-radius:12px;padding:13px;margin:15px 0}.field{margin:13px 0}label{display:block;font-weight:700;font-size:14px;margin-bottom:5px}input{width:100%;padding:13px;border:1px solid #cbd5ce;border-radius:10px;font:inherit}button{width:100%;padding:14px;border:0;border-radius:10px;background:#087f5b;color:white;font-weight:800;font-size:16px;cursor:pointer}button:disabled{opacity:.6}.error,.success{padding:12px;border-radius:10px;margin-top:12px}.error{background:#fff1f2;color:#b42318;border:1px solid #fecdd3}.success{background:#effcf4;color:#067647;border:1px solid #b7ebc6}.small{font-size:12px;color:#66756e}
+</style></head><body><main class="wrap"><div class="top"><a href="./">← MALIXA Business Hub</a></div><section class="card"><div style="font-size:36px">💼</div><h1>Start your 7-day free trial</h1><p class="muted">Create an individual Business Hub account for your business. Your workspace and records are private to your business.</p><div class="trial"><b>7 days free · No payment required now</b><div class="small">After the trial, visit MalawiHub for in-person registration and activation. Payments accepted: cash, Airtel Money or TNM Mpamba.</div></div>
+<form id="trialForm">
+<div class="field"><label for="business">Business name</label><input id="business" name="business_name" maxlength="120" required placeholder="e.g. ABC General Dealers"></div>
+<div class="field"><label for="fullname">Your full name</label><input id="fullname" name="full_name" maxlength="100" required autocomplete="name" placeholder="Business owner or contact person"></div>
+<div class="field"><label for="email">Email address</label><input id="email" name="email" type="email" maxlength="254" required autocomplete="email" placeholder="you@example.com"></div>
+<div class="field"><label for="password">Create a password</label><input id="password" name="password" type="password" minlength="8" maxlength="72" required autocomplete="new-password" placeholder="At least 8 characters"></div>
+<div class="field"><label for="confirm">Confirm password</label><input id="confirm" type="password" minlength="8" maxlength="72" required autocomplete="new-password" placeholder="Enter your password again"></div>
+<p class="small">By starting a trial, you confirm that you are authorized to register this business and that you will only connect a phone and wallet information you are authorized to use.</p>
+<button id="submit" type="submit">Create my private 7-day trial</button><div id="message" aria-live="polite"></div>
+</form></section><p class="small" style="text-align:center">MalawiHub · MALIXA Business Hub</p></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../js/supabase.js"></script>
+<script>
+const client=window.supabaseClient,form=document.getElementById('trialForm'),msg=document.getElementById('message'),btn=document.getElementById('submit');
+function show(text,kind){msg.className=kind;msg.textContent=text}
+form.addEventListener('submit',async e=>{e.preventDefault();const business_name=document.getElementById('business').value.trim(),full_name=document.getElementById('fullname').value.trim(),email=document.getElementById('email').value.trim(),password=document.getElementById('password').value,confirm=document.getElementById('confirm').value;
+if(password!==confirm)return show('The passwords do not match.','error');if(password.length<8)return show('Use a password with at least 8 characters.','error');
+btn.disabled=true;btn.textContent='Creating your private workspace…';msg.textContent='';
+try{const {data,error}=await client.functions.invoke('business-trial-register',{body:{business_name,full_name,email,password}});if(error){let detail=error.message;try{const body=await error.context.json();if(body?.error)detail=body.error}catch(_){}throw new Error(detail)}if(data?.error)throw new Error(data.error);
+const {error:loginError}=await client.auth.signInWithPassword({email,password});if(loginError)throw new Error('Your trial was created, but automatic sign-in did not complete. Return to Business Hub and sign in with your email and password.');
+show('Your private seven-day trial is ready. Opening your Business Hub…','success');setTimeout(()=>location.replace('employee.html'),500);
+}catch(err){show(err.message||'Could not create the trial. Please try again.','error');btn.disabled=false;btn.textContent='Create my private 7-day trial'}
+});
+</script></body></html>
