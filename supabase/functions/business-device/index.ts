@@ -53,7 +53,7 @@ Deno.serve(async r => {
       if (!m?.[0]) return json({ error: "Business employee access is not registered." }, 403);
       if (!(await subscriptionCurrent(m[0].workspace_id))) return json({ error: "Your Business trial has expired. Please contact MalawiHub to complete in-person registration and activation." }, 403);
 
-      const code = String(Math.floor(100000 + Math.random() * 900000));
+      const code = generatePairingCode();
       const { error: revokeError } = await admin
         .from("business_device_connections")
         .update({ status: "revoked", updated_at: new Date().toISOString() })
