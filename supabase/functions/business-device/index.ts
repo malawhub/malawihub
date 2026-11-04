@@ -18,6 +18,14 @@ const hash = async (s: string) => {
 };
 const bearer = (r: Request) => r.headers.get("authorization")?.replace(/^Bearer\s+/i, "") || "";
 
+async function subscriptionCurrent(workspaceId: string) {
+  const { data, error } = await admin.from("business_subscriptions")
+    .select("status,expires_at").eq("workspace_id", workspaceId).maybeSingle();
+  if (error || !data) return false;
+  return ["trial", "active"].includes(data.status) &&
+    (!data.expires_at || Date.parse(data.expires_at) > Date.now());
+}
+
 async function user(r: Request) {
   const t = bearer(r);
   if (!t) return null;
@@ -43,6 +51,7 @@ Deno.serve(async r => {
         .limit(1);
       if (memberError) return json({ error: memberError.message }, 500);
       if (!m?.[0]) return json({ error: "Business employee access is not registered." }, 403);
+      if (!(await subscriptionCurrent(m[0].workspace_id))) return json({ error: "Your Business trial has expired. Please contact MalawiHub to complete in-person registration and activation." }, 403);
 
       const code = String(Math.floor(100000 + Math.random() * 900000));
       const { error: revokeError } = await admin
@@ -74,6 +83,7 @@ Deno.serve(async r => {
         .eq("status", "pairing")
         .maybeSingle();
       if (lookupError) return json({ error: lookupError.message }, 500);
+      if (d && !(await subscriptionCurrent(d.workspace_id))) return json({ error: "This Business trial has expired. The device cannot be connected." }, 403);
       if (!d || !d.pairing_expires_at || Date.parse(d.pairing_expires_at) < Date.now()) {
         return json({ error: "Pairing code expired or invalid" }, 400);
       }
@@ -111,6 +121,7 @@ Deno.serve(async r => {
         .maybeSingle();
       if (deviceError) return json({ error: deviceError.message }, 500);
       if (!d) return json({ error: "Device is not connected" }, 401);
+      if (!(await subscriptionCurrent(d.workspace_id))) return json({ error: "Business access has expired. Contact MalawiHub to activate your account." }, 403);
 
       const provider = b.provider === "airtel_money" ? "airtel_money" : b.provider === "mpamba" ? "mpamba" : null;
       if (!provider) return json({ error: "Unsupported provider" }, 400);
