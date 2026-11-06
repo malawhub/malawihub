@@ -70,7 +70,7 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 .resource-empty.hidden{display:none}
 #tab-resources .field{margin-bottom:8px}
 @media(max-width:700px){.resource-workspace{grid-template-columns:1fr}.resource-frame-wrap{height:330px}.resource-card{padding:10px}}
-</style></head>
+ .screen.preview-editing #screenTitle,.screen.preview-editing #screenBody{outline:2px dashed #ffbdc2;outline-offset:5px;border-radius:4px;cursor:text;caret-color:#ffbdc2}.screen.preview-editing #screenTitle:focus,.screen.preview-editing #screenBody:focus{outline:2px solid #fff}.screen [contenteditable="true"]{user-select:text;-webkit-user-select:text}.preview-edit-hint{font-size:11px;color:#fff;background:#a71924;padding:6px 9px;border-radius:7px;margin:8px 0 0;display:none}.preview-edit-hint.active{display:block}@media(max-width:700px){#editPreviewBtn{font-size:11px;padding:8px 9px}.preview-controls{flex-wrap:wrap}.preview-controls #previewTime{flex-basis:100%}}</style></head>
 <body>
 <header class="top"><div class="brand"><div class="logo">MH</div><div>MalawiHub <span style="color:#ff7d86">Video Studio</span><br><small>Teach it. Record it. Create it.</small></div></div><div class="actions"><button class="ghost" style="color:white;border-color:#555" id="newProject">＋ New</button><button class="primary" id="exportBtn">Export video</button></div></header>
 <main class="wrap">
@@ -94,7 +94,7 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 <button class="tab" type="button" data-tab="visuals" role="tab" aria-selected="false">▧ Visuals</button>
 <button class="tab" type="button" data-tab="resources" role="tab" aria-selected="false">🧪 Simulations & files</button>
 </div><div class="stage"><div class="screen no-image" id="screen"><div class="screen-content"><div class="kicker" id="screenKicker">MALAWIHUB • CHEMISTRY</div><h2 id="screenTitle">Introduction to Chemistry</h2><p id="screenBody">Chemistry is the study of matter, its properties and how it changes.</p><div id="screenBullets"></div></div><div class="brandline">MalawiHub Learning</div></div><canvas id="liveBoardOverlay" aria-hidden="true"></canvas>
-<div class="preview-controls"><button class="dark" id="prevScene">◀</button><button class="dark" id="playPreview">▶ Preview</button><button class="dark" id="nextScene">▶</button><span class="hint" id="previewTime" style="color:#ddd">Scene 1 / 1</span></div><div class="timeline"><span id="progress"></span></div></div>
+<div class="preview-controls"><button class="dark" id="prevScene">◀</button><button class="dark" id="playPreview">▶ Preview</button><button class="dark" id="nextScene">▶</button><button class="primary" id="editPreviewBtn" type="button" aria-pressed="false">✎ Edit on screen</button><span class="hint" id="previewTime" style="color:#ddd">Scene 1 / 1</span></div><div class="timeline"><span id="progress"></span></div></div><div id="previewEditHint" class="preview-edit-hint">EDIT MODE: Tap the heading or explanation inside the preview and type. Tap Done editing when finished.</div>
 <div class="audio-card live-board-card"><strong>⌨️ Live typing board & recording</strong><p class="hint">Start recording, then type with your phone keyboard. Your words appear over the slide and your microphone is recorded at the same time.</p><textarea id="liveBoardText" rows="3" placeholder="Type equations, explanations or notes here... They will appear on the preview screen while you type."></textarea><div class="record"><button class="primary" id="liveBoardStart">● Start live recording</button><button class="danger" id="liveBoardStop" disabled>■ Stop & save MP4</button><button class="ghost" id="liveBoardClear">Clear text</button></div><div id="liveBoardStatus" class="hint" style="margin-top:8px">Ready. Select a slide, then start recording and type.</div></div>
 
 <div id="tab-content">
@@ -161,7 +161,7 @@ function makeScene(){return {id:crypto.randomUUID?crypto.randomUUID():String(Dat
 function toast(t){$('toast').textContent=t;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',2600)}
 function cur(){return scenes[current]}
 function updateSceneFromForm(){let s=cur();s.title=$('sceneTitle').value;s.body=$('sceneBody').value;s.points=$('scenePoints').value.split('\n').map(x=>x.trim()).filter(Boolean);s.duration=Math.max(3,Math.min(180,Number($('duration').value)||12));s.alignment=$('alignment').value;s.narration=$('narration').value;s.theme=$('theme').value;renderScreen();renderList()}
-function syncForm(){let s=cur();$('sceneTitle').value=s.title;$('sceneBody').value=s.body;$('scenePoints').value=s.points.join('\n');$('duration').value=s.duration;$('alignment').value=s.alignment;$('narration').value=s.narration;$('theme').value=s.theme;$('audioPlayer').classList.toggle('hidden',!s.audio);if(s.audio){$('audioPlayer').src=s.audio.url}else $('audioPlayer').removeAttribute('src');$('imageStatus').classList.toggle('hidden',!s.image);$('imageStatus').textContent=s.image?'Image added to this scene':'';renderScreen();renderList();updateVoiceSummary()}
+function syncForm(){if(previewEditMode)setPreviewEditMode(false);let s=cur();$('sceneTitle').value=s.title;$('sceneBody').value=s.body;$('scenePoints').value=s.points.join('\n');$('duration').value=s.duration;$('alignment').value=s.alignment;$('narration').value=s.narration;$('theme').value=s.theme;$('audioPlayer').classList.toggle('hidden',!s.audio);if(s.audio){$('audioPlayer').src=s.audio.url}else $('audioPlayer').removeAttribute('src');$('imageStatus').classList.toggle('hidden',!s.image);$('imageStatus').textContent=s.image?'Image added to this scene':'';renderScreen();renderList();updateVoiceSummary()}
 function renderScreen(){let s=cur();$('screen').className='screen '+(s.image?'':'no-image')+' motion-'+$('motion').value;$('screenTitle').textContent=s.title||'Untitled scene';$('screenBody').textContent=s.body;$('screenKicker').textContent=($('subject').value||'LESSON').toUpperCase()+' • '+$('level').value.toUpperCase();$('screenBullets').innerHTML=s.points.map(p=>'<div class="bullet">• '+escapeHtml(p)+'</div>').join('');$('screen').style.textAlign=s.alignment;$('screen').style.backgroundImage=s.image?'linear-gradient(90deg,rgba(5,8,15,.78),rgba(5,8,15,.22)),url('+s.image.url+')':'';if(s.theme==='light'){$('screen').style.color='#151820';$('screen').style.backgroundColor='#f2f3f5';$('screen').style.backgroundImage=s.image?'linear-gradient(90deg,rgba(255,255,255,.82),rgba(255,255,255,.18)),url('+s.image.url+')':'linear-gradient(135deg,#fff,#e5e9ef)';$('screenKicker').style.color='#a71924';$('screen').querySelector('.brandline').style.color='#222'}else{$('screen').style.color='#fff';$('screenKicker').style.color='#ffbdc2';$('screen').querySelector('.brandline').style.color='#fff';if(!s.image){let bg=s.theme==='red'?'linear-gradient(135deg,#6f1019,#c52b37)':s.theme==='black'?'linear-gradient(135deg,#10140f,#293329)':'radial-gradient(circle at 75% 30%,#4b2027,#1d2431 48%,#10131b)';$('screen').style.backgroundImage=bg}}$('previewTime').textContent='Scene '+(current+1)+' / '+scenes.length}
 function escapeHtml(x){return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function renderList(){$('sceneList').innerHTML=scenes.map((s,i)=>'<div class="scene '+(i===current?'selected':'')+'" data-i="'+i+'"><div class="thumb">'+(s.image?'<img src="'+s.image.url+'">':(i+1))+'</div><div style="min-width:0;flex:1"><div class="st">'+escapeHtml(s.title||'Untitled scene')+'</div><div class="ss">'+s.duration+' sec • '+(s.audio?'voice added':'no voice')+'</div></div><button class="ghost" data-del="'+i+'" title="Delete">×</button></div>').join('');$('sceneCount').textContent=scenes.length+' scene'+(scenes.length===1?'':'s');document.querySelectorAll('.scene').forEach(el=>el.addEventListener('click',e=>{if(e.target.dataset.del!==undefined)return;stopPreview();updateSceneFromForm();current=Number(el.dataset.i);syncForm()}));document.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();if(scenes.length===1){toast('Keep at least one scene');return}let i=Number(b.dataset.del);if(scenes[i].audio)URL.revokeObjectURL(scenes[i].audio.url);if(scenes[i].image)URL.revokeObjectURL(scenes[i].image.url);stopPreview();scenes.splice(i,1);current=Math.min(current,scenes.length-1);syncForm();scheduleAutosave()}))}
@@ -355,6 +355,26 @@ async function renderVideo(){
 }
 
 let liveBoardRecorder=null,liveBoardStream=null,liveBoardMic=null,liveBoardChunks=[],liveBoardTimer=null,liveBoardConverting=false;
+// Direct-on-preview editing: tap the actual slide text and type with the phone keyboard.
+let previewEditMode=false;
+function setPreviewEditMode(enabled){
+ previewEditMode=!!enabled;
+ const title=$('screenTitle'),body=$('screenBody'),screen=$('screen'),btn=$('editPreviewBtn');
+ [title,body].forEach(el=>{el.contentEditable=previewEditMode?'true':'false';el.spellcheck=true;el.setAttribute('role',previewEditMode?'textbox':'');});
+ screen.classList.toggle('preview-editing',previewEditMode);
+ btn.textContent=previewEditMode?'✓ Done editing':'✎ Edit on screen';
+ btn.setAttribute('aria-pressed',String(previewEditMode));
+ $('previewEditHint').classList.toggle('active',previewEditMode);
+ if(previewEditMode){title.focus();toast('Tap the heading or explanation on the preview to edit it directly.')}
+}
+$('editPreviewBtn').addEventListener('click',()=>setPreviewEditMode(!previewEditMode));
+function saveDirectPreviewText(){
+ const scene=cur();scene.title=$('screenTitle').innerText.replace(/\n/g,' ').trim();scene.body=$('screenBody').innerText;
+ $('sceneTitle').value=scene.title;$('sceneBody').value=scene.body;
+ if(typeof scheduleAutosave==='function')scheduleAutosave();
+}
+['screenTitle','screenBody'].forEach(id=>$(id).addEventListener('input',saveDirectPreviewText));
+['screenTitle','screenBody'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter'&&id==='screenTitle'){e.preventDefault();$('screenBody').focus()}}));
 const liveOverlay=$('liveBoardOverlay'),liveOverlayCtx=liveOverlay.getContext('2d');
 liveOverlay.width=1280;liveOverlay.height=720;
 function drawLiveText(ctx,w,h,text){
@@ -476,7 +496,7 @@ $('generateScenes').onclick=()=>{let text=$('fullLesson').value.trim();if(!text)
 $('clearFullLesson').onclick=()=>{$('fullLesson').value='';$('builderStatus').textContent='Paste your complete lesson text here.'};
 
 // Keyboard shortcuts for faster lesson editing.
-document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea,select')||e.ctrlKey||e.metaKey||e.altKey)return;if(e.key==='ArrowRight')$('nextScene').click();if(e.key==='ArrowLeft')$('prevScene').click()});
+document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea,select')||e.target.isContentEditable||e.ctrlKey||e.metaKey||e.altKey)return;if(e.key==='ArrowRight')$('nextScene').click();if(e.key==='ArrowLeft')$('prevScene').click()});
 // Keep a lightweight local recovery copy as the user edits. Use Export backup for voice and image assets.
 let autosaveTimer;function scheduleAutosave(){clearTimeout(autosaveTimer);autosaveTimer=setTimeout(()=>{try{updateSceneFromForm();let d={title:$('lessonTitle').value,subject:$('subject').value,level:$('level').value,scenes:scenes.map(s=>({id:s.id,title:s.title,body:s.body,points:s.points,duration:s.duration,alignment:s.alignment,narration:s.narration,theme:s.theme}))};localStorage.setItem('mh-video-studio-autosave',JSON.stringify(d))}catch(e){}},1400)}
 $('recoverBtn').onclick=()=>{try{const raw=localStorage.getItem('mh-video-studio-autosave');if(!raw){toast('No autosave is available on this device');return}const d=JSON.parse(raw);if(!Array.isArray(d.scenes)||!d.scenes.length)throw new Error('Invalid autosave');if(!confirm('Restore the latest text autosave? This replaces the current scenes. Voice recordings and reference files are not included.'))return;$('lessonTitle').value=d.title||'Recovered lesson';$('subject').value=d.subject||'Other';$('level').value=d.level||'MSCE';scenes=d.scenes.map(x=>({...makeScene(),...x,audio:null,image:null}));current=0;syncForm();toast('Autosave recovered. Export a full backup to preserve media.')}catch(e){toast('Could not recover this autosave')}};
