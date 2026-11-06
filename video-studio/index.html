@@ -244,6 +244,15 @@ async function cachedCoreBlob(url,mime){
  if(cache){try{await cache.put(url,response.clone())}catch(e){}}
  return new Blob([await response.arrayBuffer()],{type:mime});
 }
+async function hasCachedMp4Converter(){
+ try{
+  if(!('caches'in window))return false;
+  const cache=await caches.open('malawihub-video-studio-ffmpeg-0.12.10');
+  const base='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';
+  const [core,wasm]=await Promise.all([cache.match(base+'/ffmpeg-core.js'),cache.match(base+'/ffmpeg-core.wasm')]);
+  return !!(core&&wasm);
+ }catch(e){return false}
+}
 async function ensureMp4Converter(){
  if(mp4WorkerReady)return;
  if(mp4LoadPromise)return mp4LoadPromise;
@@ -295,7 +304,10 @@ async function renderVideo(){
  const mime=mp4Type||webmType;
  if(!mime){toast('This browser cannot record a video. Try an updated Chrome browser.');return}
  const needsConversion=!mp4Type;
- if(needsConversion&&!mp4WorkerReady&&!confirm('Your browser cannot record MP4 directly. MalawiHub must prepare its MP4 converter. The first download is about 31 MB and can be saved in this browser for later use. Continue?'))return;
+ if(needsConversion&&!mp4WorkerReady){
+  const cached=await hasCachedMp4Converter();
+  if(!cached&&!confirm('Your browser cannot record MP4 directly. MalawiHub needs to download its MP4 converter (about 31 MB) once. It will be cached on this device for later use. Continue?'))return;
+ }
  const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');
  if(!ctx){toast('Could not create video canvas');return}
  const imageCache={};let stream=null,audioCtx=null,mr=null,done=null;
