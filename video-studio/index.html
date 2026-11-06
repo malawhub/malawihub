@@ -56,6 +56,20 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 .script-builder textarea{width:100%;min-height:150px;border:1px solid #dfe2e8;border-radius:10px;padding:11px;font:inherit;resize:vertical}
 .script-builder .builder-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px;font-weight:800;font-size:13px}
 .script-builder .builder-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}
+
+/* Simulation and side-by-side reference workspace */
+.resource-intro{display:flex;flex-direction:column;gap:3px;margin:2px 0 12px}
+.resource-workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;align-items:start}
+.resource-card{min-width:0;border:1px solid #e3e6ec;border-radius:13px;padding:12px;background:#fbfcfd}
+.resource-card-head{display:flex;flex-direction:column;gap:2px;margin-bottom:10px}
+.resource-card-head strong{font-size:14px}
+.resource-status{display:block;min-height:20px;margin:8px 0}
+.resource-frame-wrap{height:390px;position:relative;overflow:hidden;border:1px solid #dfe3e9;border-radius:10px;background:#eef1f5}
+.resource-frame{width:100%;height:100%;border:0;background:#fff}
+.resource-empty{position:absolute;inset:0;display:grid;place-items:center;padding:18px;text-align:center;color:#7a8290;font-size:13px;pointer-events:none;background:#f5f6f8}
+.resource-empty.hidden{display:none}
+#tab-resources .field{margin-bottom:8px}
+@media(max-width:700px){.resource-workspace{grid-template-columns:1fr}.resource-frame-wrap{height:330px}.resource-card{padding:10px}}
 </style></head>
 <body>
 <header class="top"><div class="brand"><div class="logo">MH</div><div>MalawiHub <span style="color:#ff7d86">Video Studio</span><br><small>Teach it. Record it. Create it.</small></div></div><div class="actions"><button class="ghost" style="color:white;border-color:#555" id="newProject">＋ New</button><button class="primary" id="exportBtn">Export video</button></div></header>
@@ -78,6 +92,7 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 <button class="tab active" type="button" data-tab="content" role="tab" aria-selected="true">✎ Slide content</button>
 <button class="tab" type="button" data-tab="voice" role="tab" aria-selected="false">🎙 Your voice</button>
 <button class="tab" type="button" data-tab="visuals" role="tab" aria-selected="false">▧ Visuals</button>
+<button class="tab" type="button" data-tab="resources" role="tab" aria-selected="false">🧪 Simulations & files</button>
 </div><div class="stage"><div class="screen no-image" id="screen"><div class="screen-content"><div class="kicker" id="screenKicker">MALAWIHUB • CHEMISTRY</div><h2 id="screenTitle">Introduction to Chemistry</h2><p id="screenBody">Chemistry is the study of matter, its properties and how it changes.</p><div id="screenBullets"></div></div><div class="brandline">MalawiHub Learning</div></div>
 <div class="preview-controls"><button class="dark" id="prevScene">◀</button><button class="dark" id="playPreview">▶ Preview</button><button class="dark" id="nextScene">▶</button><span class="hint" id="previewTime" style="color:#ddd">Scene 1 / 1</span></div><div class="timeline"><span id="progress"></span></div></div>
 
@@ -96,6 +111,26 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 <div id="tab-visuals" class="hidden">
 <div class="field"><label>ADD A BACKGROUND IMAGE OR DIAGRAM</label><input id="imageUpload" type="file" accept="image/*"></div><div class="hint">Use your own photos, diagrams or illustrations. Landscape images work best.</div><div id="imageStatus" class="status hidden"></div><button class="ghost" id="removeImage">Remove scene image</button>
 <div class="field" style="margin-top:14px"><label>BACKGROUND STYLE</label><select id="theme"><option value="science">Science dark</option><option value="light">Clean light</option><option value="red">MalawiHub red</option><option value="black">Blackboard</option></select></div>
+</div>
+<div id="tab-resources" class="hidden">
+<div class="resource-intro"><strong>Teaching resources desk</strong><span class="hint">Keep a simulation and your reference material open while preparing the lesson.</span></div>
+<div class="resource-workspace">
+<section class="resource-card">
+<div class="resource-card-head"><strong>🧪 Simulation</strong><span class="hint">Embed an online interactive simulation</span></div>
+<div class="field"><label>SIMULATION WEB ADDRESS</label><input id="simulationUrl" type="url" inputmode="url" placeholder="Paste a simulation link, e.g. a PhET simulation URL"></div>
+<div class="record"><button class="primary" id="loadSimulation" type="button">Load simulation</button><button class="ghost" id="openSimulation" type="button" disabled>Open in new tab</button><button class="ghost" id="clearSimulation" type="button">Clear</button></div>
+<div id="simulationStatus" class="hint resource-status">Paste a simulation link and load it here. Some websites block embedding; use Open in new tab if that happens.</div>
+<div class="resource-frame-wrap"><iframe id="simulationFrame" title="Interactive teaching simulation" class="resource-frame" sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-pointer-lock" allow="fullscreen; autoplay; clipboard-read; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe><div id="simulationEmpty" class="resource-empty">Your simulation will appear here.</div></div>
+</section>
+<section class="resource-card">
+<div class="resource-card-head"><strong>📄 Reference file</strong><span class="hint">View a file alongside your lesson</span></div>
+<div class="field"><label>CHOOSE A REFERENCE FILE</label><input id="referenceUpload" type="file" accept="application/pdf,image/*,text/plain,text/html"></div>
+<div id="referenceName" class="hint resource-status">No reference file selected.</div>
+<div class="record"><button class="ghost" id="openReference" type="button" disabled>Open separately</button><button class="ghost" id="clearReference" type="button" disabled>Remove file</button></div>
+<div class="resource-frame-wrap"><iframe id="referenceFrame" title="Lesson reference file" class="resource-frame" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer"></iframe><div id="referenceEmpty" class="resource-empty">Upload a PDF, image or text file to read it here.</div></div>
+<p class="hint">PDFs and images work best. Word documents can be opened separately or converted to PDF for in-studio viewing. Files stay on this device and are not added to the exported lesson video.</p>
+</section>
+</div>
 </div>
 <div class="script-builder">
 <div class="builder-head"><span>✦ Build from a complete lesson</span><span class="hint">Paste your lesson once</span></div>
@@ -129,8 +164,18 @@ function renderScreen(){let s=cur();$('screen').className='screen '+(s.image?'':
 function escapeHtml(x){return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function renderList(){$('sceneList').innerHTML=scenes.map((s,i)=>'<div class="scene '+(i===current?'selected':'')+'" data-i="'+i+'"><div class="thumb">'+(s.image?'<img src="'+s.image.url+'">':(i+1))+'</div><div style="min-width:0;flex:1"><div class="st">'+escapeHtml(s.title||'Untitled scene')+'</div><div class="ss">'+s.duration+' sec • '+(s.audio?'voice added':'no voice')+'</div></div><button class="ghost" data-del="'+i+'" title="Delete">×</button></div>').join('');$('sceneCount').textContent=scenes.length+' scene'+(scenes.length===1?'':'s');document.querySelectorAll('.scene').forEach(el=>el.addEventListener('click',e=>{if(e.target.dataset.del!==undefined)return;updateSceneFromForm();current=Number(el.dataset.i);syncForm()}));document.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();if(scenes.length===1){toast('Keep at least one scene');return}let i=Number(b.dataset.del);if(scenes[i].audio)URL.revokeObjectURL(scenes[i].audio.url);if(scenes[i].image)URL.revokeObjectURL(scenes[i].image.url);scenes.splice(i,1);current=Math.min(current,scenes.length-1);syncForm()}))}
 function updateVoiceSummary(){let n=scenes.filter(s=>s.audio).length;$('voiceSummary').textContent=n+' of '+scenes.length+' scenes have recorded audio';let total=scenes.reduce((a,s)=>a+(Number(s.duration)||0),0);$('metricScenes').textContent=scenes.length;$('metricDuration').textContent=String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0');let pct=Math.round(n/scenes.length*100);$('metricVoice').textContent=pct+'%';$('metricVoiceHint').textContent=n===scenes.length?'Every scene has audio':n+' scene'+(n===1?'':'s')+' still need audio'}
-function switchTab(tab){document.querySelectorAll('.tab[data-tab]').forEach(b=>{let active=b.dataset.tab===tab;b.classList.toggle('active',active);b.setAttribute('aria-selected',active?'true':'false')});['content','voice','visuals'].forEach(t=>$('tab-'+t).classList.toggle('hidden',t!==tab))}
+function switchTab(tab){document.querySelectorAll('.tab[data-tab]').forEach(b=>{let active=b.dataset.tab===tab;b.classList.toggle('active',active);b.setAttribute('aria-selected',active?'true':'false')});['content','voice','visuals','resources'].forEach(t=>$('tab-'+t).classList.toggle('hidden',t!==tab))}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{updateSceneFromForm();switchTab(b.dataset.tab)});
+
+let simulationHref='',referenceHref='';
+function safeWebUrl(value){try{const u=new URL(String(value).trim());return ['http:','https:'].includes(u.protocol)?u.href:''}catch(e){return ''}}
+$('loadSimulation').onclick=()=>{const url=safeWebUrl($('simulationUrl').value);if(!url){toast('Enter a valid http or https simulation link');return}simulationHref=url;$('simulationFrame').src=url;$('simulationEmpty').classList.add('hidden');$('openSimulation').disabled=false;$('simulationStatus').textContent='Simulation loaded if the website allows embedding. If the panel stays blank, use Open in new tab.'};
+$('openSimulation').onclick=()=>{if(simulationHref)window.open(simulationHref,'_blank','noopener,noreferrer')};
+$('clearSimulation').onclick=()=>{simulationHref='';$('simulationFrame').src='about:blank';$('simulationUrl').value='';$('simulationEmpty').classList.remove('hidden');$('openSimulation').disabled=true;$('simulationStatus').textContent='Simulation cleared.'};
+$('referenceUpload').onchange=e=>{const file=e.target.files&&e.target.files[0];if(!file)return;const allowed=file.type==='application/pdf'||file.type.startsWith('image/')||file.type==='text/plain'||file.type==='text/html';if(!allowed){toast('Choose a PDF, image or text file');e.target.value='';return}if(referenceHref)URL.revokeObjectURL(referenceHref);referenceHref=URL.createObjectURL(file);$('referenceFrame').src=referenceHref;$('referenceEmpty').classList.add('hidden');$('referenceName').textContent=file.name+' • '+(file.size/1024/1024).toFixed(2)+' MB';$('openReference').disabled=false;$('clearReference').disabled=false};
+$('openReference').onclick=()=>{if(referenceHref)window.open(referenceHref,'_blank','noopener,noreferrer')};
+$('clearReference').onclick=()=>{if(referenceHref)URL.revokeObjectURL(referenceHref);referenceHref='';$('referenceFrame').src='about:blank';$('referenceUpload').value='';$('referenceName').textContent='No reference file selected.';$('referenceEmpty').classList.remove('hidden');$('openReference').disabled=true;$('clearReference').disabled=true};
+
 ['sceneTitle','sceneBody','scenePoints','duration','alignment','narration','theme'].forEach(id=>$(id).addEventListener('input',updateSceneFromForm));
 $('lessonTitle').addEventListener('input',()=>{projectName=$('lessonTitle').value;});['subject','level'].forEach(id=>$(id).addEventListener('change',renderScreen));
 $('addScene').onclick=()=>{updateSceneFromForm();let s=makeScene();s.title='New lesson point';s.body='Explain this idea in your own words.';scenes.push(s);current=scenes.length-1;syncForm()};
