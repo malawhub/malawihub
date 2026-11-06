@@ -107,7 +107,7 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 (()=> {
  const $=id=>document.getElementById(id),panel=$("mhKeyboardPanel"),toggle=$("mhKeyboardToggle"),close=$("mhKeyboardClose"),host=$("mhKeyboardRows"),modes=$("mhKeyboardModes"),els=$("mhElements"),hint=$("mhKeyboardHint"),label=$("mhKeyboardLabel");
  if(!panel||!toggle||!host||!modes||!els)return;
- let mode="ABC",shift=false,target=null;
+ let mode="ABC",shift=false,capsLock=false,lastShiftTap=0,target=null;
  const periodic=[["H","Hydrogen",1],["He","Helium",2],["Li","Lithium",3],["Be","Beryllium",4],["B","Boron",5],["C","Carbon",6],["N","Nitrogen",7],["O","Oxygen",8],["F","Fluorine",9],["Ne","Neon",10],["Na","Sodium",11],["Mg","Magnesium",12],["Al","Aluminium",13],["Si","Silicon",14],["P","Phosphorus",15],["S","Sulfur",16],["Cl","Chlorine",17],["Ar","Argon",18],["K","Potassium",19],["Ca","Calcium",20]];
  const abc=[["1","2","3","4","5","6","7","8","9","0"],["q","w","e","r","t","y","u","i","o","p"],["a","s","d","f","g","h","j","k","l"],["⇧","z","x","c","v","b","n","m","⌫"],["?123",",","Space",".","Enter"]];
  const layouts={Math:[["7","8","9","÷","√","π","α","β","γ","Δ","∞","±","⌫"],["4","5","6","×","ⁿ","²","³","θ","≤","≥","≠","≈","Enter"],["1","2","3","−","+","∑","∫","∂","→","↔","°","%","Space"],["0",".","(",")","[","]","{","}","½","⅓","⅔","x","y","z"]],Physics:[["7","8","9","÷","×","Δ","θ","λ","μ","ρ","σ","Ω","⌫"],["4","5","6","−","+","α","β","γ","π","∞","±","≈","Enter"],["1","2","3","×","∑","→","⇌","m/s","m²","kg","N","J","Space"],["0",".","(",")","F","m","a","v","t","E","P","V","I","W"]],Chem:[["H","C","N","O","S","P","Cl","Br","F","I","Na","K","⌫"],["Ca","Fe","Cu","Zn","Ag","Au","₀","₁","₂","₃","₄","⁺","Enter"],["₅","₆","₇","₈","₉","²⁺","³⁺","→","⇌","↑","↓","Δ","Space"],["(",")","[","]","(s)","(l)","(g)","(aq)","·","+","−","=","R","X"]],Symbols:[["©","®","™","°","′","″","§","¶","†","‡","•","…","⌫"],["¿","¡","€","£","¥","₹","₵","$","@","#","%","&","Enter"],["*","+","−","×","÷","=","≠","≈","≤","≥","±","√","Space"],["∛","∞","∑","∫","∂","∇","π","α","β","γ","δ","λ","μ","Ω"]]};
@@ -123,7 +123,7 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
  function insert(v){if(!focusTarget()){hint.textContent="Tap a lesson field or editable preview first.";return}if(isEditable(target)){document.execCommand("insertText",false,v);return}try{const a=target.selectionStart??target.value.length,b=target.selectionEnd??a;target.setRangeText(v,a,b,"end");inputEvent(target)}catch(_){target.value+=v;target.setSelectionRange(target.value.length,target.value.length);inputEvent(target)}}
  function backspace(){if(!focusTarget())return;if(isEditable(target)){document.execCommand("delete",false,null);return}let a=target.selectionStart??target.value.length,b=target.selectionEnd??a;if(a===b&&a>0){const cp=Array.from(target.value.slice(0,a)).pop()||"";a-=cp.length}try{target.setRangeText("",a,b,"end");inputEvent(target)}catch(_){}}
  function enter(){if(!focusTarget())return;if(isEditable(target)||target.tagName==="TEXTAREA"){insert("\n");return}target.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",code:"Enter",bubbles:true}));target.dispatchEvent(new KeyboardEvent("keyup",{key:"Enter",code:"Enter",bubbles:true}))}
- function act(k){if(k==="Space")return insert(" ");if(k==="Enter")return enter();if(k==="⇧"){shift=!shift;draw();return}if(k==="?123"){setMode("Symbols");return}if(k==="⌫")return backspace();insert(mode==="ABC"&&shift?k.toUpperCase():k);if(shift){shift=false;draw()}}
+ function act(k){if(k==="Space")return insert(" ");if(k==="Enter")return enter();if(k==="⇧"){const now=Date.now();if(capsLock){capsLock=false;shift=false;lastShiftTap=0}else if(now-lastShiftTap<400){capsLock=true;shift=false;lastShiftTap=0}else{shift=!shift;lastShiftTap=now}draw();return}if(k==="?123"){setMode("Symbols");return}if(k==="⌫")return backspace();insert(mode==="ABC"&&(shift||capsLock)?k.toUpperCase():k);if(shift){shift=false;draw()}}
  let repeatTimer=null,repeatDelay=null;
  function stopKeyRepeat(){if(repeatTimer){clearInterval(repeatTimer);repeatTimer=null}if(repeatDelay){clearTimeout(repeatDelay);repeatDelay=null}}
  document.addEventListener("pointerup",stopKeyRepeat);document.addEventListener("pointercancel",stopKeyRepeat);window.addEventListener("blur",stopKeyRepeat);
@@ -131,7 +131,7 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
  function makeKey(k){
   const b=document.createElement("button");b.type="button";b.className="mh-gboard-key";
   if(["⇧","⌫","?123"].includes(k))b.classList.add("special");if(k==="Space")b.classList.add("space");if(k==="Enter")b.classList.add("enter");
-  b.textContent=k==="Space"?"English (US)":(mode==="ABC"&&/^[a-z]$/.test(k)?(shift?k.toUpperCase():k):k);
+  b.textContent=k==="Space"?"English (US)":(mode==="ABC"&&/^[a-z]$/.test(k)?((shift||capsLock)?k.toUpperCase():k):k);if(k==="⇧"){b.classList.toggle("active",shift||capsLock);b.title=capsLock?"Caps Lock is on":(shift?"Uppercase for next letter":"Double-tap for Caps Lock")};
   b.addEventListener("pointerdown",e=>{
    e.preventDefault();stopKeyRepeat();act(k);
    if(!["⇧","?123","Enter"].includes(k)){repeatDelay=setTimeout(()=>{repeatTimer=setInterval(()=>act(k),85)},350)}
@@ -142,7 +142,7 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
   return b
  }
  function draw(){host.innerHTML="";(mode==="ABC"?abc:layouts[mode]||layouts.Symbols).forEach(row=>{const r=document.createElement("div");r.className="mh-gboard-row";row.forEach(k=>r.appendChild(makeKey(k)));host.appendChild(r)});els.hidden=mode!=="Chem";els.innerHTML="";if(mode==="Chem")periodic.forEach(([s,n,num])=>{const b=document.createElement("button");b.type="button";b.title=num+" "+n;b.innerHTML="<small>"+num+"</small><strong>"+s+"</strong>";b.addEventListener("pointerdown",e=>e.preventDefault());b.addEventListener("click",()=>insert(s));els.appendChild(b)});label.textContent="MalawiHub · "+(mode==="ABC"?"English":mode)+" keyboard"}
- function setMode(v){mode=v;shift=false;modes.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.mode===v));draw()}
+ function setMode(v){mode=v;shift=false;capsLock=false;lastShiftTap=0;modes.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b.dataset.mode===v));draw()}
  toggle.addEventListener("click",()=>panel.classList.contains("hidden")?open():shut());close.addEventListener("click",shut);modes.addEventListener("pointerdown",e=>{if(e.target.closest("button"))e.preventDefault()});modes.addEventListener("click",e=>{const b=e.target.closest("button[data-mode]");if(b)setMode(b.dataset.mode)});panel.addEventListener("pointerdown",e=>{if(e.target.closest("button"))e.preventDefault()});
  document.querySelectorAll('input:not([type]),input[type="text"],input[type="search"],textarea').forEach(el=>el.setAttribute("inputmode","none"));
  draw();shut();
