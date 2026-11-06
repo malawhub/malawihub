@@ -142,15 +142,16 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 </div></section>
 <aside class="panel right"><div class="ph">Production tools</div><div class="pb">
 <div class="audio-card"><strong>🎙 Voice recording</strong><p class="hint">Each scene has its own audio. Record separately for easier editing and retakes.</p><div id="voiceSummary" class="status">No narration recorded yet</div></div>
-<div class="audio-card"><strong>🎬 Export your lesson</strong><p class="hint">Render your slides with your recorded narration into a video file.</p><div class="field"><label>VIDEO FORMAT</label><select id="quality"><option value="1280">HD 720p</option><option value="1920">Full HD 1080p (larger file)</option></select></div><div class="field"><label>FRAME RATE</label><select id="fps"><option value="30">30 FPS</option><option value="24">24 FPS</option></select></div>
+<div class="audio-card"><strong>🎬 Export your lesson</strong><p class="hint">Render your slides with your recorded narration into a video file.</p><div class="field"><label>FILE FORMAT</label><select id="exportFormat"><option value="auto">Automatic — MP4 if supported</option><option value="mp4">MP4 only</option><option value="webm">WebM</option></select><small class="hint">MP4 depends on your phone browser. Automatic mode never renames a WebM file as MP4.</small></div>
+<div class="field"><label>DATA & VIDEO QUALITY</label><select id="exportPreset"><option value="saver">Data Saver — 480p • smallest file</option><option value="balanced">Balanced — 720p • recommended</option><option value="quality">High Quality — 1080p</option></select><small class="hint">Data Saver uses lower resolution, frame rate and bitrate to reduce file size and phone memory use.</small></div>
 <div class="field"><label>ON-SCREEN TEXT MOTION</label><select id="motion"><option value="rise">Rise in + stagger</option><option value="fade">Smooth fade</option><option value="slide">Slide from left</option><option value="zoom">Soft zoom</option></select></div>
-<p class="hint">Text animation is included in both the live preview and exported video.</p><button class="primary" style="width:100%" id="renderBtn">Render & download video</button><div id="exportStatus" class="hint" style="margin-top:8px">Ready when your scenes are prepared.</div></div>
+<p class="hint">Your video is rendered on this device. No lesson video is uploaded. Choose Data Saver to reduce mobile storage and processing.</p><button class="primary" style="width:100%" id="renderBtn">Create & download video</button><div id="exportStatus" class="hint" style="margin-top:8px">Ready when your scenes are prepared.</div></div>
 <div class="audio-card"><strong>📦 Project files</strong><div class="asset"><span class="hint">Lesson script</span><button class="ghost" id="scriptBtn">Download</button></div><div class="asset"><span class="hint">Project backup</span><button class="ghost" id="backupBtn">Export</button></div><div class="asset"><span class="hint">Import backup</span><label class="ghost" style="padding:7px 10px;border-radius:8px;cursor:pointer">Choose<input id="importBackup" type="file" accept="application/json" hidden></label></div></div>
 <div class="hint">Export note: Video rendering happens in your browser. Keep this tab open until the download finishes. Long lessons may take time and use phone memory.</div>
 </div></aside>
 </div><p class="bottom-note">MalawiHub Video Studio • Your voice is yours. Recordings are processed locally in your browser. Save backups regularly because browser storage can be cleared.</p>
 </main>
-<div class="modal" id="modal"><div class="modalbox"><h3>How to create your lesson</h3><ol><li>Enter your lesson title, subject and class.</li><li>Add scenes. Each scene becomes one slide in your video.</li><li>Write a short heading, explanation and key points.</li><li>Open <b>Your voice</b> and record your narration or upload an audio file.</li><li>Add your own image or diagram in <b>Visuals</b>.</li><li>Preview the lesson, then render and download your video.</li></ol><p class="hint">Microphone recording requires a secure website (HTTPS) and browser permission. Video export support depends on your browser. Chrome on Android is recommended. Exported video is WebM; convert it to MP4 with a trusted video editor if your platform requires MP4.</p><button class="primary" id="closeHelp">Got it</button></div></div>
+<div class="modal" id="modal"><div class="modalbox"><h3>How to create your lesson</h3><ol><li>Enter your lesson title, subject and class.</li><li>Add scenes. Each scene becomes one slide in your video.</li><li>Write a short heading, explanation and key points.</li><li>Open <b>Your voice</b> and record your narration or upload an audio file.</li><li>Add your own image or diagram in <b>Visuals</b>.</li><li>Preview the lesson, then render and download your video.</li></ol><p class="hint">Microphone recording requires a secure website (HTTPS) and browser permission. Video export support depends on your browser. Chrome on Android is recommended. MP4 is created only when your browser supports MP4 recording. Otherwise choose Automatic or WebM; the studio will clearly identify the actual file type. Data Saver is recommended for phones and limited storage.</p><button class="primary" id="closeHelp">Got it</button></div></div>
 <div class="toast" id="toast"></div>
 <script>
 const $=id=>document.getElementById(id);
@@ -221,30 +222,49 @@ async function renderVideo(){
  stopPreview();updateSceneFromForm();
  if(!scenes.length){toast('Add at least one scene first');return}
  if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){toast('Video export is not supported here. Try Chrome.');return}
- const originalScene=current,w=Number($('quality').value),h=Math.round(w*9/16),fps=Number($('fps').value);
+ const originalScene=current,preset=$('exportPreset').value,formatChoice=$('exportFormat').value;
+ const settings=preset==='saver'?{width:854,fps:20,videoBitrate:650000,audioBitrate:64000,label:'Data Saver 480p'}:preset==='quality'?{width:1920,fps:30,videoBitrate:3800000,audioBitrate:96000,label:'High Quality 1080p'}:{width:1280,fps:24,videoBitrate:1450000,audioBitrate:80000,label:'Balanced 720p'};
+ const w=settings.width,h=Math.round(w*9/16),fps=settings.fps;
  const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');
  if(!ctx){toast('Could not create video canvas');return}
  const imageCache={};let stream=null,audioCtx=null,mr=null,done=null;
  try{
-  $('renderBtn').disabled=true;$('exportStatus').textContent='Preparing images and audio...';
+  $('renderBtn').disabled=true;$('exportStatus').textContent='Preparing '+settings.label+'...';
   for(const s of scenes){if(s.image?.data){const img=new Image();img.src=s.image.data;await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('A scene image could not be loaded'))});imageCache[s.id]=img}}
   stream=canvas.captureStream(fps);const AudioContextClass=window.AudioContext||window.webkitAudioContext;
   if(!AudioContextClass)throw new Error('This browser does not support audio export.');
   audioCtx=new AudioContextClass();await audioCtx.resume();const dest=audioCtx.createMediaStreamDestination();stream.addTrack(dest.stream.getAudioTracks()[0]);
-  const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));
-  if(!mime)throw new Error('This browser cannot export WebM. Try Chrome.');
-  const chunks=[];mr=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:w===1920?5000000:2500000});
-  mr.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};done=new Promise((resolve,reject)=>{mr.onstop=resolve;mr.onerror=()=>reject(new Error('Video recording stopped unexpectedly'))});mr.start(500);
+  const mp4Types=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1','video/mp4'];
+  const webmTypes=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
+  const mp4Type=mp4Types.find(t=>MediaRecorder.isTypeSupported(t));
+  const webmType=webmTypes.find(t=>MediaRecorder.isTypeSupported(t));
+  let mime='';
+  if(formatChoice==='mp4'){if(!mp4Type)throw new Error('MP4 recording is not supported by this browser. Select Automatic or WebM.');mime=mp4Type}
+  else if(formatChoice==='webm'){mime=webmType}
+  else{mime=mp4Type||webmType}
+  if(!mime)throw new Error('This browser cannot record MP4 or WebM. Try an updated Chrome browser.');
+  const isMp4=mime.startsWith('video/mp4'),extension=isMp4?'mp4':'webm';
+  const chunks=[];mr=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:settings.videoBitrate,audioBitsPerSecond:settings.audioBitrate});
+  mr.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};done=new Promise((resolve,reject)=>{mr.onstop=resolve;mr.onerror=()=>reject(new Error('Video recording stopped unexpectedly'))});mr.start(1000);
+  const totalSeconds=scenes.reduce((sum,s)=>sum+Math.max(Number(s.duration)||12,Number(s.audio?.duration)||0),0);
   for(let i=0;i<scenes.length;i++){
    const s=scenes[i];current=i;syncForm();let decoded=null,source=null;
    if(s.audio){try{decoded=await audioCtx.decodeAudioData(await s.audio.blob.arrayBuffer());source=audioCtx.createBufferSource();source.buffer=decoded;source.connect(dest);source.start()}catch(err){throw new Error('Could not read audio in scene '+(i+1)+'. Record it again or upload a supported audio file.')}}
    const duration=Math.max(Number(s.duration)||12,decoded?.duration||0),startAt=performance.now();
-   while((performance.now()-startAt)/1000<duration){const elapsed=(performance.now()-startAt)/1000;drawScene(ctx,s,w,h,elapsed,duration,imageCache);$('exportStatus').textContent='Rendering scene '+(i+1)+' of '+scenes.length+' • '+Math.floor(elapsed)+' / '+Math.ceil(duration)+' sec';await new Promise(resolve=>setTimeout(resolve,1000/fps))}
+   while((performance.now()-startAt)/1000<duration){
+    const elapsed=(performance.now()-startAt)/1000;drawScene(ctx,s,w,h,elapsed,duration,imageCache);
+    const completed=scenes.slice(0,i).reduce((sum,x)=>sum+Math.max(Number(x.duration)||12,Number(x.audio?.duration)||0),0)+elapsed;
+    $('exportStatus').textContent='Rendering '+settings.label+' • scene '+(i+1)+'/'+scenes.length+' • '+Math.min(100,Math.floor(completed/totalSeconds*100))+'%';
+    await new Promise(resolve=>setTimeout(resolve,1000/fps));
+   }
    if(source){try{source.stop()}catch(e){}}
   }
   mr.stop();await done;mr=null;const blob=new Blob(chunks,{type:mime});
-  downloadBlob(blob,($('lessonTitle').value||'malawihub-lesson').replace(/[^a-z0-9-_]+/gi,'-').toLowerCase()+'.webm');
-  $('exportStatus').textContent='Video downloaded. Check your Downloads folder.';toast('Video export complete');
+  const safeName=($('lessonTitle').value||'malawihub-lesson').replace(/[^a-z0-9-_]+/gi,'-').toLowerCase();
+  downloadBlob(blob,safeName+'.'+extension);
+  const mb=(blob.size/1024/1024).toFixed(1);
+  $('exportStatus').textContent='Downloaded '+extension.toUpperCase()+' • '+mb+' MB • '+settings.label+(formatChoice==='auto'&&!isMp4?' • MP4 is not supported here; saved compatible WebM instead.':'');
+  toast('Video downloaded ('+extension.toUpperCase()+', '+mb+' MB)');
  }catch(e){$('exportStatus').textContent='Export failed: '+e.message;toast('Video export failed: '+e.message)}
  finally{
   if(mr&&mr.state!=='inactive'){try{mr.stop()}catch(e){}if(done){try{await done}catch(err){}}}
