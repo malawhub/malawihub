@@ -403,7 +403,7 @@ async function startLiveBoardRecording(){
   const imageCache={},scene=cur();
   if(scene.image?.data){const img=new Image();img.src=scene.image.data;await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('Could not load the slide image.'))});imageCache[scene.id]=img}
   liveBoardStream=canvas.captureStream(settings.fps);liveBoardMic.getAudioTracks().forEach(t=>liveBoardStream.addTrack(t));liveBoardChunks=[];
-  liveBoardRecorder=new MediaRecorder(liveBoardStream,{mimeType,videoBitsPerSecond:settings.videoBitrate,audioBitsPerSecond:settings.audioBitrate});
+  liveBoardRecorder=new MediaRecorder(liveBoardStream,{mimeType:mime,videoBitsPerSecond:settings.videoBitrate,audioBitsPerSecond:settings.audioBitrate});
   liveBoardRecorder.ondataavailable=e=>{if(e.data?.size)liveBoardChunks.push(e.data)};
   liveBoardRecorder.onerror=()=>{$('liveBoardStatus').textContent='Recording error. Please try again.';stopLiveBoardRecording()};
   liveBoardRecorder.onstop=async()=>{
