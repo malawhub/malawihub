@@ -74,7 +74,7 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 <body>
 <header class="top"><div class="brand"><div class="logo">MH</div><div>MalawiHub <span style="color:#ff7d86">Video Studio</span><br><small>Teach it. Record it. Create it.</small></div></div><div class="actions"><button class="ghost" style="color:white;border-color:#555" id="newProject">＋ New</button><button class="primary" id="exportBtn">Export video</button></div></header>
 <main class="wrap">
-<div class="hero"><div><h1>Video Lesson Creator</h1><p>Build lesson slides and narrate them in your own voice.</p></div><div class="actions"><button class="ghost" id="saveBtn">Save project</button><button class="ghost" id="loadBtn">Open project</button><button class="ghost" id="helpBtn">How to use</button></div></div>
+<div class="hero"><div><h1>Video Lesson Creator</h1><p>Build lesson slides and narrate them in your own voice.</p></div><div class="actions"><button class="ghost" id="saveBtn">Save project</button><button class="ghost" id="loadBtn">Open project</button><button class="ghost" id="recoverBtn">Recover autosave</button><button class="ghost" id="helpBtn">How to use</button></div></div>
 <div class="studio-metrics" aria-live="polite">
 <div class="metric"><span>Scenes</span><strong id="metricScenes">1</strong><small>In this lesson</small></div>
 <div class="metric"><span>Estimated length</span><strong id="metricDuration">00:12</strong><small>Based on scene timing</small></div>
@@ -120,14 +120,14 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 <div class="field"><label>SIMULATION WEB ADDRESS</label><input id="simulationUrl" type="url" inputmode="url" placeholder="Paste a simulation link, e.g. a PhET simulation URL"></div>
 <div class="record"><button class="primary" id="loadSimulation" type="button">Load simulation</button><button class="ghost" id="openSimulation" type="button" disabled>Open in new tab</button><button class="ghost" id="clearSimulation" type="button">Clear</button></div>
 <div id="simulationStatus" class="hint resource-status">Paste a simulation link and load it here. Some websites block embedding; use Open in new tab if that happens.</div>
-<div class="resource-frame-wrap"><iframe id="simulationFrame" title="Interactive teaching simulation" class="resource-frame" sandbox="allow-scripts allow-forms allow-same-origin allow-popups allow-pointer-lock" allow="fullscreen; autoplay; clipboard-read; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe><div id="simulationEmpty" class="resource-empty">Your simulation will appear here.</div></div>
+<div class="resource-frame-wrap"><iframe id="simulationFrame" title="Interactive teaching simulation" class="resource-frame" sandbox="allow-scripts allow-forms allow-popups allow-pointer-lock" allow="fullscreen; autoplay; clipboard-read; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe><div id="simulationEmpty" class="resource-empty">Your simulation will appear here.</div></div>
 </section>
 <section class="resource-card">
 <div class="resource-card-head"><strong>📄 Reference file</strong><span class="hint">View a file alongside your lesson</span></div>
-<div class="field"><label>CHOOSE A REFERENCE FILE</label><input id="referenceUpload" type="file" accept="application/pdf,image/*,text/plain,text/html"></div>
+<div class="field"><label>CHOOSE A REFERENCE FILE</label><input id="referenceUpload" type="file" accept="application/pdf,image/*,text/plain"></div>
 <div id="referenceName" class="hint resource-status">No reference file selected.</div>
 <div class="record"><button class="ghost" id="openReference" type="button" disabled>Open separately</button><button class="ghost" id="clearReference" type="button" disabled>Remove file</button></div>
-<div class="resource-frame-wrap"><iframe id="referenceFrame" title="Lesson reference file" class="resource-frame" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer"></iframe><div id="referenceEmpty" class="resource-empty">Upload a PDF, image or text file to read it here.</div></div>
+<div class="resource-frame-wrap"><iframe id="referenceFrame" title="Lesson reference file" class="resource-frame" sandbox="" referrerpolicy="no-referrer"></iframe><div id="referenceEmpty" class="resource-empty">Upload a PDF, image or text file to read it here.</div></div>
 <p class="hint">PDFs and images work best. Word documents can be opened separately or converted to PDF for in-studio viewing. Files stay on this device and are not added to the exported lesson video.</p>
 </section>
 </div>
@@ -162,7 +162,7 @@ function updateSceneFromForm(){let s=cur();s.title=$('sceneTitle').value;s.body=
 function syncForm(){let s=cur();$('sceneTitle').value=s.title;$('sceneBody').value=s.body;$('scenePoints').value=s.points.join('\n');$('duration').value=s.duration;$('alignment').value=s.alignment;$('narration').value=s.narration;$('theme').value=s.theme;$('audioPlayer').classList.toggle('hidden',!s.audio);if(s.audio){$('audioPlayer').src=s.audio.url}else $('audioPlayer').removeAttribute('src');$('imageStatus').classList.toggle('hidden',!s.image);$('imageStatus').textContent=s.image?'Image added to this scene':'';renderScreen();renderList();updateVoiceSummary()}
 function renderScreen(){let s=cur();$('screen').className='screen '+(s.image?'':'no-image')+' motion-'+$('motion').value;$('screenTitle').textContent=s.title||'Untitled scene';$('screenBody').textContent=s.body;$('screenKicker').textContent=($('subject').value||'LESSON').toUpperCase()+' • '+$('level').value.toUpperCase();$('screenBullets').innerHTML=s.points.map(p=>'<div class="bullet">• '+escapeHtml(p)+'</div>').join('');$('screen').style.textAlign=s.alignment;$('screen').style.backgroundImage=s.image?'linear-gradient(90deg,rgba(5,8,15,.78),rgba(5,8,15,.22)),url('+s.image.url+')':'';if(s.theme==='light'){$('screen').style.color='#151820';$('screen').style.backgroundColor='#f2f3f5';$('screen').style.backgroundImage=s.image?'linear-gradient(90deg,rgba(255,255,255,.82),rgba(255,255,255,.18)),url('+s.image.url+')':'linear-gradient(135deg,#fff,#e5e9ef)';$('screenKicker').style.color='#a71924';$('screen').querySelector('.brandline').style.color='#222'}else{$('screen').style.color='#fff';$('screenKicker').style.color='#ffbdc2';$('screen').querySelector('.brandline').style.color='#fff';if(!s.image){let bg=s.theme==='red'?'linear-gradient(135deg,#6f1019,#c52b37)':s.theme==='black'?'linear-gradient(135deg,#10140f,#293329)':'radial-gradient(circle at 75% 30%,#4b2027,#1d2431 48%,#10131b)';$('screen').style.backgroundImage=bg}}$('previewTime').textContent='Scene '+(current+1)+' / '+scenes.length}
 function escapeHtml(x){return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function renderList(){$('sceneList').innerHTML=scenes.map((s,i)=>'<div class="scene '+(i===current?'selected':'')+'" data-i="'+i+'"><div class="thumb">'+(s.image?'<img src="'+s.image.url+'">':(i+1))+'</div><div style="min-width:0;flex:1"><div class="st">'+escapeHtml(s.title||'Untitled scene')+'</div><div class="ss">'+s.duration+' sec • '+(s.audio?'voice added':'no voice')+'</div></div><button class="ghost" data-del="'+i+'" title="Delete">×</button></div>').join('');$('sceneCount').textContent=scenes.length+' scene'+(scenes.length===1?'':'s');document.querySelectorAll('.scene').forEach(el=>el.addEventListener('click',e=>{if(e.target.dataset.del!==undefined)return;updateSceneFromForm();current=Number(el.dataset.i);syncForm()}));document.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();if(scenes.length===1){toast('Keep at least one scene');return}let i=Number(b.dataset.del);if(scenes[i].audio)URL.revokeObjectURL(scenes[i].audio.url);if(scenes[i].image)URL.revokeObjectURL(scenes[i].image.url);scenes.splice(i,1);current=Math.min(current,scenes.length-1);syncForm()}))}
+function renderList(){$('sceneList').innerHTML=scenes.map((s,i)=>'<div class="scene '+(i===current?'selected':'')+'" data-i="'+i+'"><div class="thumb">'+(s.image?'<img src="'+s.image.url+'">':(i+1))+'</div><div style="min-width:0;flex:1"><div class="st">'+escapeHtml(s.title||'Untitled scene')+'</div><div class="ss">'+s.duration+' sec • '+(s.audio?'voice added':'no voice')+'</div></div><button class="ghost" data-del="'+i+'" title="Delete">×</button></div>').join('');$('sceneCount').textContent=scenes.length+' scene'+(scenes.length===1?'':'s');document.querySelectorAll('.scene').forEach(el=>el.addEventListener('click',e=>{if(e.target.dataset.del!==undefined)return;updateSceneFromForm();current=Number(el.dataset.i);syncForm()}));document.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();if(scenes.length===1){toast('Keep at least one scene');return}let i=Number(b.dataset.del);if(scenes[i].audio)URL.revokeObjectURL(scenes[i].audio.url);if(scenes[i].image)URL.revokeObjectURL(scenes[i].image.url);scenes.splice(i,1);current=Math.min(current,scenes.length-1);syncForm();scheduleAutosave()}))}
 function updateVoiceSummary(){let n=scenes.filter(s=>s.audio).length;$('voiceSummary').textContent=n+' of '+scenes.length+' scenes have recorded audio';let total=scenes.reduce((a,s)=>a+(Number(s.duration)||0),0);$('metricScenes').textContent=scenes.length;$('metricDuration').textContent=String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0');let pct=Math.round(n/scenes.length*100);$('metricVoice').textContent=pct+'%';$('metricVoiceHint').textContent=n===scenes.length?'Every scene has audio':n+' scene'+(n===1?'':'s')+' still need audio'}
 function switchTab(tab){document.querySelectorAll('.tab[data-tab]').forEach(b=>{let active=b.dataset.tab===tab;b.classList.toggle('active',active);b.setAttribute('aria-selected',active?'true':'false')});['content','voice','visuals','resources'].forEach(t=>$('tab-'+t).classList.toggle('hidden',t!==tab))}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{updateSceneFromForm();switchTab(b.dataset.tab)});
@@ -172,7 +172,7 @@ function safeWebUrl(value){try{const u=new URL(String(value).trim());return ['ht
 $('loadSimulation').onclick=()=>{const url=safeWebUrl($('simulationUrl').value);if(!url){toast('Enter a valid http or https simulation link');return}simulationHref=url;$('simulationFrame').src=url;$('simulationEmpty').classList.add('hidden');$('openSimulation').disabled=false;$('simulationStatus').textContent='Simulation loaded if the website allows embedding. If the panel stays blank, use Open in new tab.'};
 $('openSimulation').onclick=()=>{if(simulationHref)window.open(simulationHref,'_blank','noopener,noreferrer')};
 $('clearSimulation').onclick=()=>{simulationHref='';$('simulationFrame').src='about:blank';$('simulationUrl').value='';$('simulationEmpty').classList.remove('hidden');$('openSimulation').disabled=true;$('simulationStatus').textContent='Simulation cleared.'};
-$('referenceUpload').onchange=e=>{const file=e.target.files&&e.target.files[0];if(!file)return;const allowed=file.type==='application/pdf'||file.type.startsWith('image/')||file.type==='text/plain'||file.type==='text/html';if(!allowed){toast('Choose a PDF, image or text file');e.target.value='';return}if(referenceHref)URL.revokeObjectURL(referenceHref);referenceHref=URL.createObjectURL(file);$('referenceFrame').src=referenceHref;$('referenceEmpty').classList.add('hidden');$('referenceName').textContent=file.name+' • '+(file.size/1024/1024).toFixed(2)+' MB';$('openReference').disabled=false;$('clearReference').disabled=false};
+$('referenceUpload').onchange=e=>{const file=e.target.files&&e.target.files[0];if(!file)return;const allowed=file.type==='application/pdf'||file.type.startsWith('image/')||file.type==='text/plain';if(!allowed){toast('Choose a PDF, image or plain text file');e.target.value='';return}if(file.size>40*1024*1024){toast('Reference files must be smaller than 40 MB');e.target.value='';return}if(referenceHref)URL.revokeObjectURL(referenceHref);referenceHref=URL.createObjectURL(file);$('referenceFrame').src=referenceHref;$('referenceEmpty').classList.add('hidden');$('referenceName').textContent=file.name+' • '+(file.size/1024/1024).toFixed(2)+' MB';$('openReference').disabled=false;$('clearReference').disabled=false};
 $('openReference').onclick=()=>{if(referenceHref)window.open(referenceHref,'_blank','noopener,noreferrer')};
 $('clearReference').onclick=()=>{if(referenceHref)URL.revokeObjectURL(referenceHref);referenceHref='';$('referenceFrame').src='about:blank';$('referenceUpload').value='';$('referenceName').textContent='No reference file selected.';$('referenceEmpty').classList.remove('hidden');$('openReference').disabled=true;$('clearReference').disabled=true};
 
@@ -186,12 +186,24 @@ async function startRecording(){if(!navigator.mediaDevices?.getUserMedia||!windo
 function setAudio(blob){let s=cur();if(s.audio)URL.revokeObjectURL(s.audio.url);s.audio={blob,url:URL.createObjectURL(blob),type:blob.type};$('audioPlayer').src=s.audio.url;$('audioPlayer').classList.remove('hidden');renderList();updateVoiceSummary()}
 $('recordBtn').onclick=startRecording;$('stopRecord').onclick=()=>{if(recorder&&recorder.state!=='inactive')recorder.stop()};
 $('clearAudio').onclick=()=>{if(cur().audio)URL.revokeObjectURL(cur().audio.url);cur().audio=null;$('audioPlayer').removeAttribute('src');$('audioPlayer').classList.add('hidden');renderList();updateVoiceSummary();toast('Scene audio removed')};
-$('audioUpload').onchange=e=>{let f=e.target.files[0];if(f)setAudio(f)};
-$('imageUpload').onchange=e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{let s=cur();if(s.image)URL.revokeObjectURL(s.image.url);s.image={data:r.result,url:URL.createObjectURL(f),name:f.name};renderScreen();renderList();$('imageStatus').classList.remove('hidden');$('imageStatus').textContent='Added: '+f.name};r.readAsDataURL(f)};
+$('audioUpload').onchange=e=>{let f=e.target.files[0];if(f){if(f.size>25*1024*1024){toast('Audio files must be smaller than 25 MB');e.target.value='';return}setAudio(f)}};
+$('imageUpload').onchange=e=>{let f=e.target.files[0];if(!f)return;if(f.size>15*1024*1024){toast('Images must be smaller than 15 MB');e.target.value='';return}let r=new FileReader();r.onload=()=>{let s=cur();if(s.image)URL.revokeObjectURL(s.image.url);s.image={data:r.result,url:URL.createObjectURL(f),name:f.name};renderScreen();renderList();$('imageStatus').classList.remove('hidden');$('imageStatus').textContent='Added: '+f.name};r.readAsDataURL(f)};
 $('removeImage').onclick=()=>{if(cur().image)URL.revokeObjectURL(cur().image.url);cur().image=null;renderScreen();renderList();$('imageStatus').classList.add('hidden')};
 let activePreviewAudio=null,previewRun=0;
 function stopPreview(){previewRun++;clearInterval(previewTimer);if(activePreviewAudio){activePreviewAudio.pause();activePreviewAudio=null}$('playPreview').textContent='▶ Preview';$('progress').style.width='0%'}
-async function playScene(i,run=previewRun){if(run!==previewRun)return;let s=scenes[i];current=i;syncForm();$('playPreview').textContent='Ⅱ Playing';$('progress').style.width='0%';let started=Date.now();let duration=Math.max(Number(s.duration)||12,s.audio?.blob?.duration||0);if(s.audio){let a=new Audio(s.audio.url);activePreviewAudio=a;a.ontimeupdate=()=>{$('progress').style.width=Math.min(100,a.currentTime/(a.duration||duration)*100)+'%'};a.onended=()=>{activePreviewAudio=null;if(run!==previewRun)return;if(i+1<scenes.length)playScene(i+1,run);else stopPreview()};try{await a.play();let fallback=setInterval(()=>{if(run!==previewRun||activePreviewAudio!==a){clearInterval(fallback);return}if((Date.now()-started)/1000>=Math.max(duration,a.duration||0)){clearInterval(fallback);if(i+1<scenes.length)playScene(i+1,run);else stopPreview()}},150)}catch(e){toast('Tap preview again to allow audio')}}else{clearInterval(previewTimer);previewTimer=setInterval(()=>{if(run!==previewRun){clearInterval(previewTimer);return}let p=(Date.now()-started)/(duration*1000);$('progress').style.width=Math.min(100,p*100)+'%';if(p>=1){clearInterval(previewTimer);if(i+1<scenes.length)playScene(i+1,run);else stopPreview()}},100)}}
+async function playScene(i,run=previewRun){
+ if(run!==previewRun||i>=scenes.length)return;
+ const s=scenes[i];current=i;syncForm();$('playPreview').textContent='Ⅱ Playing';$('progress').style.width='0%';
+ const started=performance.now(),baseDuration=Math.max(3,Number(s.duration)||12);let audio=null;
+ if(s.audio){audio=new Audio(s.audio.url);activePreviewAudio=audio;try{await audio.play()}catch(e){activePreviewAudio=null;toast('Audio could not play. Check the recording or tap Preview again.');stopPreview();return}}
+ clearInterval(previewTimer);
+ previewTimer=setInterval(()=>{
+  if(run!==previewRun){clearInterval(previewTimer);return}
+  const elapsed=(performance.now()-started)/1000,target=Math.max(baseDuration,Number.isFinite(audio?.duration)?audio.duration:0);
+  $('progress').style.width=Math.min(100,elapsed/target*100)+'%';
+  if(elapsed>=target){clearInterval(previewTimer);if(audio){audio.pause();audio.currentTime=0;if(activePreviewAudio===audio)activePreviewAudio=null}if(i+1<scenes.length)playScene(i+1,run);else stopPreview()}
+ },100);
+}
 $('playPreview').onclick=()=>{if(activePreviewAudio||previewTimer){stopPreview();return}updateSceneFromForm();let run=++previewRun;playScene(current,run)};
 function projectObject(includeAudio=true){return {version:1,title:$('lessonTitle').value,subject:$('subject').value,level:$('level').value,scenes:scenes.map(s=>({id:s.id,title:s.title,body:s.body,points:s.points,duration:s.duration,alignment:s.alignment,narration:s.narration,theme:s.theme,image:s.image?.data||null,audio:includeAudio&&s.audio?{type:s.audio.type,data:null}:null}))}}
 function downloadBlob(blob,name){let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),30000)}
@@ -201,57 +213,44 @@ function blobToData(blob){return new Promise(res=>{let r=new FileReader();r.onlo
 $('importBackup').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let d=JSON.parse(await f.text());$('lessonTitle').value=d.title||'Imported lesson';$('subject').value=d.subject||'Other';$('level').value=d.level||'MSCE';scenes=[];for(let x of d.scenes||[]){let s={...makeScene(),...x,audio:null,image:null};if(x.image){let b=await (await fetch(x.image)).blob();s.image={data:x.image,url:URL.createObjectURL(b)}}if(x.audio?.data){let b=await (await fetch(x.audio.data)).blob();s.audio={blob:b,url:URL.createObjectURL(b),type:b.type}}scenes.push(s)}if(!scenes.length)scenes=[makeScene()];current=0;syncForm();toast('Project imported')}catch(err){toast('Could not read this project file')}};
 $('saveBtn').onclick=()=>{updateSceneFromForm();let data={title:$('lessonTitle').value,subject:$('subject').value,level:$('level').value,scenes:scenes.map(s=>({id:s.id,title:s.title,body:s.body,points:s.points,duration:s.duration,alignment:s.alignment,narration:s.narration,theme:s.theme,image:s.image?.data||null}))};try{localStorage.setItem('mh-video-studio-project',JSON.stringify(data));toast('Project saved in this browser. Export backup for audio and images.')}catch(e){toast('Storage full. Export a project backup instead.')}}
 $('loadBtn').onclick=()=>{let raw=localStorage.getItem('mh-video-studio-project');if(!raw){toast('No saved project found');return}try{let d=JSON.parse(raw);$('lessonTitle').value=d.title;$('subject').value=d.subject;$('level').value=d.level;scenes=(d.scenes||[]).map(x=>({...makeScene(),...x,audio:null,image:null}));current=0;syncForm();toast('Project loaded. Use backup files for voice recordings.')}catch(e){toast('Could not load saved project')}};
-$('newProject').onclick=()=>{if(!confirm('Start a new project? Export a backup first if you need this project.'))return;scenes=[makeScene()];current=0;$('lessonTitle').value='My Video Lesson';$('subject').value='Chemistry';$('level').value='MSCE';syncForm()};
+$('newProject').onclick=()=>{if(!confirm('Start a new project? Export a backup first if you need this project.'))return;scenes=[makeScene()];current=0;$('lessonTitle').value='My Video Lesson';$('subject').value='Chemistry';$('level').value='MSCE';syncForm();scheduleAutosave()};
 $('helpBtn').onclick=()=>$('modal').classList.add('open');$('closeHelp').onclick=()=>$('modal').classList.remove('open');
 function drawScene(ctx,s,w,h,elapsed=1,total=1,imageCache={}){ctx.fillStyle='#171e2b';ctx.fillRect(0,0,w,h);if(s.theme==='red'){ctx.fillStyle='#941b27';ctx.fillRect(0,0,w,h)}if(s.theme==='light'){ctx.fillStyle='#f2f3f5';ctx.fillRect(0,0,w,h)}if(s.theme==='black'){ctx.fillStyle='#172019';ctx.fillRect(0,0,w,h)}if(s.image?.data){let img=imageCache[s.id];if(img?.complete&&img.naturalWidth){ctx.drawImage(img,w*.43,0,w*.57,h);ctx.fillStyle='rgba(0,0,0,.34)';ctx.fillRect(w*.43,0,w*.57,h)}else{ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(w*.43,0,w*.57,h)}}let light=s.theme==='light';ctx.fillStyle=light?'#a71924':'#ffb9bf';ctx.font='bold '+Math.round(w*.018)+'px Arial';ctx.fillText(($('subject').value+' • '+$('level').value).toUpperCase(),w*.07,h*.18);const motion=$('motion').value;const p=(v)=>Math.max(0,Math.min(1,v));const ease=v=>1-Math.pow(1-p(v),3);const titleP=ease((elapsed-.05)/.75),bodyP=ease((elapsed-.28)/.75);let shift=(progress,amount)=>motion==='rise'?(1-progress)*amount:motion==='slide'?(1-progress)*amount:0;let alpha=(progress)=>motion==='fade'||motion==='rise'||motion==='slide'||motion==='zoom'?progress:1;ctx.save();ctx.globalAlpha=alpha(titleP);ctx.fillStyle=light?'#16191f':'#fff';ctx.font='bold '+Math.round(w*.052)+'px Arial';let titleY=h*.34+shift(titleP,motion==='slide'?w*.055:h*.07);if(motion==='zoom'){ctx.translate(w*.07,titleY);ctx.scale(.88+.12*titleP,.88+.12*titleP);wrapText(ctx,s.title,0,0,w*.82,w*.064)}else wrapText(ctx,s.title,w*.07,titleY,w*.82,w*.064);ctx.restore();ctx.save();ctx.globalAlpha=alpha(bodyP);ctx.fillStyle=light?'#20232b':'#f3f4f6';ctx.font=Math.round(w*.025)+'px Arial';wrapText(ctx,s.body,w*.07,h*.54+shift(bodyP,motion==='slide'?w*.04:h*.055),w*.8,w*.034);ctx.restore();let y=h*.72;s.points.slice(0,4).forEach((point,i)=>{let q=ease((elapsed-.55-i*.24)/.65);ctx.save();ctx.globalAlpha=q;ctx.fillStyle=light?'#272b34':'#fff';ctx.font=Math.round(w*.019)+'px Arial';ctx.fillText('• '+point.slice(0,100),w*.08,y+shift(q,motion==='slide'?w*.03:h*.035));ctx.restore();y+=h*.058});ctx.font=Math.round(w*.014)+'px Arial';ctx.fillStyle=light?'#555':'#ddd';ctx.fillText('MalawiHub Learning',w*.78,h*.94)}
 function wrapText(ctx,text,x,y,maxWidth,lineHeight){let words=String(text||'').split(/\s+/),line='';for(let n=0;n<words.length;n++){let test=line+words[n]+' ';if(ctx.measureText(test).width>maxWidth&&n>0){ctx.fillText(line,x,y);line=words[n]+' ';y+=lineHeight}else line=test}ctx.fillText(line,x,y)}
 async function renderVideo(){
  updateSceneFromForm();
  if(!scenes.length){toast('Add at least one scene first');return}
- if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){toast('Video export is not supported here. Try Chrome on Android.');return}
- let w=Number($('quality').value),h=Math.round(w*9/16),fps=Number($('fps').value);
- let canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
- let ctx=canvas.getContext('2d');if(!ctx){toast('Could not create video canvas');return}
- let imageCache={};
+ if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){toast('Video export is not supported here. Try Chrome.');return}
+ const originalScene=current,w=Number($('quality').value),h=Math.round(w*9/16),fps=Number($('fps').value);
+ const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');
+ if(!ctx){toast('Could not create video canvas');return}
+ const imageCache={};let stream=null,audioCtx=null,mr=null,done=null;
  try{
-  $('renderBtn').disabled=true;
-  $('exportStatus').textContent='Preparing images and audio...';
-  for(const s of scenes){if(s.image?.data){let img=new Image();img.src=s.image.data;await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('A scene image could not be loaded'))});imageCache[s.id]=img}}
-  let stream=canvas.captureStream(fps);
-  let audioCtx=new (window.AudioContext||window.webkitAudioContext)();
-  await audioCtx.resume();
-  let dest=audioCtx.createMediaStreamDestination();
-  stream.addTrack(dest.stream.getAudioTracks()[0]);
-  let mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));
+  $('renderBtn').disabled=true;$('exportStatus').textContent='Preparing images and audio...';
+  for(const s of scenes){if(s.image?.data){const img=new Image();img.src=s.image.data;await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('A scene image could not be loaded'))});imageCache[s.id]=img}}
+  stream=canvas.captureStream(fps);const AudioContextClass=window.AudioContext||window.webkitAudioContext;
+  if(!AudioContextClass)throw new Error('This browser does not support audio export.');
+  audioCtx=new AudioContextClass();await audioCtx.resume();const dest=audioCtx.createMediaStreamDestination();stream.addTrack(dest.stream.getAudioTracks()[0]);
+  const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));
   if(!mime)throw new Error('This browser cannot export WebM. Try Chrome.');
-  let chunks=[],mr=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:w===1920?5000000:2500000});
-  mr.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
-  let done=new Promise((resolve,reject)=>{mr.onstop=resolve;mr.onerror=()=>reject(new Error('Video recording stopped unexpectedly'))});
-  mr.start(500);
+  const chunks=[];mr=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:w===1920?5000000:2500000});
+  mr.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};done=new Promise((resolve,reject)=>{mr.onstop=resolve;mr.onerror=()=>reject(new Error('Video recording stopped unexpectedly'))});mr.start(500);
   for(let i=0;i<scenes.length;i++){
-   let s=scenes[i];current=i;syncForm();
-   let decoded=null,source=null;
-   if(s.audio){try{decoded=await audioCtx.decodeAudioData(await s.audio.blob.arrayBuffer());source=audioCtx.createBufferSource();source.buffer=decoded;source.connect(dest);source.start()}catch(err){throw new Error('Could not read audio in scene '+(i+1)+'. Try recording it again or uploading MP3/WAV.')}}
-   let duration=Math.max(Number(s.duration)||12,decoded?.duration||0);
-   let startAt=performance.now();
-   while((performance.now()-startAt)/1000<duration){
-    let elapsed=(performance.now()-startAt)/1000;
-    drawScene(ctx,s,w,h,elapsed,duration,imageCache);
-    $('exportStatus').textContent='Rendering scene '+(i+1)+' of '+scenes.length+' • '+Math.floor(elapsed)+' / '+Math.ceil(duration)+' sec';
-    await new Promise(resolve=>setTimeout(resolve,1000/fps));
-   }
+   const s=scenes[i];current=i;syncForm();let decoded=null,source=null;
+   if(s.audio){try{decoded=await audioCtx.decodeAudioData(await s.audio.blob.arrayBuffer());source=audioCtx.createBufferSource();source.buffer=decoded;source.connect(dest);source.start()}catch(err){throw new Error('Could not read audio in scene '+(i+1)+'. Record it again or upload a supported audio file.')}}
+   const duration=Math.max(Number(s.duration)||12,decoded?.duration||0),startAt=performance.now();
+   while((performance.now()-startAt)/1000<duration){const elapsed=(performance.now()-startAt)/1000;drawScene(ctx,s,w,h,elapsed,duration,imageCache);$('exportStatus').textContent='Rendering scene '+(i+1)+' of '+scenes.length+' • '+Math.floor(elapsed)+' / '+Math.ceil(duration)+' sec';await new Promise(resolve=>setTimeout(resolve,1000/fps))}
    if(source){try{source.stop()}catch(e){}}
   }
-  mr.stop();await done;
-  let blob=new Blob(chunks,{type:mime});
+  mr.stop();await done;mr=null;const blob=new Blob(chunks,{type:mime});
   downloadBlob(blob,($('lessonTitle').value||'malawihub-lesson').replace(/[^a-z0-9-_]+/gi,'-').toLowerCase()+'.webm');
-  $('exportStatus').textContent='Video downloaded. Check your Downloads folder.';
-  toast('Video export complete');
-  stream.getTracks().forEach(t=>t.stop());await audioCtx.close();
- }catch(e){
-  $('exportStatus').textContent='Export failed: '+e.message;
-  toast('Video export failed: '+e.message);
- }finally{$('renderBtn').disabled=false}
+  $('exportStatus').textContent='Video downloaded. Check your Downloads folder.';toast('Video export complete');
+ }catch(e){$('exportStatus').textContent='Export failed: '+e.message;toast('Video export failed: '+e.message)}
+ finally{
+  if(mr&&mr.state!=='inactive'){try{mr.stop()}catch(e){}if(done){try{await done}catch(err){}}}
+  if(stream)stream.getTracks().forEach(t=>t.stop());if(audioCtx){try{await audioCtx.close()}catch(e){}}
+  current=Math.min(originalScene,scenes.length-1);syncForm();$('renderBtn').disabled=false;
+ }
 }
 $('renderBtn').onclick=renderVideo;$('exportBtn').onclick=()=>{document.querySelector('.right').scrollIntoView({behavior:'smooth'});$('renderBtn').focus()};
 syncForm();
@@ -300,6 +299,7 @@ $('clearFullLesson').onclick=()=>{$('fullLesson').value='';$('builderStatus').te
 document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea,select')||e.ctrlKey||e.metaKey||e.altKey)return;if(e.key==='ArrowRight')$('nextScene').click();if(e.key==='ArrowLeft')$('prevScene').click()});
 // Keep a lightweight local recovery copy as the user edits. Use Export backup for voice and image assets.
 let autosaveTimer;function scheduleAutosave(){clearTimeout(autosaveTimer);autosaveTimer=setTimeout(()=>{try{updateSceneFromForm();let d={title:$('lessonTitle').value,subject:$('subject').value,level:$('level').value,scenes:scenes.map(s=>({id:s.id,title:s.title,body:s.body,points:s.points,duration:s.duration,alignment:s.alignment,narration:s.narration,theme:s.theme}))};localStorage.setItem('mh-video-studio-autosave',JSON.stringify(d))}catch(e){}},1400)}
+$('recoverBtn').onclick=()=>{try{const raw=localStorage.getItem('mh-video-studio-autosave');if(!raw){toast('No autosave is available on this device');return}const d=JSON.parse(raw);if(!Array.isArray(d.scenes)||!d.scenes.length)throw new Error('Invalid autosave');if(!confirm('Restore the latest text autosave? This replaces the current scenes. Voice recordings and reference files are not included.'))return;$('lessonTitle').value=d.title||'Recovered lesson';$('subject').value=d.subject||'Other';$('level').value=d.level||'MSCE';scenes=d.scenes.map(x=>({...makeScene(),...x,audio:null,image:null}));current=0;syncForm();toast('Autosave recovered. Export a full backup to preserve media.')}catch(e){toast('Could not recover this autosave')}};
 ['lessonTitle','subject','level','sceneTitle','sceneBody','scenePoints','duration','alignment','narration','theme','motion'].forEach(id=>$(id).addEventListener('input',scheduleAutosave));
 $('addScene').addEventListener('click',scheduleAutosave);$('duplicateScene').addEventListener('click',scheduleAutosave);
 </script></body></html>
