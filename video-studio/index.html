@@ -80,13 +80,6 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 <button class="tab" type="button" data-tab="visuals" role="tab" aria-selected="false">▧ Visuals</button>
 </div><div class="stage"><div class="screen no-image" id="screen"><div class="screen-content"><div class="kicker" id="screenKicker">MALAWIHUB • CHEMISTRY</div><h2 id="screenTitle">Introduction to Chemistry</h2><p id="screenBody">Chemistry is the study of matter, its properties and how it changes.</p><div id="screenBullets"></div></div><div class="brandline">MalawiHub Learning</div></div>
 <div class="preview-controls"><button class="dark" id="prevScene">◀</button><button class="dark" id="playPreview">▶ Preview</button><button class="dark" id="nextScene">▶</button><span class="hint" id="previewTime" style="color:#ddd">Scene 1 / 1</span></div><div class="timeline"><span id="progress"></span></div></div>
-<div class="script-builder">
-<div class="builder-head"><span>✦ Build from a complete lesson</span><span class="hint">Paste your lesson once</span></div>
-<p class="hint">Paste your teaching notes or full lesson below. The studio will organise paragraphs into scenes, create headings and key points, and prepare narration notes. Review the scenes before exporting.</p>
-<textarea id="fullLesson" placeholder="Paste your complete lesson here...&#10;&#10;Use paragraphs or headings to separate topics."></textarea>
-<div class="builder-actions"><button class="primary" id="generateScenes">Generate lesson scenes</button><button class="ghost" id="clearFullLesson">Clear text</button></div>
-<div class="hint" id="builderStatus" style="margin-top:8px">Your original lesson text will be preserved in the generated narration notes.</div>
-</div>
 
 <div id="tab-content">
 <div class="field"><label>SCENE HEADING</label><input id="sceneTitle" value="Introduction to Chemistry"></div>
@@ -103,6 +96,13 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 <div id="tab-visuals" class="hidden">
 <div class="field"><label>ADD A BACKGROUND IMAGE OR DIAGRAM</label><input id="imageUpload" type="file" accept="image/*"></div><div class="hint">Use your own photos, diagrams or illustrations. Landscape images work best.</div><div id="imageStatus" class="status hidden"></div><button class="ghost" id="removeImage">Remove scene image</button>
 <div class="field" style="margin-top:14px"><label>BACKGROUND STYLE</label><select id="theme"><option value="science">Science dark</option><option value="light">Clean light</option><option value="red">MalawiHub red</option><option value="black">Blackboard</option></select></div>
+</div>
+<div class="script-builder">
+<div class="builder-head"><span>✦ Build from a complete lesson</span><span class="hint">Paste your lesson once</span></div>
+<p class="hint">Paste your teaching notes or full lesson below. The studio will organise paragraphs into scenes, create headings and key points, and prepare narration notes. Review the scenes before exporting.</p>
+<textarea id="fullLesson" placeholder="Paste your complete lesson here...&#10;&#10;Use paragraphs or headings to separate topics."></textarea>
+<div class="builder-actions"><button class="primary" id="generateScenes">Generate lesson scenes</button><button class="ghost" id="clearFullLesson">Clear text</button></div>
+<div class="hint" id="builderStatus" style="margin-top:8px">Your original lesson text will be preserved in the generated narration notes.</div>
 </div>
 </div></section>
 <aside class="panel right"><div class="ph">Production tools</div><div class="pb">
