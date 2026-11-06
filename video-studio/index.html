@@ -24,10 +24,15 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 .step.active{box-shadow:inset 3px 0 var(--red)}.scene{border-color:#e7e9ee;padding:9px;transition:border .15s,background .15s,transform .15s}.scene:hover{border-color:#d5a0a4;transform:translateY(-1px)}.scene.selected{border-color:#b51f2a;background:#fff7f7;box-shadow:0 3px 12px #a7192410}.thumb{border-radius:8px}
 .stage{padding:14px;background:linear-gradient(145deg,#292d37,#171a22);box-shadow:inset 0 1px #ffffff12}.screen{border:1px solid #ffffff16;box-shadow:0 12px 28px #0005}.screen h2{letter-spacing:-.045em}.screen p{letter-spacing:-.015em}.preview-controls{margin-top:12px}.preview-controls button{min-width:40px}.timeline{height:4px}
 .tabs{padding:4px;background:#f0f1f4;border-radius:11px;width:max-content;max-width:100%}.tab{background:transparent}.tab.active{background:#fff;box-shadow:0 2px 7px #11182712;color:var(--red);font-weight:800}
+.preview-tabs{position:relative;z-index:2;display:flex;gap:5px;width:100%;margin:0 0 12px;padding:5px;background:#eef0f4;border:1px solid #e4e7ed;border-radius:12px}
+.preview-tabs .tab{flex:1;min-width:0;padding:10px 7px;font-size:12px;white-space:nowrap}
+.preview-tabs .tab.active{background:#fff;color:var(--red);box-shadow:0 2px 8px #11182712}
+#tab-voice,#tab-visuals,#tab-content{scroll-margin-top:16px}
+
 .audio-card{border-color:#e7e9ef;border-radius:12px;background:linear-gradient(180deg,#fff,#fdfdfe)}.status{border:1px solid #d7eee3}.hint{line-height:1.5}.bottom-note{border-top:1px solid #e1e4e9;padding-top:13px;margin-top:20px}
 .studio-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:0 0 15px}.metric{background:#fff;border:1px solid #e5e8ee;border-radius:13px;padding:11px 14px;box-shadow:0 3px 12px #11182708;min-width:0}.metric strong{display:block;font-size:17px;letter-spacing:-.03em}.metric span{display:block;color:#737b89;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.metric small{color:#9298a3;font-size:11px}
 .modalbox{box-shadow:0 20px 70px #0005}.toast{box-shadow:0 8px 30px #0004}
-@media(max-width:700px){.wrap{padding:14px 10px}.studio-metrics{gap:7px}.metric{padding:9px}.metric strong{font-size:15px}.metric span{font-size:9px}.panel{border-radius:13px}.pb{padding:12px}.stage{padding:8px}.top{padding:10px 12px}.top .actions button{padding:8px 10px}}
+@media(max-width:700px){.wrap{padding:14px 10px}.studio-metrics{gap:7px}.metric{padding:9px}.metric strong{font-size:15px}.metric span{font-size:9px}.panel{border-radius:13px}.pb{padding:12px}.stage{padding:8px}.preview-tabs{gap:3px;padding:4px;margin-bottom:10px}.preview-tabs .tab{padding:10px 3px;font-size:11px}.top{padding:10px 12px}.top .actions button{padding:8px 10px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
 
 /* Animated lesson typography */
@@ -69,7 +74,11 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 <div><div class="ph" style="padding:8px 0;border:0">Scenes <div class="actions"><button class="ghost" id="duplicateScene">Duplicate</button><button class="primary" id="addScene">＋ Add</button></div></div><div id="sceneList" class="scene-list"></div></div>
 </div></section>
 <section class="panel center"><div class="ph">Video canvas <span class="hint">16:9 • landscape</span></div><div class="pb">
-<div class="stage"><div class="screen no-image" id="screen"><div class="screen-content"><div class="kicker" id="screenKicker">MALAWIHUB • CHEMISTRY</div><h2 id="screenTitle">Introduction to Chemistry</h2><p id="screenBody">Chemistry is the study of matter, its properties and how it changes.</p><div id="screenBullets"></div></div><div class="brandline">MalawiHub Learning</div></div>
+<div class="tabs preview-tabs" role="tablist" aria-label="Preview editing tools">
+<button class="tab active" type="button" data-tab="content" role="tab" aria-selected="true">✎ Slide content</button>
+<button class="tab" type="button" data-tab="voice" role="tab" aria-selected="false">🎙 Your voice</button>
+<button class="tab" type="button" data-tab="visuals" role="tab" aria-selected="false">▧ Visuals</button>
+</div><div class="stage"><div class="screen no-image" id="screen"><div class="screen-content"><div class="kicker" id="screenKicker">MALAWIHUB • CHEMISTRY</div><h2 id="screenTitle">Introduction to Chemistry</h2><p id="screenBody">Chemistry is the study of matter, its properties and how it changes.</p><div id="screenBullets"></div></div><div class="brandline">MalawiHub Learning</div></div>
 <div class="preview-controls"><button class="dark" id="prevScene">◀</button><button class="dark" id="playPreview">▶ Preview</button><button class="dark" id="nextScene">▶</button><span class="hint" id="previewTime" style="color:#ddd">Scene 1 / 1</span></div><div class="timeline"><span id="progress"></span></div></div>
 <div class="script-builder">
 <div class="builder-head"><span>✦ Build from a complete lesson</span><span class="hint">Paste your lesson once</span></div>
@@ -78,7 +87,7 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 <div class="builder-actions"><button class="primary" id="generateScenes">Generate lesson scenes</button><button class="ghost" id="clearFullLesson">Clear text</button></div>
 <div class="hint" id="builderStatus" style="margin-top:8px">Your original lesson text will be preserved in the generated narration notes.</div>
 </div>
-<div class="tabs" style="margin-top:14px"><button class="tab active" data-tab="content">Slide content</button><button class="tab" data-tab="voice">Your voice</button><button class="tab" data-tab="visuals">Visuals</button></div>
+
 <div id="tab-content">
 <div class="field"><label>SCENE HEADING</label><input id="sceneTitle" value="Introduction to Chemistry"></div>
 <div class="field"><label>EXPLANATION ON SCREEN</label><textarea id="sceneBody">Chemistry is the study of matter, its properties and how it changes.</textarea></div>
@@ -120,7 +129,7 @@ function renderScreen(){let s=cur();$('screen').className='screen '+(s.image?'':
 function escapeHtml(x){return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function renderList(){$('sceneList').innerHTML=scenes.map((s,i)=>'<div class="scene '+(i===current?'selected':'')+'" data-i="'+i+'"><div class="thumb">'+(s.image?'<img src="'+s.image.url+'">':(i+1))+'</div><div style="min-width:0;flex:1"><div class="st">'+escapeHtml(s.title||'Untitled scene')+'</div><div class="ss">'+s.duration+' sec • '+(s.audio?'voice added':'no voice')+'</div></div><button class="ghost" data-del="'+i+'" title="Delete">×</button></div>').join('');$('sceneCount').textContent=scenes.length+' scene'+(scenes.length===1?'':'s');document.querySelectorAll('.scene').forEach(el=>el.addEventListener('click',e=>{if(e.target.dataset.del!==undefined)return;updateSceneFromForm();current=Number(el.dataset.i);syncForm()}));document.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();if(scenes.length===1){toast('Keep at least one scene');return}let i=Number(b.dataset.del);if(scenes[i].audio)URL.revokeObjectURL(scenes[i].audio.url);if(scenes[i].image)URL.revokeObjectURL(scenes[i].image.url);scenes.splice(i,1);current=Math.min(current,scenes.length-1);syncForm()}))}
 function updateVoiceSummary(){let n=scenes.filter(s=>s.audio).length;$('voiceSummary').textContent=n+' of '+scenes.length+' scenes have recorded audio';let total=scenes.reduce((a,s)=>a+(Number(s.duration)||0),0);$('metricScenes').textContent=scenes.length;$('metricDuration').textContent=String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0');let pct=Math.round(n/scenes.length*100);$('metricVoice').textContent=pct+'%';$('metricVoiceHint').textContent=n===scenes.length?'Every scene has audio':n+' scene'+(n===1?'':'s')+' still need audio'}
-function switchTab(tab){document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));['content','voice','visuals'].forEach(t=>$('tab-'+t).classList.toggle('hidden',t!==tab))}
+function switchTab(tab){document.querySelectorAll('.tab[data-tab]').forEach(b=>{let active=b.dataset.tab===tab;b.classList.toggle('active',active);b.setAttribute('aria-selected',active?'true':'false')});['content','voice','visuals'].forEach(t=>$('tab-'+t).classList.toggle('hidden',t!==tab))}
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{updateSceneFromForm();switchTab(b.dataset.tab)});
 ['sceneTitle','sceneBody','scenePoints','duration','alignment','narration','theme'].forEach(id=>$(id).addEventListener('input',updateSceneFromForm));
 $('lessonTitle').addEventListener('input',()=>{projectName=$('lessonTitle').value;});['subject','level'].forEach(id=>$(id).addEventListener('change',renderScreen));
