@@ -464,6 +464,31 @@ function stopLiveBoardRecording(){
 }
 
 $('renderBtn').onclick=renderVideo;$('exportBtn').onclick=()=>{document.querySelector('.right').scrollIntoView({behavior:'smooth'});$('renderBtn').focus()};
+/* Compact MalawiHub keyboard for Video Studio lesson creation only. */
+(()=>{
+ const panel=$( "mhKeyboardPanel"),toggle=$( "mhKeyboardToggle"),keys=$( "mhKeyboardKeys"),modes=$( "mhKeyboardModes"),elements=$( "mhElements"),hint=$( "mhKeyboardHint");
+ if(!panel||!toggle||!keys||!modes||!elements)return;
+ let mode="ABC",shift=false,target=null;
+ const elementData=[["H","Hydrogen",1],["He","Helium",2],["Li","Lithium",3],["Be","Beryllium",4],["B","Boron",5],["C","Carbon",6],["N","Nitrogen",7],["O","Oxygen",8],["F","Fluorine",9],["Ne","Neon",10],["Na","Sodium",11],["Mg","Magnesium",12],["Al","Aluminium",13],["Si","Silicon",14],["P","Phosphorus",15],["S","Sulfur",16],["Cl","Chlorine",17],["Ar","Argon",18],["K","Potassium",19],["Ca","Calcium",20]];
+ const layouts={
+ ABC:"q w e r t y u i o p a s d f g h j k l z x c v b n m".split(" "),
+ Math:["+","−","×","÷","=","≠","≈","√","∛","²","³","⁴","⁵","⁻¹","π","θ","Δ","∑","∫","∞","<",">","≤","≥","±","%","(",")"],
+ Physics:["v","u","a","s","t","F","m","g","W","P","E","p","ρ","λ","ν","f","T","I","V","R","Ω","μ","η","c","h","q","Δ","∝"],
+ Chem:["→","⇌","↑","↓","°C","pH","mol","M","g/mol","H₂O","CO₂","O₂","H⁺","OH⁻","Na⁺","Cl⁻","(aq)","(s)","(l)","(g)"],
+ Symbols:["α","β","γ","δ","θ","λ","μ","π","σ","φ","ω","∞","©","®","™","•","→","←","⇌","✓","±","÷","×","≤","≥","≠","≈","°"]
+ };
+ const allowedTarget=(el)=>el&&(el.matches("input:not([type=button]):not([type=submit]),textarea")||el.isContentEditable)&&!el.disabled;
+ document.addEventListener("focusin",e=>{if(allowedTarget(e.target)){target=e.target;hint.textContent="Typing into: "+(target.id||target.getAttribute("aria-label")||target.tagName)+"."}});
+ const insert=(value)=>{let el=target;if(!allowedTarget(el)){hint.textContent="Tap a lesson field or editable preview text first.";return;}el.focus();if(el.isContentEditable){document.execCommand("insertText",false,value);}else{let a=el.selectionStart??el.value.length,b=el.selectionEnd??a;el.setRangeText(value,a,b,"end");el.dispatchEvent(new Event("input",{bubbles:true}));} };
+ const render=()=>{keys.innerHTML="";(layouts[mode]||layouts.ABC).forEach(k=>{let b=document.createElement("button");b.type="button";b.textContent=shift&&mode==="ABC"?k.toUpperCase():k;b.addEventListener("pointerdown",e=>e.preventDefault());b.addEventListener("click",()=>insert(shift&&mode==="ABC"?k.toUpperCase():k));keys.appendChild(b);});elements.hidden=mode!=="Chem";elements.innerHTML="";if(mode==="Chem"){elementData.forEach(([symbol,name,num])=>{let b=document.createElement("button");b.type="button";b.title=num+" "+name;b.innerHTML="<small>"+num+"</small><strong>"+symbol+"</strong>";b.addEventListener("pointerdown",e=>e.preventDefault());b.addEventListener("click",()=>insert(symbol));elements.appendChild(b);});}};
+ toggle.addEventListener("click",()=>{panel.hidden=!panel.hidden;toggle.textContent=panel.hidden?"Show keyboard":"Hide keyboard";toggle.setAttribute("aria-expanded",String(!panel.hidden));if(!panel.hidden)render();});
+ modes.addEventListener("pointerdown",e=>{if(e.target.closest("button"))e.preventDefault();});
+ modes.addEventListener("click",e=>{let b=e.target.closest("button[data-mode]");if(!b)return;mode=b.dataset.mode;shift=false;modes.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));render();});
+ panel.addEventListener("pointerdown",e=>{if(e.target.closest("button"))e.preventDefault();});
+ panel.addEventListener("click",e=>{let b=e.target.closest("button[data-action],button[data-insert]");if(!b)return;if(b.dataset.insert!==undefined){insert(b.dataset.insert);return;}if(b.dataset.action==="backspace"){let el=target;if(!allowedTarget(el))return;el.focus();if(el.isContentEditable){document.execCommand("delete",false,null);}else{let a=el.selectionStart??el.value.length,c=el.selectionEnd??a;if(a===c&&a>0)a--;el.setRangeText("",a,c,"end");el.dispatchEvent(new Event("input",{bubbles:true}));}}else if(b.dataset.action==="shift"){shift=!shift;render();}});
+ panel.hidden=false;toggle.textContent="Hide keyboard";toggle.setAttribute("aria-expanded","true");render();
+})();
+
 syncForm();
 
 function splitLessonText(text){
@@ -510,30 +535,7 @@ $('clearFullLesson').onclick=()=>{$('fullLesson').value='';$('builderStatus').te
 document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea,select')||e.target.isContentEditable||e.ctrlKey||e.metaKey||e.altKey)return;if(e.key==='ArrowRight')$('nextScene').click();if(e.key==='ArrowLeft')$('prevScene').click()});
 // Keep a lightweight local recovery copy as the user edits. Use Export backup for voice and image assets.
 let autosaveTimer;function scheduleAutosave(){clearTimeout(autosaveTimer);autosaveTimer=setTimeout(()=>{try{updateSceneFromForm();let d={title:$('lessonTitle').value,subject:$('subject').value,level:$('level').value,scenes:scenes.map(s=>({id:s.id,title:s.title,body:s.body,points:s.points,duration:s.duration,alignment:s.alignment,narration:s.narration,theme:s.theme}))};localStorage.setItem('mh-video-studio-autosave',JSON.stringify(d))}catch(e){}},1400)}
-$('recoverBtn').onclick=()=>{try{const raw=localStorage.getItem('mh-video-studio-autosave');if(!raw){toast('No autosave is available on this device');return}const d=JSON.parse(raw);if(!Array.isArray(d.scenes)||!d.scenes.length)throw new Error('Invalid autosave');if(!confirm('Restore the latest text autosave? This replaces the current scenes. Voice recordings and reference files are not included.'))return;$('lessonTitle').value=d.title||'Recovered lesson';$('subject').value=d.subject||'Other';$('level').value=d.level||'MSCE';scenes=d.scenes.map(x=>({...makeScene(),...x,audio:null,image:null}));current=0;/* Compact MalawiHub keyboard for Video Studio lesson creation only. */
-(()=>{
- const panel=$( "mhKeyboardPanel"),toggle=$( "mhKeyboardToggle"),keys=$( "mhKeyboardKeys"),modes=$( "mhKeyboardModes"),elements=$( "mhElements"),hint=$( "mhKeyboardHint");
- if(!panel||!toggle||!keys||!modes||!elements)return;
- let mode="ABC",shift=false,target=null;
- const elementData=[["H","Hydrogen",1],["He","Helium",2],["Li","Lithium",3],["Be","Beryllium",4],["B","Boron",5],["C","Carbon",6],["N","Nitrogen",7],["O","Oxygen",8],["F","Fluorine",9],["Ne","Neon",10],["Na","Sodium",11],["Mg","Magnesium",12],["Al","Aluminium",13],["Si","Silicon",14],["P","Phosphorus",15],["S","Sulfur",16],["Cl","Chlorine",17],["Ar","Argon",18],["K","Potassium",19],["Ca","Calcium",20]];
- const layouts={
- ABC:"q w e r t y u i o p a s d f g h j k l z x c v b n m".split(" "),
- Math:["+","−","×","÷","=","≠","≈","√","∛","²","³","⁴","⁵","⁻¹","π","θ","Δ","∑","∫","∞","<",">","≤","≥","±","%","(",")"],
- Physics:["v","u","a","s","t","F","m","g","W","P","E","p","ρ","λ","ν","f","T","I","V","R","Ω","μ","η","c","h","q","Δ","∝"],
- Chem:["→","⇌","↑","↓","°C","pH","mol","M","g/mol","H₂O","CO₂","O₂","H⁺","OH⁻","Na⁺","Cl⁻","(aq)","(s)","(l)","(g)"],
- Symbols:["α","β","γ","δ","θ","λ","μ","π","σ","φ","ω","∞","©","®","™","•","→","←","⇌","✓","±","÷","×","≤","≥","≠","≈","°"]
- };
- const allowedTarget=(el)=>el&&(el.matches("input:not([type=button]):not([type=submit]),textarea")||el.isContentEditable)&&!el.disabled;
- document.addEventListener("focusin",e=>{if(allowedTarget(e.target)){target=e.target;hint.textContent="Typing into: "+(target.id||target.getAttribute("aria-label")||target.tagName)+"."}});
- const insert=(value)=>{let el=target;if(!allowedTarget(el)){hint.textContent="Tap a lesson field or editable preview text first.";return;}el.focus();if(el.isContentEditable){document.execCommand("insertText",false,value);}else{let a=el.selectionStart??el.value.length,b=el.selectionEnd??a;el.setRangeText(value,a,b,"end");el.dispatchEvent(new Event("input",{bubbles:true}));} };
- const render=()=>{keys.innerHTML="";(layouts[mode]||layouts.ABC).forEach(k=>{let b=document.createElement("button");b.type="button";b.textContent=shift&&mode==="ABC"?k.toUpperCase():k;b.addEventListener("pointerdown",e=>e.preventDefault());b.addEventListener("click",()=>insert(shift&&mode==="ABC"?k.toUpperCase():k));keys.appendChild(b);});elements.hidden=mode!=="Chem";elements.innerHTML="";if(mode==="Chem"){elementData.forEach(([symbol,name,num])=>{let b=document.createElement("button");b.type="button";b.title=num+" "+name;b.innerHTML="<small>"+num+"</small><strong>"+symbol+"</strong>";b.addEventListener("pointerdown",e=>e.preventDefault());b.addEventListener("click",()=>insert(symbol));elements.appendChild(b);});}};
- toggle.addEventListener("click",()=>{panel.hidden=!panel.hidden;toggle.textContent=panel.hidden?"Show keyboard":"Hide keyboard";toggle.setAttribute("aria-expanded",String(!panel.hidden));if(!panel.hidden)render();});
- modes.addEventListener("pointerdown",e=>{if(e.target.closest("button"))e.preventDefault();});
- modes.addEventListener("click",e=>{let b=e.target.closest("button[data-mode]");if(!b)return;mode=b.dataset.mode;shift=false;modes.querySelectorAll("button").forEach(x=>x.classList.toggle("active",x===b));render();});
- panel.addEventListener("pointerdown",e=>{if(e.target.closest("button"))e.preventDefault();});
- panel.addEventListener("click",e=>{let b=e.target.closest("button[data-action],button[data-insert]");if(!b)return;if(b.dataset.insert!==undefined){insert(b.dataset.insert);return;}if(b.dataset.action==="backspace"){let el=target;if(!allowedTarget(el))return;el.focus();if(el.isContentEditable){document.execCommand("delete",false,null);}else{let a=el.selectionStart??el.value.length,c=el.selectionEnd??a;if(a===c&&a>0)a--;el.setRangeText("",a,c,"end");el.dispatchEvent(new Event("input",{bubbles:true}));}}else if(b.dataset.action==="shift"){shift=!shift;render();}});
- panel.hidden=false;toggle.textContent="Hide keyboard";toggle.setAttribute("aria-expanded","true");render();
-})();
+$('recoverBtn').onclick=()=>{try{const raw=localStorage.getItem('mh-video-studio-autosave');if(!raw){toast('No autosave is available on this device');return}const d=JSON.parse(raw);if(!Array.isArray(d.scenes)||!d.scenes.length)throw new Error('Invalid autosave');if(!confirm('Restore the latest text autosave? This replaces the current scenes. Voice recordings and reference files are not included.'))return;$('lessonTitle').value=d.title||'Recovered lesson';$('subject').value=d.subject||'Other';$('level').value=d.level||'MSCE';scenes=d.scenes.map(x=>({...makeScene(),...x,audio:null,image:null}));current=0;
 syncForm();toast('Autosave recovered. Export a full backup to preserve media.')}catch(e){toast('Could not recover this autosave')}};
 ['lessonTitle','subject','level','sceneTitle','sceneBody','scenePoints','duration','alignment','narration','theme','motion'].forEach(id=>$(id).addEventListener('input',scheduleAutosave));
 $('addScene').addEventListener('click',scheduleAutosave);$('duplicateScene').addEventListener('click',scheduleAutosave);
