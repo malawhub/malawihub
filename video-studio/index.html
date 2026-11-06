@@ -278,7 +278,7 @@ async function convertWebmToMp4(inputBlob,preset){
   return blob;
  }finally{
   mp4ProgressHandler=null;
-  await Promise.all([mp4Request('deleteFile',{path:'malawihub-input.webm'}),mp4Request('deleteFile',{path:'malawihub-output.mp4'})]);
+  try{await Promise.all([mp4Request('deleteFile',{path:'malawihub-input.webm'}),mp4Request('deleteFile',{path:'malawihub-output.mp4'})])}catch(cleanupError){}
  }
 }
 async function renderVideo(){
