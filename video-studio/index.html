@@ -124,8 +124,8 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
  function backspace(){if(!focusTarget())return;if(isEditable(target)){document.execCommand("delete",false,null);return}let a=target.selectionStart??target.value.length,b=target.selectionEnd??a;if(a===b&&a>0){const cp=Array.from(target.value.slice(0,a)).pop()||"";a-=cp.length}try{target.setRangeText("",a,b,"end");inputEvent(target)}catch(_){}}
  function enter(){if(!focusTarget())return;if(isEditable(target)||target.tagName==="TEXTAREA"){insert("\n");return}target.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",code:"Enter",bubbles:true}));target.dispatchEvent(new KeyboardEvent("keyup",{key:"Enter",code:"Enter",bubbles:true}))}
  function act(k){if(k==="Space")return insert(" ");if(k==="Enter")return enter();if(k==="⇧"){shift=!shift;draw();return}if(k==="?123"){setMode("Symbols");return}if(k==="⌫")return backspace();insert(mode==="ABC"&&shift?k.toUpperCase():k);if(shift){shift=false;draw()}}
- let repeatTimer=null,pointerTriggered=false;
- function stopKeyRepeat(){if(repeatTimer){clearInterval(repeatTimer);repeatTimer=null}}
+ let repeatTimer=null,repeatDelay=null;
+ function stopKeyRepeat(){if(repeatTimer){clearInterval(repeatTimer);repeatTimer=null}if(repeatDelay){clearTimeout(repeatDelay);repeatDelay=null}}
  document.addEventListener("pointerup",stopKeyRepeat);document.addEventListener("pointercancel",stopKeyRepeat);window.addEventListener("blur",stopKeyRepeat);
  document.addEventListener("contextmenu",e=>{if(e.target.closest&&e.target.closest(".mh-gboard"))e.preventDefault()});
  function makeKey(k){
@@ -133,12 +133,12 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
   if(["⇧","⌫","?123"].includes(k))b.classList.add("special");if(k==="Space")b.classList.add("space");if(k==="Enter")b.classList.add("enter");
   b.textContent=k==="Space"?"English (US)":(mode==="ABC"&&/^[a-z]$/.test(k)?(shift?k.toUpperCase():k):k);
   b.addEventListener("pointerdown",e=>{
-   e.preventDefault();pointerTriggered=true;stopKeyRepeat();act(k);
-   if(!["⇧","?123","Enter"].includes(k)){repeatTimer=setInterval(()=>act(k),85)}
+   e.preventDefault();stopKeyRepeat();act(k);
+   if(!["⇧","?123","Enter"].includes(k)){repeatDelay=setTimeout(()=>{repeatTimer=setInterval(()=>act(k),85)},350)}
    try{b.setPointerCapture(e.pointerId)}catch(_){}
   });
   b.addEventListener("pointerup",stopKeyRepeat);b.addEventListener("pointercancel",stopKeyRepeat);
-  b.addEventListener("click",()=>{if(pointerTriggered){pointerTriggered=false;return}act(k)});
+  b.addEventListener("click",e=>{if(e.detail===0)act(k)});
   return b
  }
  function draw(){host.innerHTML="";(mode==="ABC"?abc:layouts[mode]||layouts.Symbols).forEach(row=>{const r=document.createElement("div");r.className="mh-gboard-row";row.forEach(k=>r.appendChild(makeKey(k)));host.appendChild(r)});els.hidden=mode!=="Chem";els.innerHTML="";if(mode==="Chem")periodic.forEach(([s,n,num])=>{const b=document.createElement("button");b.type="button";b.title=num+" "+n;b.innerHTML="<small>"+num+"</small><strong>"+s+"</strong>";b.addEventListener("pointerdown",e=>e.preventDefault());b.addEventListener("click",()=>insert(s));els.appendChild(b)});label.textContent="MalawiHub · "+(mode==="ABC"?"English":mode)+" keyboard"}
