@@ -142,7 +142,7 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 </div></section>
 <aside class="panel right"><div class="ph">Production tools</div><div class="pb">
 <div class="audio-card"><strong>🎙 Voice recording</strong><p class="hint">Each scene has its own audio. Record separately for easier editing and retakes.</p><div id="voiceSummary" class="status">No narration recorded yet</div></div>
-<div class="audio-card"><strong>🎬 Export your lesson</strong><p class="hint">Render your slides with your recorded narration into a video file.</p><div class="field"><label>FILE FORMAT</label><select id="exportFormat"><option value="auto">Automatic — MP4 if supported</option><option value="mp4">MP4 only</option><option value="webm">WebM</option></select><small class="hint">MP4 depends on your phone browser. Automatic mode never renames a WebM file as MP4.</small></div>
+<div class="audio-card"><strong>🎬 Export your lesson</strong><p class="hint">Render your slides with your recorded narration into a video file.</p><div class="field"><label>DOWNLOAD FORMAT</label><div class="status"><strong>MP4 (.mp4) — required output</strong></div><small class="hint">MalawiHub will create a real MP4. If your browser cannot record MP4 directly, it will use the on-demand converter. The converter is downloaded only when needed and can be cached on this device.</small></div>
 <div class="field"><label>DATA & VIDEO QUALITY</label><select id="exportPreset"><option value="saver">Data Saver — 480p • smallest file</option><option value="balanced">Balanced — 720p • recommended</option><option value="quality">High Quality — 1080p</option></select><small class="hint">Data Saver uses lower resolution, frame rate and bitrate to reduce file size and phone memory use.</small></div>
 <div class="field"><label>ON-SCREEN TEXT MOTION</label><select id="motion"><option value="rise">Rise in + stagger</option><option value="fade">Smooth fade</option><option value="slide">Slide from left</option><option value="zoom">Soft zoom</option></select></div>
 <p class="hint">Your video is rendered on this device. No lesson video is uploaded. Choose Data Saver to reduce mobile storage and processing.</p><button class="primary" style="width:100%" id="renderBtn">Create & download video</button><div id="exportStatus" class="hint" style="margin-top:8px">Ready when your scenes are prepared.</div></div>
@@ -218,34 +218,99 @@ $('newProject').onclick=()=>{if(!confirm('Start a new project? Export a backup f
 $('helpBtn').onclick=()=>$('modal').classList.add('open');$('closeHelp').onclick=()=>$('modal').classList.remove('open');
 function drawScene(ctx,s,w,h,elapsed=1,total=1,imageCache={}){ctx.fillStyle='#171e2b';ctx.fillRect(0,0,w,h);if(s.theme==='red'){ctx.fillStyle='#941b27';ctx.fillRect(0,0,w,h)}if(s.theme==='light'){ctx.fillStyle='#f2f3f5';ctx.fillRect(0,0,w,h)}if(s.theme==='black'){ctx.fillStyle='#172019';ctx.fillRect(0,0,w,h)}if(s.image?.data){let img=imageCache[s.id];if(img?.complete&&img.naturalWidth){ctx.drawImage(img,w*.43,0,w*.57,h);ctx.fillStyle='rgba(0,0,0,.34)';ctx.fillRect(w*.43,0,w*.57,h)}else{ctx.fillStyle='rgba(0,0,0,.18)';ctx.fillRect(w*.43,0,w*.57,h)}}let light=s.theme==='light';ctx.fillStyle=light?'#a71924':'#ffb9bf';ctx.font='bold '+Math.round(w*.018)+'px Arial';ctx.fillText(($('subject').value+' • '+$('level').value).toUpperCase(),w*.07,h*.18);const motion=$('motion').value;const p=(v)=>Math.max(0,Math.min(1,v));const ease=v=>1-Math.pow(1-p(v),3);const titleP=ease((elapsed-.05)/.75),bodyP=ease((elapsed-.28)/.75);let shift=(progress,amount)=>motion==='rise'?(1-progress)*amount:motion==='slide'?(1-progress)*amount:0;let alpha=(progress)=>motion==='fade'||motion==='rise'||motion==='slide'||motion==='zoom'?progress:1;ctx.save();ctx.globalAlpha=alpha(titleP);ctx.fillStyle=light?'#16191f':'#fff';ctx.font='bold '+Math.round(w*.052)+'px Arial';let titleY=h*.34+shift(titleP,motion==='slide'?w*.055:h*.07);if(motion==='zoom'){ctx.translate(w*.07,titleY);ctx.scale(.88+.12*titleP,.88+.12*titleP);wrapText(ctx,s.title,0,0,w*.82,w*.064)}else wrapText(ctx,s.title,w*.07,titleY,w*.82,w*.064);ctx.restore();ctx.save();ctx.globalAlpha=alpha(bodyP);ctx.fillStyle=light?'#20232b':'#f3f4f6';ctx.font=Math.round(w*.025)+'px Arial';wrapText(ctx,s.body,w*.07,h*.54+shift(bodyP,motion==='slide'?w*.04:h*.055),w*.8,w*.034);ctx.restore();let y=h*.72;s.points.slice(0,4).forEach((point,i)=>{let q=ease((elapsed-.55-i*.24)/.65);ctx.save();ctx.globalAlpha=q;ctx.fillStyle=light?'#272b34':'#fff';ctx.font=Math.round(w*.019)+'px Arial';ctx.fillText('• '+point.slice(0,100),w*.08,y+shift(q,motion==='slide'?w*.03:h*.035));ctx.restore();y+=h*.058});ctx.font=Math.round(w*.014)+'px Arial';ctx.fillStyle=light?'#555':'#ddd';ctx.fillText('MalawiHub Learning',w*.78,h*.94)}
 function wrapText(ctx,text,x,y,maxWidth,lineHeight){let words=String(text||'').split(/\s+/),line='';for(let n=0;n<words.length;n++){let test=line+words[n]+' ';if(ctx.measureText(test).width>maxWidth&&n>0){ctx.fillText(line,x,y);line=words[n]+' ';y+=lineHeight}else line=test}ctx.fillText(line,x,y)}
+let mp4Worker=null,mp4WorkerReady=false,mp4RequestId=0,mp4Pending=new Map(),mp4LoadPromise=null,mp4ProgressHandler=null;
+function getMp4Worker(){
+ if(mp4Worker)return mp4Worker;
+ mp4Worker=new Worker('/video-studio/ffmpeg-worker.js');
+ mp4Worker.onmessage=e=>{
+  const d=e.data||{};
+  if(d.event==='progress'){if(mp4ProgressHandler)mp4ProgressHandler(d.data||{});return}
+  if(d.event==='log')return;
+  const pending=mp4Pending.get(d.id);if(!pending)return;mp4Pending.delete(d.id);
+  if(d.ok)pending.resolve(d.result);else pending.reject(new Error(d.error||'MP4 conversion failed.'));
+ };
+ mp4Worker.onerror=e=>{const err=new Error(e.message||'The MP4 converter worker stopped.');for(const p of mp4Pending.values())p.reject(err);mp4Pending.clear();mp4Worker=null;mp4WorkerReady=false};
+ return mp4Worker;
+}
+function mp4Request(action,payload={},transfer=[]){
+ const worker=getMp4Worker(),id=++mp4RequestId;
+ return new Promise((resolve,reject)=>{mp4Pending.set(id,{resolve,reject});try{worker.postMessage({id,action,payload},transfer)}catch(e){mp4Pending.delete(id);reject(e)}});
+}
+async function cachedCoreBlob(url,mime){
+ let cache=null;
+ try{if('caches'in window){cache=await caches.open('malawihub-video-studio-ffmpeg-0.12.10');const hit=await cache.match(url);if(hit)return await hit.blob()}}catch(e){}
+ const response=await fetch(url,{mode:'cors'});
+ if(!response.ok)throw new Error('Could not download the MP4 converter ('+response.status+'). Check your connection and try again.');
+ if(cache){try{await cache.put(url,response.clone())}catch(e){}}
+ return new Blob([await response.arrayBuffer()],{type:mime});
+}
+async function ensureMp4Converter(){
+ if(mp4WorkerReady)return;
+ if(mp4LoadPromise)return mp4LoadPromise;
+ mp4LoadPromise=(async()=>{
+  $('exportStatus').textContent='Preparing MP4 converter • downloading or checking saved files...';
+  const base='https://cdn.jsdelivr.net/npm/@ffmpeg/core@0.12.10/dist/umd';
+  const [coreBlob,wasmBlob]=await Promise.all([
+   cachedCoreBlob(base+'/ffmpeg-core.js','text/javascript'),
+   cachedCoreBlob(base+'/ffmpeg-core.wasm','application/wasm')
+  ]);
+  const coreURL=URL.createObjectURL(coreBlob),wasmURL=URL.createObjectURL(wasmBlob);
+  try{await mp4Request('load',{coreURL,wasmURL});mp4WorkerReady=true}
+  finally{URL.revokeObjectURL(coreURL);URL.revokeObjectURL(wasmURL)}
+ })();
+ try{await mp4LoadPromise}finally{mp4LoadPromise=null}
+}
+async function convertWebmToMp4(inputBlob,preset){
+ $('exportStatus').textContent='Converting to MP4 • preparing video...';
+ const bytes=new Uint8Array(await inputBlob.arrayBuffer());
+ await mp4Request('writeFile',{path:'malawihub-input.webm',data:bytes},[bytes.buffer]);
+ const rates=preset==='saver'?{video:'650k',max:'750k',buffer:'1300k',audio:'64k'}:preset==='quality'?{video:'3800k',max:'4200k',buffer:'7600k',audio:'96k'}:{video:'1450k',max:'1650k',buffer:'2900k',audio:'80k'};
+ mp4ProgressHandler=event=>{
+  const pct=Number.isFinite(event.progress)?Math.max(0,Math.min(100,Math.round(event.progress*100))):0;
+  $('exportStatus').textContent='Converting to MP4 • '+pct+'% • keep this page open';
+ };
+ try{
+  const code=await mp4Request('exec',{args:['-i','malawihub-input.webm','-c:v','libx264','-preset','ultrafast','-pix_fmt','yuv420p','-b:v',rates.video,'-maxrate',rates.max,'-bufsize',rates.buffer,'-c:a','aac','-b:a',rates.audio,'-movflags','+faststart','-f','mp4','malawihub-output.mp4']});
+  if(code!==0)throw new Error('The converter could not encode this video. Try Data Saver or a shorter lesson.');
+  const output=await mp4Request('readFile',{path:'malawihub-output.mp4'});
+  const blob=new Blob([output],{type:'video/mp4'});
+  if(blob.size<1024)throw new Error('The MP4 output appears incomplete. Please try again.');
+  return blob;
+ }finally{
+  mp4ProgressHandler=null;
+  await Promise.all([mp4Request('deleteFile',{path:'malawihub-input.webm'}),mp4Request('deleteFile',{path:'malawihub-output.mp4'})]);
+ }
+}
 async function renderVideo(){
  stopPreview();updateSceneFromForm();
  if(!scenes.length){toast('Add at least one scene first');return}
  if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){toast('Video export is not supported here. Try Chrome.');return}
- const originalScene=current,preset=$('exportPreset').value,formatChoice=$('exportFormat').value;
+ const originalScene=current,preset=$('exportPreset').value;
  const settings=preset==='saver'?{width:854,fps:20,videoBitrate:650000,audioBitrate:64000,label:'Data Saver 480p'}:preset==='quality'?{width:1920,fps:30,videoBitrate:3800000,audioBitrate:96000,label:'High Quality 1080p'}:{width:1280,fps:24,videoBitrate:1450000,audioBitrate:80000,label:'Balanced 720p'};
  const w=settings.width,h=Math.round(w*9/16),fps=settings.fps;
+ const mp4Types=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1','video/mp4'];
+ const webmTypes=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
+ const mp4Type=mp4Types.find(t=>MediaRecorder.isTypeSupported(t));
+ const webmType=webmTypes.find(t=>MediaRecorder.isTypeSupported(t));
+ const mime=mp4Type||webmType;
+ if(!mime){toast('This browser cannot record a video. Try an updated Chrome browser.');return}
+ const needsConversion=!mp4Type;
+ if(needsConversion&&!mp4WorkerReady&&!confirm('Your browser cannot record MP4 directly. MalawiHub must prepare its MP4 converter. The first download is about 31 MB and can be saved in this browser for later use. Continue?'))return;
  const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d');
  if(!ctx){toast('Could not create video canvas');return}
  const imageCache={};let stream=null,audioCtx=null,mr=null,done=null;
  try{
-  $('renderBtn').disabled=true;$('exportStatus').textContent='Preparing '+settings.label+'...';
+  $('renderBtn').disabled=true;
+  if(needsConversion)await ensureMp4Converter();
+  $('exportStatus').textContent='Preparing '+settings.label+' MP4...';
   for(const s of scenes){if(s.image?.data){const img=new Image();img.src=s.image.data;await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(new Error('A scene image could not be loaded'))});imageCache[s.id]=img}}
   stream=canvas.captureStream(fps);const AudioContextClass=window.AudioContext||window.webkitAudioContext;
   if(!AudioContextClass)throw new Error('This browser does not support audio export.');
   audioCtx=new AudioContextClass();await audioCtx.resume();const dest=audioCtx.createMediaStreamDestination();stream.addTrack(dest.stream.getAudioTracks()[0]);
-  const mp4Types=['video/mp4;codecs=avc1.42E01E,mp4a.40.2','video/mp4;codecs=avc1','video/mp4'];
-  const webmTypes=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'];
-  const mp4Type=mp4Types.find(t=>MediaRecorder.isTypeSupported(t));
-  const webmType=webmTypes.find(t=>MediaRecorder.isTypeSupported(t));
-  let mime='';
-  if(formatChoice==='mp4'){if(!mp4Type)throw new Error('MP4 recording is not supported by this browser. Select Automatic or WebM.');mime=mp4Type}
-  else if(formatChoice==='webm'){mime=webmType}
-  else{mime=mp4Type||webmType}
-  if(!mime)throw new Error('This browser cannot record MP4 or WebM. Try an updated Chrome browser.');
-  const isMp4=mime.startsWith('video/mp4'),extension=isMp4?'mp4':'webm';
-  const chunks=[];mr=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:settings.videoBitrate,audioBitsPerSecond:settings.audioBitrate});
-  mr.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};done=new Promise((resolve,reject)=>{mr.onstop=resolve;mr.onerror=()=>reject(new Error('Video recording stopped unexpectedly'))});mr.start(1000);
+  const chunks=[];mr=new MediaRecorder(stream,{mimeType,videoBitsPerSecond:settings.videoBitrate,audioBitsPerSecond:settings.audioBitrate});
+  mr.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+  done=new Promise((resolve,reject)=>{mr.onstop=resolve;mr.onerror=()=>reject(new Error('Video recording stopped unexpectedly'))});
+  mr.start(1000);
   const totalSeconds=scenes.reduce((sum,s)=>sum+Math.max(Number(s.duration)||12,Number(s.audio?.duration)||0),0);
   for(let i=0;i<scenes.length;i++){
    const s=scenes[i];current=i;syncForm();let decoded=null,source=null;
@@ -254,18 +319,21 @@ async function renderVideo(){
    while((performance.now()-startAt)/1000<duration){
     const elapsed=(performance.now()-startAt)/1000;drawScene(ctx,s,w,h,elapsed,duration,imageCache);
     const completed=scenes.slice(0,i).reduce((sum,x)=>sum+Math.max(Number(x.duration)||12,Number(x.audio?.duration)||0),0)+elapsed;
-    $('exportStatus').textContent='Rendering '+settings.label+' • scene '+(i+1)+'/'+scenes.length+' • '+Math.min(100,Math.floor(completed/totalSeconds*100))+'%';
+    $('exportStatus').textContent='Recording '+settings.label+' • scene '+(i+1)+'/'+scenes.length+' • '+Math.min(100,Math.floor(completed/totalSeconds*100))+'%';
     await new Promise(resolve=>setTimeout(resolve,1000/fps));
    }
    if(source){try{source.stop()}catch(e){}}
   }
-  mr.stop();await done;mr=null;const blob=new Blob(chunks,{type:mime});
+  mr.stop();await done;mr=null;
+  const recorded=new Blob(chunks,{type:mime});
+  const finalBlob=needsConversion?await convertWebmToMp4(recorded,preset):recorded;
+  if(!finalBlob.type.includes('mp4'))throw new Error('The final video is not MP4. No file was downloaded.');
   const safeName=($('lessonTitle').value||'malawihub-lesson').replace(/[^a-z0-9-_]+/gi,'-').toLowerCase();
-  downloadBlob(blob,safeName+'.'+extension);
-  const mb=(blob.size/1024/1024).toFixed(1);
-  $('exportStatus').textContent='Downloaded '+extension.toUpperCase()+' • '+mb+' MB • '+settings.label+(formatChoice==='auto'&&!isMp4?' • MP4 is not supported here; saved compatible WebM instead.':'');
-  toast('Video downloaded ('+extension.toUpperCase()+', '+mb+' MB)');
- }catch(e){$('exportStatus').textContent='Export failed: '+e.message;toast('Video export failed: '+e.message)}
+  downloadBlob(finalBlob,safeName+'.mp4');
+  const mb=(finalBlob.size/1024/1024).toFixed(1);
+  $('exportStatus').textContent='Downloaded MP4 • '+mb+' MB • '+settings.label+(needsConversion?' • converted on this device':' • native MP4');
+  toast('MP4 downloaded ('+mb+' MB)');
+ }catch(e){$('exportStatus').textContent='MP4 export failed: '+e.message;toast('MP4 export failed: '+e.message)}
  finally{
   if(mr&&mr.state!=='inactive'){try{mr.stop()}catch(e){}if(done){try{await done}catch(err){}}}
   if(stream)stream.getTracks().forEach(t=>t.stop());if(audioCtx){try{await audioCtx.close()}catch(e){}}
