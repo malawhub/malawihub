@@ -100,13 +100,14 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 
 <div class="mh-keyboard-card"><div class="mh-keyboard-head"><div><strong>⌨️ MalawiHub Gboard</strong><div class="hint">Built-in lesson keyboard. It replaces the phone keyboard while you type in lesson fields.</div></div><button type="button" class="ghost" id="mhKeyboardToggle" aria-expanded="false">Open keyboard</button></div></div>
 <div id="mhKeyboardPanel" class="mh-gboard hidden" role="group" aria-label="MalawiHub Gboard">
-<div class="mh-gboard-top"><strong id="mhKeyboardLabel">MalawiHub · English keyboard</strong><button type="button" id="mhKeyboardClose">Hide ✕</button></div>
+<div class="mh-gboard-top"><strong id="mhKeyboardLabel">MalawiHub · English keyboard</strong><div style="display:flex;gap:6px;align-items:center"><button type="button" id="mhKeyboardClipboard" title="Paste copied text" aria-label="Paste copied text">📋</button><button type="button" id="mhKeyboardClose">Hide ✕</button></div></div>
 <div class="mh-gboard-modes" id="mhKeyboardModes"><button type="button" data-mode="ABC" class="active">ABC</button><button type="button" data-mode="Math">Math</button><button type="button" data-mode="Physics">Physics</button><button type="button" data-mode="Chem">Chem</button><button type="button" data-mode="Symbols">Symbols</button></div>
 <div class="mh-gboard-hint" id="mhKeyboardHint">Tap a lesson field to start typing.</div><div class="mh-gboard-rows" id="mhKeyboardRows"></div><div class="mh-gboard-elements" id="mhElements" hidden></div></div>
 <script>
 (()=> {
  const $=id=>document.getElementById(id),panel=$("mhKeyboardPanel"),toggle=$("mhKeyboardToggle"),close=$("mhKeyboardClose"),host=$("mhKeyboardRows"),modes=$("mhKeyboardModes"),els=$("mhElements"),hint=$("mhKeyboardHint"),label=$("mhKeyboardLabel");
  if(!panel||!toggle||!host||!modes||!els)return;
+ const clipboardButton=$("mhKeyboardClipboard");
  let mode="ABC",shift=false,capsLock=false,lastShiftTap=0,target=null;
  const periodic=[["H","Hydrogen",1],["He","Helium",2],["Li","Lithium",3],["Be","Beryllium",4],["B","Boron",5],["C","Carbon",6],["N","Nitrogen",7],["O","Oxygen",8],["F","Fluorine",9],["Ne","Neon",10],["Na","Sodium",11],["Mg","Magnesium",12],["Al","Aluminium",13],["Si","Silicon",14],["P","Phosphorus",15],["S","Sulfur",16],["Cl","Chlorine",17],["Ar","Argon",18],["K","Potassium",19],["Ca","Calcium",20]];
  const abc=[["1","2","3","4","5","6","7","8","9","0"],["q","w","e","r","t","y","u","i","o","p"],["a","s","d","f","g","h","j","k","l"],["⇧","z","x","c","v","b","n","m","⌫"],["?123",",","Space",".","Enter"]];
@@ -118,6 +119,15 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
  function remember(e){const t=isEditable(e)?(e.closest('[contenteditable="true"]')||e):e;if(!valid(t))return;target=t;t.setAttribute("inputmode","none");hint.textContent="Typing in "+(t.id||t.getAttribute("aria-label")||"lesson field");open()}
  document.addEventListener("focusin",e=>{if(valid(e.target))remember(e.target)});
  document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest('[contenteditable="true"]');if(t)remember(t)});
+ if(clipboardButton)clipboardButton.addEventListener("click",async()=>{
+  if(!focusTarget()){hint.textContent="Tap a lesson field first, then choose clipboard.";return}
+  try{
+   if(!navigator.clipboard||!navigator.clipboard.readText)throw new Error("Clipboard access unavailable");
+   const copied=await navigator.clipboard.readText();
+   if(copied){insert(copied);hint.textContent="Copied text pasted into your lesson.";return}
+   hint.textContent="Your clipboard is empty.";
+  }catch(_){hint.textContent="Clipboard access was blocked. Tap and hold the writing field, then choose Paste."; }
+ });
  function focusTarget(){if(!valid(target))return false;try{target.focus({preventScroll:true})}catch(_){target.focus()}return true}
  function inputEvent(t){t.dispatchEvent(new Event("input",{bubbles:true}))}
  function insert(v){if(!focusTarget()){hint.textContent="Tap a lesson field or editable preview first.";return}if(isEditable(target)){document.execCommand("insertText",false,v);return}try{const a=target.selectionStart??target.value.length,b=target.selectionEnd??a;target.setRangeText(v,a,b,"end");inputEvent(target)}catch(_){target.value+=v;target.setSelectionRange(target.value.length,target.value.length);inputEvent(target)}}
