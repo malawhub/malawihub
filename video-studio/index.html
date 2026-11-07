@@ -119,14 +119,17 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
  function remember(e){const t=isEditable(e)?(e.closest('[contenteditable="true"]')||e):e;if(!valid(t))return;target=t;t.setAttribute("inputmode","none");hint.textContent="Typing in "+(t.id||t.getAttribute("aria-label")||"lesson field");open()}
  document.addEventListener("focusin",e=>{if(valid(e.target))remember(e.target)});
  document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest('[contenteditable="true"]');if(t)remember(t)});
+ const clipboardHistory=[];
+ const clipboardTray=document.createElement("div");clipboardTray.hidden=true;clipboardTray.className="mh-clipboard-tray";clipboardTray.style.cssText="max-height:165px;overflow:auto;padding:7px;margin:4px 0 8px;background:#303c4a;border-radius:8px";
+ if(clipboardButton){clipboardButton.textContent="▤";clipboardButton.title="Clipboard history";clipboardButton.setAttribute("aria-label","Clipboard history");clipboardButton.insertAdjacentElement("afterend",clipboardTray)}
+ function rememberClipboard(value){value=String(value||"").trim();if(!value)return;const at=clipboardHistory.indexOf(value);if(at>=0)clipboardHistory.splice(at,1);clipboardHistory.unshift(value);clipboardHistory.splice(15)}
+ document.addEventListener("copy",()=>{const value=window.getSelection?window.getSelection().toString():"";if(value)rememberClipboard(value)});
  if(clipboardButton)clipboardButton.addEventListener("click",async()=>{
-  if(!focusTarget()){hint.textContent="Tap a lesson field first, then choose clipboard.";return}
-  try{
-   if(!navigator.clipboard||!navigator.clipboard.readText)throw new Error("Clipboard access unavailable");
-   const copied=await navigator.clipboard.readText();
-   if(copied){insert(copied);hint.textContent="Copied text pasted into your lesson.";return}
-   hint.textContent="Your clipboard is empty.";
-  }catch(_){hint.textContent="Clipboard access was blocked. Tap and hold the writing field, then choose Paste."; }
+  clipboardTray.hidden=!clipboardTray.hidden;if(clipboardTray.hidden)return;
+  try{if(navigator.clipboard&&navigator.clipboard.readText){const copied=await navigator.clipboard.readText();if(copied)rememberClipboard(copied)}}catch(_){}
+  clipboardTray.innerHTML="";
+  if(!clipboardHistory.length){const empty=document.createElement("div");empty.textContent="No saved copied text yet. Copy text while using this keyboard, or paste from your device clipboard.";empty.style.cssText="color:#e5eaf0;font-size:12px;padding:8px";clipboardTray.appendChild(empty);return}
+  clipboardHistory.forEach(value=>{const item=document.createElement("button");item.type="button";item.textContent=value.length>110?value.slice(0,110)+"…":value;item.title=value;item.style.cssText="display:block;width:100%;text-align:left;white-space:normal;margin:3px 0;padding:8px;border:0;border-radius:6px;background:#f5f6f8;color:#202631";item.addEventListener("click",()=>{insert(value);clipboardTray.hidden=true});clipboardTray.appendChild(item)})
  });
  function focusTarget(){if(!valid(target))return false;try{target.focus({preventScroll:true})}catch(_){target.focus()}return true}
  function inputEvent(t){t.dispatchEvent(new Event("input",{bubbles:true}))}
