@@ -96,7 +96,7 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 <button class="tab" type="button" data-tab="resources" role="tab" aria-selected="false">🧪 Simulations & files</button>
 </div><div class="stage"><div class="screen no-image" id="screen"><div class="screen-content"><div class="kicker" id="screenKicker">MALAWIHUB • CHEMISTRY</div><h2 id="screenTitle">Introduction to Chemistry</h2><p id="screenBody">Chemistry is the study of matter, its properties and how it changes.</p><div id="screenBullets"></div></div></div><canvas id="liveBoardOverlay" aria-hidden="true"></canvas>
 <div class="preview-controls"><button class="dark" id="prevScene">◀</button><button class="dark" id="playPreview">▶ Preview</button><button class="dark" id="nextScene">▶</button><button class="primary" id="editPreviewBtn" type="button" aria-pressed="false">✎ Edit on screen</button><span class="hint" id="previewTime" style="color:#ddd">Scene 1 / 1</span></div><div class="timeline"><span id="progress"></span></div></div><div id="previewEditHint" class="preview-edit-hint">EDIT MODE: Tap the heading or explanation inside the preview and type. Tap Done editing when finished.</div>
-<div class="audio-card live-board-card"><strong>⌨️ Live typing board & recording</strong><p class="hint">Start recording and type your lesson notes. When you stop, the MP4 downloads automatically — you do not need to play or listen to it first.</p><textarea id="liveBoardText" rows="3" placeholder="Type equations, explanations or notes here... They will appear on the preview screen while you type."></textarea><div class="record"><button class="primary" id="liveBoardStart">● Start live recording</button><button class="danger" id="liveBoardStop" disabled>■ Stop & download MP4</button><button class="ghost" id="liveBoardClear">Clear text</button></div><div id="liveBoardStatus" class="hint" style="margin-top:8px">Ready. Select a slide, then start recording and type.</div></div>
+<div class="audio-card live-board-card"><strong>⌨️ Live typing board & recording</strong><p class="hint">Type your lesson notes and they will appear in large PowerPoint-style text at the top of the main preview slide. Start recording to capture the slide and your voice.</p><textarea id="liveBoardText" rows="3" placeholder="Type equations, explanations or notes here... They will appear on the preview screen while you type."></textarea><div class="record"><button class="primary" id="liveBoardStart">● Start live recording</button><button class="danger" id="liveBoardStop" disabled>■ Stop & download MP4</button><button class="ghost" id="liveBoardClear">Clear text</button></div><div id="liveBoardStatus" class="hint" style="margin-top:8px">Ready. Select a slide, then start recording and type.</div></div>
 
 <div class="mh-keyboard-card"><div class="mh-keyboard-head"><div><strong>⌨️ MalawiHub Gboard</strong><div class="hint">Built-in lesson keyboard. It replaces the phone keyboard while you type in lesson fields.</div></div><button type="button" class="ghost" id="mhKeyboardToggle" aria-expanded="false">Open keyboard</button></div></div>
 <div id="mhKeyboardPanel" class="mh-gboard hidden" role="group" aria-label="MalawiHub Gboard">
@@ -429,20 +429,31 @@ function saveDirectPreviewText(){
 const liveOverlay=$('liveBoardOverlay'),liveOverlayCtx=liveOverlay.getContext('2d');
 liveOverlay.width=1280;liveOverlay.height=720;
 function drawLiveText(ctx,w,h,text){
- const value=String(text||'').trim();if(!value)return;
- const boxY=h*.675,boxH=h*.285;
- ctx.save();ctx.fillStyle='rgba(8,12,20,.82)';ctx.fillRect(w*.045,boxY,w*.91,boxH);
- ctx.fillStyle='#ffb9bf';ctx.font='bold '+Math.round(w*.018)+'px Arial';ctx.fillText('LIVE NOTES',w*.075,boxY+h*.045);
- ctx.fillStyle='#fff';ctx.font=Math.round(w*.025)+'px Arial';
- const maxWidth=w*.84,lineHeight=h*.038;let y=boxY+h*.095,line='';let lines=[];
- for(const part of value.replace(/\r/g,'').split(/(\s+)/)){
-  if(part==='\n'){lines.push(line);line='';continue}
-  const test=line+part;
-  if(ctx.measureText(test).width>maxWidth&&line.trim()){lines.push(line.trim());line=part.trimStart()}else line=test;
+ const value=String(text||'').replace(/\r/g,'').trim();if(!value)return;
+ // PowerPoint-style notes are drawn directly on the slide, starting near its top.
+ ctx.save();ctx.textAlign='left';ctx.textBaseline='top';ctx.fillStyle='#fff';
+ const fontSize=Math.round(w*.036),lineHeight=Math.round(h*.064),x=w*.075,maxWidth=w*.85;
+ ctx.font='600 '+fontSize+'px Arial';
+ let y=h*.285,lines=[];
+ const paragraphs=value.split('\n');
+ for(const paragraph of paragraphs){
+  const words=paragraph.split(/\s+/).filter(Boolean);let line='';
+  for(const word of words){
+   const candidate=line?line+' '+word:word;
+   if(ctx.measureText(candidate).width<=maxWidth){line=candidate;continue}
+   if(line){lines.push(line);line=''}
+   if(ctx.measureText(word).width<=maxWidth){line=word;continue}
+   let chunk='';
+   for(const ch of word){if(chunk&&ctx.measureText(chunk+ch).width>maxWidth){lines.push(chunk);chunk=ch}else chunk+=ch}
+   line=chunk;
+  }
+  if(line)lines.push(line);
+  if(paragraphs.length>1)lines.push('');
  }
- if(line.trim())lines.push(line.trim());
- lines.slice(0,5).forEach(t=>{ctx.fillText(t.slice(0,240),w*.075,y);y+=lineHeight});
- if(lines.length>5){ctx.font=Math.round(w*.017)+'px Arial';ctx.fillStyle='#ffb9bf';ctx.fillText('…',w*.075,y)}
+ if(lines[lines.length-1]==='')lines.pop();
+ const maxLines=Math.max(1,Math.floor((h*.91-y)/lineHeight));
+ lines.slice(0,maxLines).forEach(line=>{if(line)ctx.fillText('• '+line,x,y);y+=lineHeight});
+ if(lines.length>maxLines){ctx.fillStyle='#ffb9bf';ctx.font='bold '+Math.round(w*.025)+'px Arial';ctx.fillText('…',x,y)}
  ctx.restore();
 }
 function refreshLiveOverlay(){liveOverlayCtx.clearRect(0,0,liveOverlay.width,liveOverlay.height);drawLiveText(liveOverlayCtx,liveOverlay.width,liveOverlay.height,$('liveBoardText').value)}
