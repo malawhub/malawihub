@@ -96,7 +96,7 @@ button.primary{background:linear-gradient(135deg,#b51f2a,#921923);box-shadow:0 4
 <button class="tab" type="button" data-tab="resources" role="tab" aria-selected="false">🧪 Simulations & files</button>
 </div><div class="stage"><div class="screen no-image" id="screen"><div class="screen-content"><div class="kicker" id="screenKicker">MALAWIHUB • CHEMISTRY</div><h2 id="screenTitle">Introduction to Chemistry</h2><p id="screenBody">Chemistry is the study of matter, its properties and how it changes.</p><div id="screenBullets"></div></div></div><canvas id="liveBoardOverlay" aria-hidden="true"></canvas>
 <div class="preview-controls"><button class="dark" id="prevScene">◀</button><button class="dark" id="playPreview">▶ Preview</button><button class="dark" id="nextScene">▶</button><button class="primary" id="editPreviewBtn" type="button" aria-pressed="false">✎ Edit on screen</button><span class="hint" id="previewTime" style="color:#ddd">Scene 1 / 1</span></div><div class="timeline"><span id="progress"></span></div></div><div id="previewEditHint" class="preview-edit-hint">EDIT MODE: Tap the heading or explanation inside the preview and type. Tap Done editing when finished.</div>
-<div class="audio-card live-board-card"><strong>⌨️ Live typing board & recording</strong><p class="hint">Type your lesson notes and they will appear in large PowerPoint-style text at the top of the main preview slide. Start recording to capture the slide and your voice.</p><textarea id="liveBoardText" rows="3" placeholder="Type equations, explanations or notes here... They will appear on the preview screen while you type."></textarea><div class="record"><button class="primary" id="liveBoardStart">● Start live recording</button><button class="danger" id="liveBoardStop" disabled>■ Stop & download MP4</button><button class="ghost" id="liveBoardClear">Clear text</button></div><div id="liveBoardStatus" class="hint" style="margin-top:8px">Ready. Select a slide, then start recording and type.</div></div>
+<div class="audio-card live-board-card"><strong>⌨️ Live typing board & recording</strong><p class="hint">Type your lesson notes and they will appear in large PowerPoint-style text at the top of the main preview slide. Start recording to capture the slide and your voice.</p><textarea id="liveBoardText" rows="3" placeholder="Type equations, explanations or notes here... They will appear on the preview screen while you type."></textarea><div class="record"><button class="primary" id="liveBoardStart">● Start live recording</button><button class="danger" id="liveBoardStop" disabled>■ Stop recording</button><button class="primary" id="liveBoardSave" disabled>↓ Save MP4</button><button class="ghost" id="liveBoardClear">Clear text</button></div><video id="liveBoardPlayback" controls playsinline class="hidden" style="width:100%;max-height:360px;margin-top:12px;border-radius:10px;background:#000"></video><div id="liveBoardStatus" class="hint" style="margin-top:8px">Ready. Select a slide, then start recording and type.</div></div>
 
 <div class="mh-keyboard-card"><div class="mh-keyboard-head"><div><strong>⌨️ MalawiHub Gboard</strong><div class="hint">Built-in lesson keyboard. It replaces the phone keyboard while you type in lesson fields.</div></div><button type="button" class="ghost" id="mhKeyboardToggle" aria-expanded="false">Open keyboard</button></div></div>
 <div id="mhKeyboardPanel" class="mh-gboard hidden" role="group" aria-label="MalawiHub Gboard">
@@ -418,7 +418,7 @@ async function renderVideo(){
  }
 }
 
-let liveBoardRecorder=null,liveBoardStream=null,liveBoardMic=null,liveBoardChunks=[],liveBoardTimer=null,liveBoardConverting=false;
+let liveBoardRecorder=null,liveBoardStream=null,liveBoardMic=null,liveBoardChunks=[],liveBoardTimer=null,liveBoardConverting=false,liveBoardReadyBlob=null,liveBoardPlaybackUrl=null;
 // Direct-on-preview editing: tap the actual slide text and type with the phone keyboard.
 let previewEditMode=false;
 function setPreviewEditMode(enabled){
@@ -472,6 +472,7 @@ function drawLiveText(ctx,w,h,text){
 function refreshLiveOverlay(){liveOverlayCtx.clearRect(0,0,liveOverlay.width,liveOverlay.height);drawLiveText(liveOverlayCtx,liveOverlay.width,liveOverlay.height,$('liveBoardText').value)}
 $('liveBoardText').addEventListener('input',refreshLiveOverlay);
 $('liveBoardClear').onclick=()=>{$('liveBoardText').value='';refreshLiveOverlay()};
+$('liveBoardSave').onclick=()=>{if(!liveBoardReadyBlob){toast('Record and stop before saving.');return}const name=(($('lessonTitle').value||'MalawiHub-Live-Lesson').trim().replace(/[^a-z0-9-_]+/gi,'-').replace(/^-+|-+$/g,'')||'MalawiHub-Live-Lesson')+'-live.mp4';downloadBlob(liveBoardReadyBlob,name);$('liveBoardStatus').textContent='MP4 saved to your downloads.';toast('MP4 saved')};
 $('liveBoardStart').onclick=startLiveBoardRecording;
 $('liveBoardStop').onclick=stopLiveBoardRecording;
 async function startLiveBoardRecording(){
@@ -508,8 +509,12 @@ async function startLiveBoardRecording(){
    try{
     let finalBlob=raw;
     if(needsConversion){$('liveBoardStatus').textContent='Converting your recording to MP4 on this device...';finalBlob=await convertWebmToMp4(raw,preset)}
-    const name=(($('lessonTitle').value||'MalawiHub-Live-Lesson').trim().replace(/[^a-z0-9-_]+/gi,'-').replace(/^-+|-+$/g,'')||'MalawiHub-Live-Lesson')+'-live.mp4';
-    downloadBlob(finalBlob,name);$('liveBoardStatus').textContent='MP4 download started. You can start another live recording.';toast('Live lesson MP4 download started');
+    liveBoardReadyBlob=finalBlob;
+    if(liveBoardPlaybackUrl)URL.revokeObjectURL(liveBoardPlaybackUrl);
+    liveBoardPlaybackUrl=URL.createObjectURL(finalBlob);
+    $('liveBoardPlayback').src=liveBoardPlaybackUrl;$('liveBoardPlayback').classList.remove('hidden');
+    $('liveBoardSave').disabled=false;
+    $('liveBoardStatus').textContent='Recording is ready. Play it here to listen and review. Press Save MP4 only when you are satisfied.';toast('Recording ready to preview');
    }catch(err){$('liveBoardStatus').textContent=err.message||'Could not finish MP4. Please try again.';toast('MP4 export failed')}
    finally{$('liveBoardStart').disabled=false;$('liveBoardStop').disabled=true;liveBoardConverting=false}
   };
