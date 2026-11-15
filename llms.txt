@@ -6,6 +6,8 @@
 https://malawihub.pages.dev/
 
 ## Student tools and calculators
+- GPA Calculator guide: https://malawihub.pages.dev/tools/gpa-calculator-malawi/
+- Chemistry Calculator guide: https://malawihub.pages.dev/tools/chemistry-calculator-malawi/
 - GPA Calculator: https://malawihub.pages.dev/tools/gpa/
 - Grade Calculator: https://malawihub.pages.dev/tools/grade/
 - Study Timetable: https://malawihub.pages.dev/tools/timetable/
@@ -18,6 +20,8 @@ https://malawihub.pages.dev/
 - Calculator directory: https://malawihub.pages.dev/categories/calculators.html
 - Student tools directory: https://malawihub.pages.dev/categories/student-tools.html
 
+- Assignment cover page guide: https://malawihub.pages.dev/guides/assignment-cover-page-malawi/
+
 ## Learning resources
 - Study Resources: https://malawihub.pages.dev/resources/
 - Past Papers: https://malawihub.pages.dev/papers/
@@ -26,7 +30,6 @@ https://malawihub.pages.dev/
 
 ## Online learning
 - Online Class: https://malawihub.pages.dev/online-class/
-- Student Portal: https://malawihub.pages.dev/student-portal/
 - Teacher Portal: https://malawihub.pages.dev/teacher-portal/
 - AI Class: https://malawihub.pages.dev/ai-class/
 
