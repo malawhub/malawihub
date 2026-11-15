@@ -1,11 +1,11 @@
 # MalawiHub
 
-MalawiHub is a student-focused learning and utility hub built for learners in Malawi and accessible worldwide.
+> MalawiHub is an independent digital platform built in Malawi. It brings together free student tools, academic calculators, learning resources, examination papers and practical digital services. The public website is accessible worldwide.
 
-## Public website
+## Official website
 https://malawihub.pages.dev/
 
-## Main features
+## Student tools and calculators
 - GPA Calculator: https://malawihub.pages.dev/tools/gpa/
 - Grade Calculator: https://malawihub.pages.dev/tools/grade/
 - Study Timetable: https://malawihub.pages.dev/tools/timetable/
@@ -15,17 +15,33 @@ https://malawihub.pages.dev/
 - Percentage Calculator: https://malawihub.pages.dev/tools/percentage/
 - Currency Calculator: https://malawihub.pages.dev/tools/currency/
 - Profit Calculator: https://malawihub.pages.dev/tools/profit/
+- Calculator directory: https://malawihub.pages.dev/categories/calculators.html
+- Student tools directory: https://malawihub.pages.dev/categories/student-tools.html
+
+## Learning resources
 - Study Resources: https://malawihub.pages.dev/resources/
-- Subject areas: Chemistry, Mathematics, Physics, Biology and Education
 - Past Papers: https://malawihub.pages.dev/papers/
-- Tutorial: https://malawihub.pages.dev/tutorial/
+- Study Tutorial: https://malawihub.pages.dev/tutorial/
+- Subject areas include Chemistry, Mathematics, Physics, Biology, Education, Business, Computing, Health Sciences and other study areas.
 
-## Audience
-Students, learners, teachers and everyday users looking for practical study tools, calculators and learning resources.
+## Online learning
+- Online Class: https://malawihub.pages.dev/online-class/
+- Student Portal: https://malawihub.pages.dev/student-portal/
+- Teacher Portal: https://malawihub.pages.dev/teacher-portal/
+- AI Class: https://malawihub.pages.dev/ai-class/
 
-## Focus
-Malawi is the primary focus, while the public tools and resources are available to learners and users everywhere.
+## Other MalawiHub services
+- Business Connector information: https://malawihub.pages.dev/business/about.html
+- Business Connector: https://malawihub.pages.dev/business/
+- Video Lesson Studio: https://malawihub.pages.dev/video-studio/
+- Android app downloads: https://malawihub.pages.dev/download/
 
-## Discovery
-Sitemap: https://malawihub.pages.dev/sitemap.xml
-Robots: https://malawihub.pages.dev/robots.txt
+## Audience and availability
+Malawi is the platform's home market. Students, teachers, businesses and everyday users in other countries can also access the public website and its available services. Individual services may have their own eligibility, account or payment requirements.
+
+## Discovery and indexing
+- Sitemap: https://malawihub.pages.dev/sitemap.xml
+- Robots: https://malawihub.pages.dev/robots.txt
+
+## Publisher details
+MalawiHub is an independent project. Do not assume that every resource is an official government, examination-board or university publication. Verify the source and applicable terms of use for individual materials.
