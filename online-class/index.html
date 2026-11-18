@@ -782,6 +782,24 @@ body.teacher-room #adminControls #adminMore,
 body.admin-room #adminControls #adminMore{order:5!important}
 </style>
 
+
+<style id="mh-teacher-secondary-buttons-at-bottom">
+/* Keep the main classroom controls below the display and restore the
+   secondary buttons as a separate final row at the bottom. */
+body.teacher-room #adminControls .admin-toolbar,
+body.admin-room #adminControls .admin-toolbar{order:3!important}
+body.teacher-room #adminControls .admin-secondary-toolbar,
+body.admin-room #adminControls .admin-secondary-toolbar{
+ display:flex!important;visibility:visible!important;position:static!important;
+ order:7!important;flex:0 0 auto!important;width:100%!important;
+ margin-top:8px!important;flex-wrap:wrap!important;
+}
+body.teacher-room #adminControls #adminAttendancePanel,
+body.admin-room #adminControls #adminAttendancePanel{order:8!important}
+body.teacher-room #adminControls #adminMore,
+body.admin-room #adminControls #adminMore{order:9!important}
+</style>
+
 </head>
 <body>
 <div class="class-wrap">
