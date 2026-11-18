@@ -673,6 +673,48 @@ body.admin-room #adminClassDisplay .admin-display-body{
  padding-bottom:0!important;scroll-padding-bottom:0!important;
 }
 /* Keep the optional full-screen mode separate; normal page scrolling remains the default. */
+
+/* Keep classroom actions and timer visible above the shared display, including while a file is open. */
+body.teacher-room #adminControls:not(.hidden) #adminTimer,
+body.admin-room #adminControls:not(.hidden) #adminTimer{
+ display:block!important;visibility:visible!important;opacity:1!important;
+ position:relative!important;order:0!important;flex:none!important;width:100%!important;
+ min-height:36px!important;height:auto!important;margin:0!important;padding:5px 8px!important;
+ background:#fff!important;color:#101828!important;border:1px solid #e4e7ec!important;
+ border-radius:10px!important;text-align:center!important;font-size:22px!important;
+ line-height:1.3!important;font-weight:800!important;
+}
+body.teacher-room #adminControls:not(.hidden) .admin-toolbar,
+body.teacher-room #adminControls:not(.hidden) .admin-secondary-toolbar,
+body.admin-room #adminControls:not(.hidden) .admin-toolbar,
+body.admin-room #adminControls:not(.hidden) .admin-secondary-toolbar{
+ display:flex!important;visibility:visible!important;opacity:1!important;
+ position:relative!important;order:1!important;flex:none!important;width:100%!important;
+ min-height:48px!important;height:auto!important;max-height:none!important;
+ overflow:visible!important;flex-wrap:wrap!important;justify-content:flex-start!important;
+ align-items:center!important;gap:6px!important;padding:5px!important;margin:0!important;
+ background:#fff!important;z-index:30!important;
+}
+body.teacher-room #adminControls:not(.hidden) .admin-toolbar .admin-tool,
+body.teacher-room #adminControls:not(.hidden) .admin-secondary-toolbar .admin-tool,
+body.admin-room #adminControls:not(.hidden) .admin-toolbar .admin-tool,
+body.admin-room #adminControls:not(.hidden) .admin-secondary-toolbar .admin-tool{
+ display:grid!important;visibility:visible!important;opacity:1!important;
+ flex:0 0 42px!important;width:42px!important;min-width:42px!important;
+ height:42px!important;min-height:42px!important;font-size:19px!important;
+}
+body.teacher-room #adminControls:not(.hidden) #adminPausedBanner,
+body.admin-room #adminControls:not(.hidden) #adminPausedBanner{
+ order:2!important;flex:none!important;width:100%!important;
+}
+body.teacher-room #adminControls:not(.hidden) #adminClassDisplay,
+body.admin-room #adminControls:not(.hidden) #adminClassDisplay{
+ order:3!important;clear:both!important;margin-top:8px!important;
+}
+body.teacher-room #adminControls:not(.hidden) #adminMore,
+body.admin-room #adminControls:not(.hidden) #adminMore{
+ order:4!important;
+}
 </style>
 </head>
 <body>
