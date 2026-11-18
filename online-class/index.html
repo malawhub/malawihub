@@ -762,8 +762,12 @@ function prepareStudentDisplay(){
  $('studentDisplayTitle').textContent='🎥 Live Classroom';
  $('studentDisplayStatus').textContent='LIVE';
 }
-function studentShowDisplay(view,title){view=({studentLiveView:'live',studentFileView:'file',studentWhiteboardView:'whiteboard',studentNotesView:'notes'})[view]||view;
+function studentShowDisplay(view,title,backNavigation=false){view=({studentLiveView:'live',studentFileView:'file',studentWhiteboardView:'whiteboard',studentNotesView:'notes'})[view]||view;
  if(role!=='student')return;
+ const previousDisplay=window.__mhCurrentStudentDisplay;
+ window.__mhStudentViewStack=window.__mhStudentViewStack||[];
+ if(!backNavigation&&previousDisplay&&previousDisplay!==view)window.__mhStudentViewStack.push(previousDisplay);
+ window.__mhCurrentStudentDisplay=view;
  const displayMap={live:'studentLiveView',file:'studentFileView',whiteboard:'studentWhiteboardView',notes:'studentNotesView'};
  const targetId=displayMap[view]||'studentLiveView';
  const body=$('studentDisplay')?.querySelector('.student-display-body');
@@ -805,9 +809,13 @@ document.addEventListener('keydown',resumeRemoteAudioPlayback,true);
 let classScreenRotation=0;
 function applyClassScreenRotation(degrees,broadcast=false){classScreenRotation=((Number(degrees)||0)%360+360)%360;const rotated=classScreenRotation===90||classScreenRotation===270;if(controlMode)$("adminClassDisplay")?.classList.toggle("mh-rotated",rotated);else if(role==="student")$("studentDisplay")?.classList.toggle("mh-rotated",rotated);const ab=$("adminRotateBtn"),rb=$("adminRotateResetBtn"),sb=$("studentRotateBtn");if(ab){ab.textContent=rotated?"↺":"↻";ab.title=rotated?"Rotate screen back to normal":"Rotate classroom screen 90 degrees clockwise";ab.setAttribute("aria-pressed",String(rotated));}if(rb){rb.disabled=!rotated;rb.style.opacity=rotated?"1":".55";rb.title=rotated?"Reset screen rotation":"Screen is already upright";}if(sb){sb.textContent=rotated?"↺ Reset":"↻ Rotate";sb.title=rotated?"Reset classroom screen rotation":"Rotate classroom screen 90 degrees clockwise";sb.setAttribute("aria-pressed",String(rotated));}if(broadcast&&controlMode&&channel&&roomCode){channel.send({type:"broadcast",event:"class-rotation",payload:{code:roomCode,rotation:classScreenRotation}}).catch(e=>console.warn("rotation broadcast",e));send({type:"display",action:"rotation",rotation:classScreenRotation,to:"*"}).catch(()=>{});}}
 function rotateClassScreen(){applyClassScreenRotation(classScreenRotation===0?90:0,true)}
-function adminShowDisplay(view,title){
+function adminShowDisplay(view,title,backNavigation=false){
  if(!controlMode)return;
- const displayMap={adminLiveView:'live',adminWhiteboardView:'whiteboard',adminFileView:'file',adminNotesView:'notes',adminChatView:'chat',adminPrivateView:'private'}; window.__mhCurrentDisplay=displayMap[view]||'live';window.__mhCurrentDisplayTitle=title||'';
+ const displayMap={adminLiveView:'live',adminWhiteboardView:'whiteboard',adminFileView:'file',adminNotesView:'notes',adminChatView:'chat',adminPrivateView:'private'};
+ const nextDisplay=displayMap[view]||'live',previousDisplay=window.__mhCurrentDisplay;
+ window.__mhClassroomViewStack=window.__mhClassroomViewStack||[];
+ if(!backNavigation&&previousDisplay&&previousDisplay!==nextDisplay&&!(previousDisplay==='file'&&nextDisplay==='live'))window.__mhClassroomViewStack.push(previousDisplay);
+ window.__mhCurrentDisplay=nextDisplay;window.__mhCurrentDisplayTitle=title||'';
  document.querySelectorAll('#adminClassDisplay .admin-view').forEach(v=>v.classList.remove('active'));
  $(view)?.classList.add('active');
  $('adminDisplayTitle').textContent=(view==='adminLiveView'?'🎥':view==='adminWhiteboardView'?'🧑‍🏫':view==='adminFileView'?'📄':view==='adminNotesView'?'📝':view==='adminChatView'?'💬':view==='adminPrivateView'?'🔒':'');
@@ -1713,27 +1721,82 @@ function setClassroomFullscreen(active){
  const btns=[$('adminClassroomFullscreenBtn'),$('studentClassroomFullscreenBtn')].filter(Boolean);
  btns.forEach(btn=>{btn.textContent=active?'❐':'□';btn.title=active?'Restore classroom window':'Maximize classroom window';btn.setAttribute('aria-label',btn.title);});
 }
-let classroomFullscreenHistoryState=false;
 async function toggleClassroomFullscreen(){
  const room=$('room');if(!room)return;
- if(room.classList.contains('mh-classroom-fullscreen')){
-  setClassroomFullscreen(false);
-  if(document.fullscreenElement)try{await document.exitFullscreen()}catch(e){}
-  if(classroomFullscreenHistoryState){classroomFullscreenHistoryState=false;history.back()}
-  return;
- }
- setClassroomFullscreen(true);
- try{history.pushState({malawiHubClassroomFullscreen:true},'',location.href);classroomFullscreenHistoryState=true}catch(e){console.warn('Could not prepare Back-button fullscreen handling',e)}
- if(room.requestFullscreen)try{await room.requestFullscreen()}catch(e){/* CSS full-screen fallback remains active. */}
+ const active=room.classList.contains('mh-classroom-fullscreen');
+ setClassroomFullscreen(!active);
+ if(active&&document.fullscreenElement)try{await document.exitFullscreen()}catch(e){}
+ if(!active&&room.requestFullscreen)try{await room.requestFullscreen()}catch(e){/* CSS full-screen fallback remains active. */}
 }
-window.addEventListener('popstate',async()=>{
- const room=$('room');
- if(!room?.classList.contains('mh-classroom-fullscreen'))return;
- setClassroomFullscreen(false);
- if(document.fullscreenElement)try{await document.exitFullscreen()}catch(e){}
- classroomFullscreenHistoryState=false;
- try{history.pushState({malawiHubClassroomFullscreen:true},'',location.href);classroomFullscreenHistoryState=true}catch(e){}
-});
+
+// Android/browser Back handling: close transient UI first, then step through classroom views,
+// and only then ask for a second Back press before returning to the correct portal.
+(function installMalawiHubClassroomBack(){
+ let lastBackAt=0,keyboardWasOpen=false;
+ const portalUrl=()=>role==='teacher'?'/teacher-portal/':role==='admin'?'/admin/':'/online-class/';
+ function keyboardOpen(){
+  const vv=window.visualViewport;
+  const shrunk=!!vv&&window.innerHeight-vv.height>Math.max(120,window.innerHeight*.22);
+  const el=document.activeElement;
+  const editing=el&&(/^(INPUT|TEXTAREA)$/.test(el.tagName)||el.isContentEditable);
+  return shrunk&&editing;
+ }
+ function toast(message){
+  let el=$('mhBackNotice');
+  if(!el){el=document.createElement('div');el.id='mhBackNotice';el.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);z-index:2147483647;background:#101828;color:#fff;padding:12px 18px;border-radius:12px;font:600 14px system-ui;box-shadow:0 6px 24px #0005;text-align:center;max-width:calc(100vw - 32px)';document.body.appendChild(el)}
+  el.textContent=message;el.style.display='block';clearTimeout(el._hideTimer);el._hideTimer=setTimeout(()=>{el.style.display='none'},2300);
+ }
+ function closeTransientPanel(){
+  const classmates=$('studentClassmatesPanel');
+  if(classmates&&!classmates.classList.contains('hidden')){$('studentClassmatesClose')?.click();return true}
+  const attendance=$('adminAttendancePanel');
+  if(attendance?.classList.contains('attendance-open')){$('adminAttendanceClose')?.click();return true}
+  const more=$('adminMore');
+  if(more&&!more.classList.contains('hidden')){$('adminMoreBtn')?.click();return true}
+  const privatePanel=$('classRecordingPanel');
+  if(privatePanel&&!privatePanel.classList.contains('hidden')){privatePanel.classList.add('hidden');return true}
+  return false;
+ }
+ function activeStudentView(){
+  const active=document.querySelector('#studentDisplay .student-view.active');
+  return active?.id?.replace('student','').replace('View','').toLowerCase()||'live';
+ }
+ function handleBack(){
+  if(keyboardOpen()){keyboardWasOpen=true;return 'keyboard'}
+  keyboardWasOpen=false;
+  const room=$('room');
+  if(room?.classList.contains('mh-classroom-fullscreen')){setClassroomFullscreen(false);if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});return 'handled'}
+  if(document.fullscreenElement){document.exitFullscreen().catch(()=>{});return 'handled'}
+  if(closeTransientPanel())return 'handled';
+  if(role==='student'&&$('studentDisplay')&&!$('studentDisplay').classList.contains('hidden')){
+   const current=activeStudentView();
+   if(current!=='live'){studentShowDisplay('live','🎥 Live Classroom',true);return 'handled'}
+   const stack=window.__mhStudentViewStack||[];
+   if(stack.length){const previous=stack.pop();studentShowDisplay('student'+previous.charAt(0).toUpperCase()+previous.slice(1)+'View',previous==='file'?'📄 Shared File':previous==='notes'?'📝 Notes':previous==='whiteboard'?'🧑‍🏫 Whiteboard':'🎥 Live Classroom',true);return 'handled'}
+  }
+  if(controlMode){
+   const current=window.__mhCurrentDisplay||'live';
+   if(current==='file'){adminShowDisplay('adminLiveView','🎥 Live Classroom',true);return 'handled'}
+   const stack=window.__mhClassroomViewStack||[];
+   if(stack.length){const previous=stack.pop();const ids={live:'adminLiveView',whiteboard:'adminWhiteboardView',notes:'adminNotesView',chat:'adminChatView',private:'adminPrivateView',file:'adminFileView'};adminShowDisplay(ids[previous]||'adminLiveView','',true);return 'handled'}
+  }
+  const now=Date.now();
+  if(now-lastBackAt<=2500){lastBackAt=0;location.href=portalUrl();return 'portal'}
+  lastBackAt=now;
+  const label=role==='teacher'?'Teacher Portal':role==='admin'?'Administrator Portal':'Student Portal';
+  toast('Press Back again to return to '+label);
+  return 'confirm';
+ }
+ try{history.pushState({malawiHubClassroomBack:true},'',location.href)}catch(e){}
+ window.addEventListener('popstate',()=>{
+  const result=handleBack();
+  // Keep a local history entry so the next hardware Back is handled here too.
+  try{history.pushState({malawiHubClassroomBack:true},'',location.href)}catch(e){}
+  if(result==='keyboard')return;
+ });
+ window.addEventListener('pageshow',()=>{try{history.pushState({malawiHubClassroomBack:true},'',location.href)}catch(e){}});
+})();
+
 $('adminClassroomFullscreenBtn')?.addEventListener('click',toggleClassroomFullscreen);
 $('studentClassroomFullscreenBtn')?.addEventListener('click',toggleClassroomFullscreen);
 document.addEventListener('fullscreenchange',()=>{if(!document.fullscreenElement&&$('room')?.classList.contains('mh-classroom-fullscreen'))setClassroomFullscreen(false)});
