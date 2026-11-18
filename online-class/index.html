@@ -735,6 +735,30 @@ body.teacher-room #adminControls #adminMore{order:6}
 /* Place the teacher classroom timer at the bottom with the controls. */
 body.teacher-room #adminControls #adminTimer{order:7;margin-top:8px}
 </style>
+
+<style id="mh-teacher-layout-match-screenshot">
+/* Keep the teacher classroom in the screenshot order whether a file is open or not:
+   timer, primary controls, then the shared classroom display. */
+body.teacher-room #adminControls.admin-controls,
+body.admin-room #adminControls.admin-controls{
+ display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:8px!important;
+}
+body.teacher-room #adminControls #adminTimer,
+body.admin-room #adminControls #adminTimer{order:0!important;display:block!important;visibility:visible!important;flex:none!important;width:100%!important}
+body.teacher-room #adminControls .admin-toolbar,
+body.admin-room #adminControls .admin-toolbar{order:1!important;display:flex!important;visibility:visible!important;flex:none!important;width:100%!important}
+body.teacher-room #adminControls #adminPausedBanner,
+body.admin-room #adminControls #adminPausedBanner{order:2!important}
+body.teacher-room #adminControls #adminClassDisplay,
+body.admin-room #adminControls #adminClassDisplay{order:3!important;display:flex!important;flex-direction:column!important;width:100%!important;min-width:0!important}
+body.teacher-room #adminControls .admin-secondary-toolbar,
+body.admin-room #adminControls .admin-secondary-toolbar{order:4!important}
+body.teacher-room #adminControls #adminAttendancePanel,
+body.admin-room #adminControls #adminAttendancePanel{order:5!important}
+body.teacher-room #adminControls #adminMore,
+body.admin-room #adminControls #adminMore{order:6!important}
+</style>
+
 </head>
 <body>
 <div class="class-wrap">
