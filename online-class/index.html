@@ -759,6 +759,29 @@ body.teacher-room #adminControls #adminMore,
 body.admin-room #adminControls #adminMore{order:6!important}
 </style>
 
+
+<style id="mh-teacher-primary-toolbar-bottom">
+/* Put the main teacher controls below the classroom display.
+   The old secondary row is hidden so it is replaced by the full primary toolbar. */
+body.teacher-room #adminControls #adminTimer,
+body.admin-room #adminControls #adminTimer{order:0!important}
+body.teacher-room #adminControls #adminClassDisplay,
+body.admin-room #adminControls #adminClassDisplay{order:1!important}
+body.teacher-room #adminControls #adminPausedBanner,
+body.admin-room #adminControls #adminPausedBanner{order:2!important}
+body.teacher-room #adminControls .admin-toolbar,
+body.admin-room #adminControls .admin-toolbar{
+ order:3!important;display:flex!important;visibility:visible!important;
+ position:static!important;flex-wrap:wrap!important;width:100%!important;
+}
+body.teacher-room #adminControls .admin-secondary-toolbar,
+body.admin-room #adminControls .admin-secondary-toolbar{display:none!important}
+body.teacher-room #adminControls #adminAttendancePanel,
+body.admin-room #adminControls #adminAttendancePanel{order:4!important}
+body.teacher-room #adminControls #adminMore,
+body.admin-room #adminControls #adminMore{order:5!important}
+</style>
+
 </head>
 <body>
 <div class="class-wrap">
