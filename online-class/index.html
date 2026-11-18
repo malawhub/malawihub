@@ -604,6 +604,76 @@ body.admin-room #adminClassDisplay .admin-display-body{padding-bottom:76px!impor
  body.admin-room #adminClassDisplay .admin-display-body{padding-bottom:88px!important;scroll-padding-bottom:88px!important}
 }
 </style>
+<style id="mh-independent-page-scroll-layout">
+/* The classroom page scrolls as a normal document; the display is only one section of it. */
+html:has(body.teacher-room),html:has(body.admin-room),
+body.teacher-room,body.admin-room{
+ height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important;
+}
+body.teacher-room .class-wrap,body.admin-room .class-wrap{
+ height:auto!important;min-height:100dvh!important;overflow:visible!important;
+}
+body.teacher-room #room:not(.hidden),body.admin-room #room:not(.hidden){
+ display:block!important;height:auto!important;min-height:0!important;overflow:visible!important;
+}
+body.teacher-room #adminControls:not(.hidden),body.admin-room #adminControls:not(.hidden){
+ display:block!important;position:static!important;flex:none!important;width:100%!important;
+ height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;
+}
+body.teacher-room #adminControls .admin-toolbar,
+body.teacher-room #adminControls .admin-secondary-toolbar,
+body.admin-room #adminControls .admin-toolbar,
+body.admin-room #adminControls .admin-secondary-toolbar{
+ position:static!important;inset:auto!important;display:flex!important;flex-wrap:wrap!important;
+ justify-content:flex-start!important;align-items:center!important;overflow:visible!important;
+ white-space:normal!important;width:100%!important;max-height:none!important;
+}
+body.teacher-room #adminControls .admin-toolbar .admin-tool,
+body.teacher-room #adminControls .admin-secondary-toolbar .admin-tool,
+body.admin-room #adminControls .admin-toolbar .admin-tool,
+body.admin-room #adminControls .admin-secondary-toolbar .admin-tool{
+ flex:0 0 42px!important;width:42px!important;min-width:42px!important;height:42px!important;
+}
+body.teacher-room #adminControls #adminClassDisplay,
+body.admin-room #adminControls #adminClassDisplay{
+ display:block!important;position:relative!important;flex:none!important;width:100%!important;
+ height:auto!important;min-height:320px!important;max-height:none!important;overflow:visible!important;
+}
+body.teacher-room #adminControls .admin-display-head,
+body.admin-room #adminControls .admin-display-head{
+ position:relative!important;display:flex!important;flex-wrap:wrap!important;overflow:visible!important;
+}
+body.teacher-room #adminControls .admin-display-body,
+body.admin-room #adminControls .admin-display-body{
+ display:block!important;position:relative!important;flex:none!important;width:100%!important;
+ height:auto!important;min-height:280px!important;max-height:none!important;overflow:visible!important;
+}
+body.teacher-room #adminControls .admin-view.active,
+body.admin-room #adminControls .admin-view.active{
+ display:block!important;position:relative!important;flex:none!important;width:100%!important;
+ height:auto!important;min-height:280px!important;max-height:none!important;overflow:visible!important;
+}
+body.teacher-room #adminControls #adminWhiteboardView.active,
+body.admin-room #adminControls #adminWhiteboardView.active{display:flex!important;flex-direction:column!important}
+body.teacher-room #adminControls #adminLiveView .stage,
+body.admin-room #adminControls #adminLiveView .stage{
+ display:grid!important;width:100%!important;height:auto!important;min-height:42dvh!important;
+ max-height:none!important;overflow:hidden!important;
+}
+body.teacher-room .mh-slide-footer,body.admin-room .mh-slide-footer{
+ position:static!important;inset:auto!important;width:100%!important;max-width:none!important;
+ margin:12px 0!important;padding:8px!important;pointer-events:auto!important;background:#fff!important;
+}
+body.teacher-room .mh-slide-footer .mh-slide-controls,
+body.admin-room .mh-slide-footer .mh-slide-controls{
+ position:static!important;display:flex!important;flex-wrap:wrap!important;overflow:visible!important;
+}
+body.teacher-room #adminClassDisplay .admin-display-body,
+body.admin-room #adminClassDisplay .admin-display-body{
+ padding-bottom:0!important;scroll-padding-bottom:0!important;
+}
+/* Keep the optional full-screen mode separate; normal page scrolling remains the default. */
+</style>
 </head>
 <body>
 <div class="class-wrap">
