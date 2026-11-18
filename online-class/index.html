@@ -716,6 +716,21 @@ body.admin-room #adminControls:not(.hidden) #adminMore{
  order:4!important;
 }
 </style>
+<style id="mh-teacher-toolbar-bottom">
+/* Keep the teacher's primary controls below the classroom display. */
+body.teacher-room #adminControls.admin-controls{display:flex;flex-direction:column;align-items:stretch;gap:8px}
+body.teacher-room #adminControls #adminTimer{order:0}
+body.teacher-room #adminControls #adminClassDisplay{order:1;width:100%}
+body.teacher-room #adminControls .admin-toolbar{order:2;position:static;top:auto;bottom:auto;flex-wrap:wrap;justify-content:center;overflow:visible;white-space:normal;margin-top:8px}
+body.teacher-room #adminControls #adminPausedBanner{order:3}
+body.teacher-room #adminControls .admin-secondary-toolbar{order:4;flex-wrap:wrap;overflow:visible;white-space:normal}
+body.teacher-room #adminControls #adminAttendancePanel{order:5}
+body.teacher-room #adminControls #adminMore{order:6}
+@media(max-width:600px){
+ body.teacher-room #adminControls .admin-toolbar{position:static;justify-content:center;gap:7px;padding:8px}
+ body.teacher-room #adminControls .admin-tool{width:42px;height:42px;min-width:42px}
+}
+</style>
 </head>
 <body>
 <div class="class-wrap">
