@@ -766,7 +766,7 @@ function studentShowDisplay(view,title,backNavigation=false){view=({studentLiveV
  if(role!=='student')return;
  const previousDisplay=window.__mhCurrentStudentDisplay;
  window.__mhStudentViewStack=window.__mhStudentViewStack||[];
- if(!backNavigation&&previousDisplay&&previousDisplay!==view)window.__mhStudentViewStack.push(previousDisplay);
+ if(!backNavigation&&previousDisplay&&previousDisplay!==view&&!(view==='file'&&previousDisplay==='live'))window.__mhStudentViewStack.push(previousDisplay);
  window.__mhCurrentStudentDisplay=view;
  const displayMap={live:'studentLiveView',file:'studentFileView',whiteboard:'studentWhiteboardView',notes:'studentNotesView'};
  const targetId=displayMap[view]||'studentLiveView';
@@ -814,7 +814,7 @@ function adminShowDisplay(view,title,backNavigation=false){
  const displayMap={adminLiveView:'live',adminWhiteboardView:'whiteboard',adminFileView:'file',adminNotesView:'notes',adminChatView:'chat',adminPrivateView:'private'};
  const nextDisplay=displayMap[view]||'live',previousDisplay=window.__mhCurrentDisplay;
  window.__mhClassroomViewStack=window.__mhClassroomViewStack||[];
- if(!backNavigation&&previousDisplay&&previousDisplay!==nextDisplay&&!(previousDisplay==='file'&&nextDisplay==='live'))window.__mhClassroomViewStack.push(previousDisplay);
+ if(!backNavigation&&previousDisplay&&previousDisplay!==nextDisplay&&!(previousDisplay==='file'&&nextDisplay==='live')&&!(nextDisplay==='file'&&previousDisplay==='live'))window.__mhClassroomViewStack.push(previousDisplay);
  window.__mhCurrentDisplay=nextDisplay;window.__mhCurrentDisplayTitle=title||'';
  document.querySelectorAll('#adminClassDisplay .admin-view').forEach(v=>v.classList.remove('active'));
  $(view)?.classList.add('active');
@@ -1732,7 +1732,7 @@ async function toggleClassroomFullscreen(){
 // Android/browser Back handling: close transient UI first, then step through classroom views,
 // and only then ask for a second Back press before returning to the correct portal.
 (function installMalawiHubClassroomBack(){
- let lastBackAt=0,keyboardWasOpen=false;
+ let lastBackAt=0;
  const portalUrl=()=>role==='teacher'?'/teacher-portal/':role==='admin'?'/admin/':'/online-class/';
  function keyboardOpen(){
   const vv=window.visualViewport;
@@ -1762,15 +1762,14 @@ async function toggleClassroomFullscreen(){
   return active?.id?.replace('student','').replace('View','').toLowerCase()||'live';
  }
  function handleBack(){
-  if(keyboardOpen()){keyboardWasOpen=true;return 'keyboard'}
-  keyboardWasOpen=false;
+  if(keyboardOpen())return 'keyboard';
   const room=$('room');
   if(room?.classList.contains('mh-classroom-fullscreen')){setClassroomFullscreen(false);if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});return 'handled'}
   if(document.fullscreenElement){document.exitFullscreen().catch(()=>{});return 'handled'}
   if(closeTransientPanel())return 'handled';
   if(role==='student'&&$('studentDisplay')&&!$('studentDisplay').classList.contains('hidden')){
    const current=activeStudentView();
-   if(current!=='live'){studentShowDisplay('live','🎥 Live Classroom',true);return 'handled'}
+   if(current==='file'){studentShowDisplay('live','🎥 Live Classroom',true);return 'handled'}
    const stack=window.__mhStudentViewStack||[];
    if(stack.length){const previous=stack.pop();studentShowDisplay('student'+previous.charAt(0).toUpperCase()+previous.slice(1)+'View',previous==='file'?'📄 Shared File':previous==='notes'?'📝 Notes':previous==='whiteboard'?'🧑‍🏫 Whiteboard':'🎥 Live Classroom',true);return 'handled'}
   }
