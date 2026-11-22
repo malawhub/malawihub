@@ -184,30 +184,28 @@ $("create").onclick=async()=>{
   const duration=Math.min(240,Math.max(5,Number($("duration").value)||60));
   if(!title){$("createStatus").textContent="Enter a class title.";return;}
   if(!code){code=makeCode();$("code").value=code;}
-  $("createStatus").textContent="Starting class…";
-
-  let error=null;
-  for(let attempt=0;attempt<3;attempt++){
-    const result=await supabaseClient.from("online_classes").insert({
-      join_code:code,title,subject,teacher_id:user.id,duration_minutes:duration,status:"live"
-    });
-    error=result.error;
-    if(!error)break;
-    if(error.code==="23505"){
-      code=makeCode();
-      $("code").value=code;
-      continue;
+  const button=$("create");button.disabled=true;
+  $("createStatus").textContent="Creating and starting your class…";
+  try{
+    let created=null;
+    for(let attempt=0;attempt<3;attempt++){
+      try{
+        const result=await api("create_class",{title,subject,join_code:code,duration_minutes:duration});
+        if(result?.error)throw new Error(result.error);
+        created=result.class;
+        break;
+      }catch(error){
+        if(String(error.message||"").toLowerCase().includes("already")&&attempt<2){code=makeCode();$("code").value=code;continue;}
+        throw error;
+      }
     }
-    break;
+    if(!created)throw new Error("Class could not be created.");
+    sessionStorage.setItem("malawihub_teacher_launch","1");
+    location.href="/online-class/index.html?teacher=1&role=teacher&mode=teacher&code="+encodeURIComponent(created.join_code)+"&v=20261122-teacher-class-create";
+  }catch(error){
+    $("createStatus").textContent="Could not create class: "+(error.message||"Please try again.");
+    button.disabled=false;
   }
-
-  if(error){
-    $("createStatus").textContent="Could not start class: "+error.message;
-    return;
-  }
-
-  sessionStorage.setItem("malawihub_teacher_launch","1");
-  location.href="/online-class/index.html?teacher=1&role=teacher&mode=teacher&code="+encodeURIComponent(code)+"&v=20261026-teacher-launch-fix";
 };
 
 $("refresh").onclick=async()=>{
