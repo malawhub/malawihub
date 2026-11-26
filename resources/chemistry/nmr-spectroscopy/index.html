@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NMR Spectroscopy — CHE 412 | MalawiHub</title>
+<meta name="description" content="Original university-level CHE 412 notes on 1H NMR, 13C NMR, chemical shifts, integration, spin-spin splitting, DEPT, COSY, HSQC and HMBC with diagrams and exercises.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://malawihub.pages.dev/resources/chemistry/nmr-spectroscopy/">
+<link rel="stylesheet" href="../../../css/style.css">
+<link rel="stylesheet" href="../../../css/orientation.css">
+<style>
+.nmr-wrap{max-width:1050px;margin:auto;padding:18px;line-height:1.72;color:var(--text,#172235)}
+.nmr-wrap h2{margin-top:38px;border-bottom:2px solid #a51e2b;padding-bottom:7px}
+.nmr-wrap h3{margin-top:23px}.nmr-wrap .lead{font-size:1.08rem}
+.nmr-box{border:1px solid #dce3eb;border-radius:14px;padding:17px;margin:18px 0;background:#fff}
+.nmr-box svg{width:100%;height:auto;max-width:760px;display:block;margin:12px auto}
+.nmr-caption{font-size:.9rem;color:#596579;text-align:center}
+.nmr-table{width:100%;border-collapse:collapse;margin:12px 0;display:block;overflow-x:auto}
+.nmr-table th,.nmr-table td{border:1px solid #dce3eb;padding:9px;text-align:left;vertical-align:top}
+.nmr-table th{background:#f4f6f9}
+.nmr-tip{border-left:4px solid #a51e2b;padding:10px 14px;background:#fff6f6;margin:14px 0}
+.nmr-example{background:#f5f8fc;border-radius:10px;padding:14px;margin:12px 0}
+.nmr-controls{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.nmr-controls label{display:block;font-weight:700;font-size:.9rem}
+.nmr-controls select,.nmr-controls input{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff}
+.nmr-button{background:#a51e2b;color:white;border:0;border-radius:8px;padding:10px 16px;font-weight:700;cursor:pointer;margin:8px 6px 4px 0}
+.nmr-result{background:#f0f6ff;border-left:4px solid #3679bd;padding:12px;border-radius:8px;margin-top:12px}
+.nmr-q{padding:14px;border:1px solid #dce3eb;border-radius:10px;margin:12px 0}
+.nmr-q label{display:block;margin:6px 0}
+.nmr-q.correct{background:#f1faf3;border-color:#25834a}.nmr-q.wrong{background:#fff5f5;border-color:#b4232d}
+.nmr-small{font-size:.9rem;color:#596579}
+@media(max-width:600px){.nmr-wrap{padding:12px}.nmr-box{padding:12px}}
+</style>
+</head>
+<body>
+<header><div class="logo">🇲🇼 MalawiHub</div><nav><a href="../../../index.html">Home</a><a href="../../index.html">Resources</a><a href="../index.html">Chemistry</a></nav></header>
+<section class="hero"><h1>🧲 Nuclear Magnetic Resonance Spectroscopy</h1><p>CHE 412 • Structure determination • University Chemistry notes</p></section>
+<main class="nmr-wrap">
+<p class="lead">These notes explain how NMR spectroscopy is used to investigate molecular structure. The material is organised from the physical principles to the interpretation of one-dimensional and two-dimensional spectra. Structures and diagrams are independently drawn for this learning resource.</p>
+<div class="nmr-tip"><strong>Learning outcomes:</strong> By the end of this topic, you should be able to explain nuclear spin and resonance, interpret the four main features of a <sup>1</sup>H NMR spectrum, use <sup>13</sup>C NMR and DEPT data, understand common 2D NMR correlations and combine spectral evidence to propose a molecular structure.</div>
+<nav class="nmr-box" aria-label="Course contents"><strong>Contents</strong><ol>
+<li><a href="#principles">Principles of NMR</a></li><li><a href="#spectrum">Reading an NMR spectrum</a></li><li><a href="#equivalence">Number of proton signals</a></li><li><a href="#shifts">Chemical shifts and shielding</a></li><li><a href="#integration">Integration</a></li><li><a href="#splitting">Spin–spin splitting</a></li><li><a href="#solve">Structure determination using <sup>1</sup>H NMR</a></li><li><a href="#carbon">Carbon-13 NMR</a></li><li><a href="#dept">DEPT experiments</a></li><li><a href="#twod">Two-dimensional NMR</a></li><li><a href="#strategy">A complete interpretation strategy</a></li><li><a href="#simulator">Interactive spectrum practice</a></li><li><a href="#quiz">Revision questions</a></li></ol></nav>
+
+<section id="principles"><h2>1. Principles of NMR spectroscopy</h2>
+<p>Nuclear magnetic resonance (NMR) spectroscopy is an analytical method used to obtain information about the chemical environments of magnetically active nuclei. In organic chemistry, the most frequently studied nuclei are hydrogen-1 (<sup>1</sup>H) and carbon-13 (<sup>13</sup>C).</p>
+<h3>1.1 Nuclear spin and magnetic behaviour</h3>
+<p>Some nuclei possess a property called nuclear spin. A nucleus with non-zero spin has a magnetic moment and behaves like a tiny magnet. When such a nucleus is placed in an external magnetic field, its allowed orientations have different energies.</p>
+<div class="nmr-box"><svg viewBox="0 0 700 260" role="img" aria-label="Nuclear spin energy levels in an external magnetic field">
+<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="5" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6" fill="#a51e2b"/></marker></defs>
+<line x1="90" y1="205" x2="90" y2="40" stroke="#26364c" stroke-width="2" marker-end="url(#arr)"/><text x="55" y="28" font-size="15">Energy</text>
+<line x1="180" y1="155" x2="365" y2="155" stroke="#25834a" stroke-width="4"/><text x="380" y="160" font-size="16">Lower-energy state (α)</text>
+<line x1="180" y1="75" x2="365" y2="75" stroke="#b4232d" stroke-width="4"/><text x="380" y="80" font-size="16">Higher-energy state (β)</text>
+<path d="M270 145 L270 88" stroke="#a51e2b" stroke-width="2.5" marker-end="url(#arr)"/><text x="285" y="118" font-size="14">Absorbed energy, ΔE</text>
+<text x="190" y="225" font-size="14">Applied magnetic field B₀</text><text x="450" y="225" font-size="14">Resonance occurs when ΔE = hν</text></svg><div class="nmr-caption">Conceptual energy-level diagram for a spin-½ nucleus such as <sup>1</sup>H.</div></div>
+<p>For a spin-½ nucleus such as <sup>1</sup>H, two energy states are possible in a magnetic field: a lower-energy state aligned with the field and a higher-energy state opposed to it. The energy difference increases with magnetic-field strength.</p>
+<p>When radiofrequency energy of the correct frequency is supplied, the nucleus can absorb energy and undergo a transition between the two spin states. This condition is resonance.</p>
+<div class="nmr-example"><strong>Resonance relationship</strong><br>ΔE = hν<br>where ΔE is the energy difference, h is Planck’s constant and ν is the resonance frequency. The resonance frequency is proportional to the applied magnetic field strength.</div>
+<h3>1.2 Why different nuclei give different signals</h3>
+<p>Electrons surrounding a nucleus circulate in response to the external field and generate a small induced magnetic field. This changes the effective field experienced by the nucleus. Because different atoms and functional groups have different electron distributions, nuclei in different chemical environments resonate at different frequencies.</p>
+<h3>1.3 Which nuclei can be observed?</h3>
+<p>NMR-active nuclei have non-zero nuclear spin. Common examples include <sup>1</sup>H, <sup>13</sup>C, <sup>19</sup>F and <sup>31</sup>P. The common isotope <sup>12</sup>C is not observed by ordinary NMR because its nuclear spin is zero. Although <sup>13</sup>C is NMR-active, it has a low natural abundance of about 1.1%, so its signals are much weaker than proton signals.</p>
+</section>
+
+<section id="spectrum"><h2>2. Reading an NMR spectrum</h2>
+<p>An NMR spectrum plots signal intensity against chemical shift. Chemical shift is represented by the Greek letter δ and is measured in parts per million (ppm).</p>
+<div class="nmr-box"><svg viewBox="0 0 760 280" role="img" aria-label="Illustrative proton NMR spectrum with signals and chemical shift axis">
+<line x1="70" y1="220" x2="700" y2="220" stroke="#26364c" stroke-width="2"/><line x1="70" y1="220" x2="70" y2="35" stroke="#26364c" stroke-width="2"/>
+<path d="M95 220 L95 216 Q105 210 110 220 L160 220 Q168 216 174 220 L265 220 Q274 190 282 220 L365 220 Q372 170 379 220 L455 220 Q464 75 472 220 L545 220 Q553 120 560 220 L640 220" fill="none" stroke="#a51e2b" stroke-width="3"/>
+<g font-size="14" fill="#26364c"><text x="66" y="245">10</text><text x="190" y="245">8</text><text x="315" y="245">6</text><text x="440" y="245">4</text><text x="565" y="245">2</text><text x="690" y="245">0</text><text x="335" y="273">Chemical shift, δ (ppm)</text><text x="12" y="30">Intensity</text><text x="75" y="20">Downfield</text><text x="610" y="20">Upfield</text></g>
+<text x="450" y="65" font-size="13" fill="#a51e2b">Example signals</text></svg><div class="nmr-caption">Schematic only: a proton NMR spectrum is conventionally displayed with higher chemical shift at the left.</div></div>
+<p>The scale normally runs from higher ppm on the left to lower ppm on the right. A signal at higher ppm is described as downfield, while one at lower ppm is upfield. These terms describe position on the spectrum, not the physical location of a proton in a molecule.</p>
+<h3>2.1 Tetramethylsilane (TMS)</h3>
+<p>Tetramethylsilane, Si(CH<sub>3</sub>)<sub>4</sub>, is commonly used as a reference standard and assigned a chemical shift of 0 ppm. It gives one sharp signal because its twelve protons are chemically equivalent. Its signal is usually found upfield of most organic proton signals.</p>
+<h3>2.2 Chemical shift equation</h3>
+<p>The chemical shift is the difference between the sample resonance frequency and the reference frequency, expressed relative to the spectrometer operating frequency.</p>
+<div class="nmr-example">δ (ppm) = [(ν<sub>sample</sub> − ν<sub>reference</sub>) / ν<sub>spectrometer</sub>] × 10<sup>6</sup></div>
+<p>Using ppm makes chemical shifts broadly comparable between instruments operating at different magnetic-field strengths.</p>
+</section>
+
+<section id="equivalence"><h2>3. Number of signals in <sup>1</sup>H NMR</h2>
+<p>The number of distinct proton signals generally corresponds to the number of chemically different proton environments. Chemically equivalent protons resonate at the same chemical shift under the measurement conditions.</p>
+<h3>3.1 Recognising equivalent protons</h3>
+<ul><li>Protons related by a symmetry operation are often chemically equivalent.</li><li>The three protons of a freely rotating methyl group are usually equivalent on the NMR timescale.</li><li>Protons in different functional groups normally have different chemical environments.</li><li>In rigid rings or restricted systems, apparently similar hydrogens may be nonequivalent.</li></ul>
+<div class="nmr-box"><svg viewBox="0 0 720 230" role="img" aria-label="Equivalent methyl protons and distinct methylene environments">
+<polygon points="150,55 190,78 190,125 150,148 110,125 110,78" fill="none" stroke="#26364c" stroke-width="3"/><text x="150" y="105" font-size="18" text-anchor="middle">C</text><text x="150" y="25" font-size="15" text-anchor="middle">H₃C</text><text x="150" y="190" font-size="14" text-anchor="middle">Three equivalent methyl H</text>
+<path d="M410 100 L470 100 L530 100" stroke="#26364c" stroke-width="3"/><text x="410" y="78" font-size="17" text-anchor="middle">Hₐ</text><text x="410" y="130" font-size="17" text-anchor="middle">Hᵦ</text><text x="470" y="78" font-size="16" text-anchor="middle">C</text><text x="470" y="190" font-size="14" text-anchor="middle">Two hydrogens may be non-equivalent</text><text x="470" y="215" font-size="12" text-anchor="middle">depending on molecular symmetry and motion</text></svg><div class="nmr-caption">The equivalence of protons must be judged from the molecular structure and its symmetry.</div></div>
+<h3>3.2 A practical equivalence test</h3>
+<p>Replace one proton at a time with a hypothetical label such as D. If replacement at either position produces the same molecule, the protons are homotopic and chemically equivalent. If it produces enantiomers, they are enantiotopic and usually equivalent in an achiral NMR environment. If it produces diastereomers, they are diastereotopic and can give separate signals.</p>
+<div class="nmr-tip"><strong>Important:</strong> Do not count every hydrogen separately. First identify groups of equivalent protons. Draw all C–H bonds in rings and alkenes where stereochemistry may affect equivalence.</div>
+</section>
+
+<section id="shifts"><h2>4. Chemical shifts, shielding and deshielding</h2>
+<p>Shielding occurs when surrounding electron density reduces the effective magnetic field experienced by a nucleus. A shielded proton generally resonates at a lower chemical shift. Deshielding occurs when the nucleus experiences a greater effective field and generally moves to a higher chemical shift.</p>
+<div class="nmr-box"><svg viewBox="0 0 720 230" role="img" aria-label="Shielded and deshielded proton environments">
+<circle cx="175" cy="105" r="60" fill="#eaf6ed" stroke="#25834a" stroke-width="2"/><circle cx="175" cy="105" r="35" fill="none" stroke="#25834a" stroke-dasharray="5 4" stroke-width="2"/><text x="175" y="110" text-anchor="middle" font-size="18">H</text><text x="175" y="195" text-anchor="middle" font-size="16">Shielded</text><text x="175" y="218" text-anchor="middle" font-size="13">Lower δ • upfield</text>
+<circle cx="530" cy="105" r="60" fill="#fff0f0" stroke="#b4232d" stroke-width="2"/><path d="M490 65 L570 145 M570 65 L490 145" stroke="#b4232d" stroke-width="2"/><text x="530" y="110" text-anchor="middle" font-size="18">H</text><text x="530" y="195" text-anchor="middle" font-size="16">Deshielded</text><text x="530" y="218" text-anchor="middle" font-size="13">Higher δ • downfield</text></svg><div class="nmr-caption">Conceptual illustration of the effect of local electron density on a proton.</div></div>
+<h3>4.1 Factors affecting chemical shift</h3>
+<ul><li><strong>Electronegativity:</strong> electronegative atoms such as oxygen, nitrogen and halogens withdraw electron density from nearby bonds and often deshield nearby protons.</li><li><strong>Hybridisation:</strong> the chemical shift depends on the bonding environment and hybridisation of the carbon bearing the proton.</li><li><strong>π systems:</strong> aromatic rings, alkenes and alkynes generate anisotropic induced magnetic fields.</li><li><strong>Hydrogen bonding:</strong> exchangeable O–H and N–H proton shifts can vary with solvent, concentration and temperature.</li><li><strong>Conjugation and resonance:</strong> electron distribution in conjugated systems changes local shielding.</li></ul>
+<h3>4.2 Approximate <sup>1</sup>H chemical-shift guide</h3>
+<table class="nmr-table"><thead><tr><th>Proton environment</th><th>Approximate δ (ppm)</th><th>Reason / example</th></tr></thead><tbody>
+<tr><td>Simple alkyl C–H</td><td>0.8–2.0</td><td>Alkanes and many saturated carbon frameworks</td></tr>
+<tr><td>Allylic or next to carbonyl</td><td>1.6–2.7</td><td>Adjacent to a π system or carbonyl group</td></tr>
+<tr><td>Alkyne C≡C–H</td><td>About 2–3</td><td>Anisotropic effect of a triple bond</td></tr>
+<tr><td>Attached to O, N or halogen-bearing carbon</td><td>About 3–4.5</td><td>Inductive deshielding; exact value varies</td></tr>
+<tr><td>Alkene proton</td><td>About 4.5–6.5</td><td>Vinylic environment</td></tr>
+<tr><td>Aromatic proton</td><td>About 6–8.5</td><td>Aromatic ring-current effect</td></tr>
+<tr><td>Aldehyde proton</td><td>About 9–10.5</td><td>Carbonyl anisotropy and electronegativity</td></tr>
+<tr><td>Carboxylic acid O–H</td><td>About 10–13</td><td>Hydrogen bonding; often broad</td></tr>
+</tbody></table>
+<p class="nmr-small">Ranges are approximate guides, not fixed rules. Substitution, solvent, concentration, temperature and molecular structure can shift signals.</p>
+<h3>4.3 Aromatic and alkenic anisotropy</h3>
+<p>When an aromatic ring is placed in a magnetic field, its π electrons circulate and create an induced magnetic field. Around the outer edge of the ring, where aromatic hydrogens are located, this induced field usually reinforces the applied field. Aromatic protons are therefore deshielded. Alkene protons are also commonly deshielded by the anisotropic effect of the double bond.</p>
+<p>For an alkyne, the induced field has a different spatial pattern. The acetylenic proton lies along the bond axis in a region that is relatively shielded, so its shift is often lower than that of an alkene proton.</p>
+<h3>4.4 Chemical-shift estimation by additivity</h3>
+<p>Some introductory methods estimate proton shifts by starting with a base value for a proton type and adding substituent corrections. The method can be useful for simple saturated structures, but empirical tables and the exact structural environment must be used consistently.</p>
+<div class="nmr-example"><strong>Illustrative approach:</strong><br>Estimated δ = base shift for the proton type + sum of applicable substituent corrections.<br>Identify the carbon bearing the proton (α carbon), then identify substituents on that carbon and on neighbouring β carbons. Avoid applying a correction twice or mixing tables developed for different structural classes.</div>
+</section>
+
+<section id="integration"><h2>5. Integration: how many protons give each signal?</h2>
+<p>The integrated area under a <sup>1</sup>H NMR signal is proportional to the number of protons contributing to that signal. An integration trace is often drawn as a step-like curve. The height increase across a signal represents its relative proton count.</p>
+<div class="nmr-box"><svg viewBox="0 0 720 270" role="img" aria-label="NMR spectrum and corresponding integration trace">
+<line x1="60" y1="145" x2="675" y2="145" stroke="#26364c" stroke-width="1.5"/><path d="M80 145 L150 145 L158 90 L166 145 L310 145 L318 55 L326 145 L465 145 L473 105 L481 145 L650 145" fill="none" stroke="#a51e2b" stroke-width="2.5"/>
+<text x="60" y="25" font-size="15">Signal intensity</text>
+<path d="M80 230 L150 230 L158 208 L166 208 L310 208 L318 160 L326 160 L465 160 L473 145 L481 145 L650 145" fill="none" stroke="#25834a" stroke-width="3"/>
+<text x="60" y="190" font-size="15" fill="#25834a">Integration trace</text><text x="180" y="250" font-size="14">Relative step heights correspond to proton ratios</text></svg><div class="nmr-caption">Schematic spectrum: integration is based on peak area, not simply peak height.</div></div>
+<h3>5.1 Converting integral ratios into proton numbers</h3>
+<div class="nmr-example">Suppose three signals have integral values 1.5, 3.0 and 4.5.<br>Divide each value by the smallest value (1.5):<br>1.5 : 3.0 : 4.5 = 1 : 2 : 3.<br>The relative proton ratio is therefore 1 : 2 : 3.</div>
+<p>To convert a ratio into actual proton numbers, use the molecular formula and chemical structure. The integral alone gives a relative ratio; it does not automatically give the absolute number of hydrogens.</p>
+</section>
+
+<section id="splitting"><h2>6. Spin–spin splitting</h2>
+<p>Spin–spin splitting, also called scalar coupling, occurs when the spin states of nearby nonequivalent NMR-active nuclei influence one another. In ordinary introductory <sup>1</sup>H NMR, the most familiar examples involve coupling between nonequivalent protons separated by a small number of bonds.</p>
+<h3>6.1 The n + 1 rule</h3>
+<p>For a simple first-order proton signal split by <em>n</em> equivalent neighbouring protons, the signal is divided into <em>n + 1</em> lines.</p>
+<table class="nmr-table"><thead><tr><th>Equivalent neighbouring H (n)</th><th>Number of lines</th><th>Pattern</th><th>Relative intensity</th></tr></thead><tbody>
+<tr><td>0</td><td>1</td><td>Singlet</td><td>1</td></tr><tr><td>1</td><td>2</td><td>Doublet</td><td>1 : 1</td></tr><tr><td>2</td><td>3</td><td>Triplet</td><td>1 : 2 : 1</td></tr><tr><td>3</td><td>4</td><td>Quartet</td><td>1 : 3 : 3 : 1</td></tr><tr><td>4</td><td>5</td><td>Quintet</td><td>1 : 4 : 6 : 4 : 1</td></tr></tbody></table>
+<div class="nmr-box"><svg viewBox="0 0 720 240" role="img" aria-label="Singlet doublet triplet and quartet splitting patterns">
+<g stroke="#a51e2b" stroke-width="3"><path d="M85 175 V85"/><path d="M215 175 V105 M245 175 V105"/><path d="M350 175 V120 M380 175 V75 M410 175 V120"/><path d="M510 175 V130 M540 175 V90 M570 175 V90 M600 175 V130"/></g>
+<g fill="#26364c" font-size="15" text-anchor="middle"><text x="85" y="205">Singlet</text><text x="230" y="205">Doublet</text><text x="380" y="205">Triplet</text><text x="555" y="205">Quartet</text><text x="380" y="230">Increasing number of equivalent neighbouring protons</text></g></svg><div class="nmr-caption">Simplified line patterns; line spacing within one multiplet is equal for simple first-order coupling.</div></div>
+<h3>6.2 Pascal’s triangle and peak intensities</h3>
+<p>The relative line intensities for simple first-order multiplets follow the coefficients of Pascal’s triangle. A triplet has intensities 1:2:1 and a quartet has 1:3:3:1. The central lines are taller because more combinations of neighbouring nuclear spin orientations produce those transitions.</p>
+<h3>6.3 Coupling constant, J</h3>
+<p>The distance between adjacent lines in a multiplet is the coupling constant, J, measured in hertz (Hz). Coupled signals share the same J value. Unlike chemical shift in ppm, J is generally independent of the spectrometer field strength for a given coupling interaction.</p>
+<h3>6.4 Common coupling relationships and limitations</h3>
+<ul><li>Equivalent protons do not split one another.</li><li>Coupling is commonly observed across two or three bonds, although longer-range coupling can occur in suitable systems.</li><li>Rapid rotation can average some conformational effects.</li><li>Exchangeable O–H and N–H protons may show broad signals and variable coupling depending on conditions.</li><li>The simple n + 1 rule assumes equivalent neighbours and first-order behaviour. Complex or strongly coupled systems may show more complicated multiplets.</li></ul>
+<div class="nmr-tip"><strong>Ethyl-group recognition:</strong> a simple CH<sub>3</sub>–CH<sub>2</sub> fragment often gives a three-proton triplet and a two-proton quartet. The methyl group is split by two CH<sub>2</sub> protons, while the methylene group is split by three methyl protons.</div>
+</section>
+
+<section id="solve"><h2>7. Structure determination using <sup>1</sup>H NMR</h2>
+<p>Do not assign a structure from one peak alone. Combine the number of signals, chemical shifts, integration and splitting patterns with the molecular formula and other analytical evidence.</p>
+<h3>7.1 Worked example: an ethyl fragment</h3>
+<div class="nmr-box"><svg viewBox="0 0 680 190" role="img" aria-label="Ethyl fragment with proton groups labelled">
+<text x="90" y="85" font-size="28">CH₃</text><line x1="160" y1="77" x2="260" y2="77" stroke="#26364c" stroke-width="3"/><text x="270" y="85" font-size="28">CH₂</text><line x1="350" y1="77" x2="440" y2="77" stroke="#26364c" stroke-width="3"/><text x="450" y="85" font-size="28">X</text>
+<text x="125" y="130" text-anchor="middle" font-size="16" fill="#a51e2b">3H: triplet</text><text x="310" y="130" text-anchor="middle" font-size="16" fill="#a51e2b">2H: quartet</text><text x="475" y="130" text-anchor="middle" font-size="14">X = another atom/group</text></svg><div class="nmr-caption">A common ethyl fragment gives a recognisable 3H/2H integration and splitting pattern.</div></div>
+<p>Suppose a spectrum contains a three-proton triplet and a two-proton quartet. The integration ratio 3:2 and reciprocal splitting are consistent with a CH<sub>3</sub>CH<sub>2</sub>– fragment. Their chemical shifts then help identify what is attached to the ethyl group.</p>
+<h3>7.2 A systematic method</h3>
+<ol><li>Check the molecular formula and calculate the degree of unsaturation if the formula is available.</li><li>Count the distinct proton signals and consider molecular symmetry.</li><li>Use integration to determine the relative number of protons in each environment.</li><li>Use chemical shifts to identify likely functional-group environments.</li><li>Use splitting and coupling relationships to connect neighbouring proton groups.</li><li>Construct possible fragments and join them without violating the molecular formula or valence.</li><li>Check whether every proton and every signal is accounted for.</li></ol>
+<h3>7.3 Degree of unsaturation</h3>
+<p>For a typical formula containing carbon, hydrogen, nitrogen and halogens, the degree of unsaturation (also called the index of hydrogen deficiency) can be estimated by:</p>
+<div class="nmr-example">DBE = (2C + 2 + N − H − X) / 2<br>where X is the total number of monovalent halogen atoms. Oxygen and sulphur are omitted from this expression.</div>
+<p>Each ring or double bond contributes one degree of unsaturation; each triple bond contributes two.</p>
+</section>
+
+<section id="carbon"><h2>8. Carbon-13 NMR spectroscopy</h2>
+<p><sup>13</sup>C NMR provides information about the number and types of chemically distinct carbon atoms. Because <sup>13</sup>C has low natural abundance, its signals are weaker than proton signals, but modern instruments and pulse methods make carbon spectra highly useful.</p>
+<h3>8.1 Number of carbon signals</h3>
+<p>Each chemically distinct carbon environment generally gives one signal. Molecular symmetry can make multiple carbon atoms equivalent, reducing the number of observed signals. In a routine broadband proton-decoupled <sup>13</sup>C spectrum, each carbon environment commonly appears as a single line.</p>
+<h3>8.2 Chemical-shift range</h3>
+<table class="nmr-table"><thead><tr><th>Carbon environment</th><th>Approximate δ (ppm)</th></tr></thead><tbody>
+<tr><td>Simple saturated alkyl carbon</td><td>0–50</td></tr><tr><td>Carbon attached to O, N or halogen</td><td>About 40–90</td></tr><tr><td>Alkyne carbon</td><td>About 65–90</td></tr><tr><td>Alkene and aromatic carbons</td><td>About 100–160</td></tr><tr><td>Carboxylic acid derivatives and ester carbonyls</td><td>About 160–185</td></tr><tr><td>Aldehyde and ketone carbonyls</td><td>About 190–220</td></tr></tbody></table>
+<p>These ranges are approximate and may overlap. The carbonyl region is especially useful because carbonyl carbons occur at substantially higher chemical shifts than most saturated carbons.</p>
+<h3>8.3 Proton-decoupled carbon spectra</h3>
+<p>In a broadband proton-decoupled <sup>13</sup>C experiment, interactions between carbon nuclei and attached protons are removed from the displayed spectrum. This usually gives one simplified line per chemically distinct carbon environment. Signal intensity in a routine <sup>13</sup>C spectrum is not normally directly proportional to the number of carbons because relaxation and nuclear Overhauser effects influence intensities.</p>
+</section>
+
+<section id="dept"><h2>9. DEPT: identifying CH₃, CH₂ and CH groups</h2>
+<p>DEPT means Distortionless Enhancement by Polarisation Transfer. It is a carbon NMR experiment that uses proton-to-carbon magnetisation transfer to distinguish carbon types according to the number of attached hydrogens. Quaternary carbons, which have no directly attached hydrogen, do not appear in the usual DEPT spectra.</p>
+<table class="nmr-table"><thead><tr><th>Experiment</th><th>CH₃</th><th>CH₂</th><th>CH</th><th>Quaternary C</th></tr></thead><tbody>
+<tr><td>DEPT-45</td><td>Positive</td><td>Positive</td><td>Positive</td><td>Absent</td></tr><tr><td>DEPT-90</td><td>Absent</td><td>Absent</td><td>Positive</td><td>Absent</td></tr><tr><td>DEPT-135</td><td>Positive</td><td>Negative</td><td>Positive</td><td>Absent</td></tr></tbody></table>
+<div class="nmr-box"><svg viewBox="0 0 720 260" role="img" aria-label="DEPT 135 positive methyl and methine peaks and negative methylene peak">
+<line x1="65" y1="125" x2="670" y2="125" stroke="#26364c" stroke-width="2"/><path d="M130 125 L130 55 M280 125 L280 195 M430 125 L430 55" stroke="#a51e2b" stroke-width="4"/><g fill="#26364c" font-size="16" text-anchor="middle"><text x="130" y="35">CH₃</text><text x="280" y="225">CH₂</text><text x="430" y="35">CH</text><text x="580" y="150">Quaternary C: absent</text></g><text x="65" y="250" font-size="13">DEPT-135 schematic: upward positive signals and downward negative signals</text></svg><div class="nmr-caption">DEPT-135 distinguishes CH₂ from CH and CH₃ by the phase of the signal.</div></div>
+<p>Compare the normal proton-decoupled carbon spectrum with DEPT-45, DEPT-90 and DEPT-135. A carbon present in the normal spectrum but absent from DEPT experiments is likely quaternary. A signal present in DEPT-90 is a methine carbon. A negative DEPT-135 signal identifies a methylene carbon.</p>
+</section>
+
+<section id="twod"><h2>10. Two-dimensional NMR spectroscopy</h2>
+<p>Two-dimensional NMR experiments provide correlation information between nuclei. A 2D spectrum has two frequency axes and displays cross-peaks that reveal coupling or spatial proximity, depending on the experiment. It can help connect fragments that are difficult to assign from one-dimensional spectra alone.</p>
+<h3>10.1 COSY: proton–proton correlation</h3>
+<p>COSY (Correlation Spectroscopy) is a homonuclear experiment that shows correlations between spin-coupled protons, usually protons connected through a small number of bonds. The diagonal contains the proton signals; off-diagonal cross-peaks identify coupled proton pairs.</p>
+<div class="nmr-box"><svg viewBox="0 0 600 390" role="img" aria-label="Simplified COSY spectrum with diagonal and cross peaks">
+<rect x="85" y="35" width="360" height="300" fill="#fbfcfe" stroke="#26364c" stroke-width="2"/><path d="M95 325 L435 45" stroke="#a51e2b" stroke-width="2" stroke-dasharray="5 5"/><g fill="#25834a"><circle cx="165" cy="265" r="7"/><circle cx="265" cy="185" r="7"/><circle cx="165" cy="185" r="7"/><circle cx="265" cy="265" r="7"/><circle cx="345" cy="105" r="7"/><circle cx="345" cy="185" r="7"/><circle cx="265" cy="105" r="7"/></g><text x="455" y="190" font-size="15">Off-diagonal</text><text x="455" y="212" font-size="15">cross-peaks</text><text x="240" y="370" font-size="15">δH (ppm)</text><text x="25" y="190" font-size="15" transform="rotate(-90 25 190)">δH (ppm)</text><text x="110" y="25" font-size="14">Schematic COSY contour plot</text></svg><div class="nmr-caption">Illustrative only: paired off-diagonal cross-peaks indicate a proton–proton correlation.</div></div>
+<h3>10.2 HSQC: one-bond proton–carbon correlation</h3>
+<p>HSQC (Heteronuclear Single Quantum Coherence) correlates a proton with the carbon to which it is directly attached. The cross-peak therefore identifies one-bond C–H connections. This is especially useful when assigning which carbon signal belongs to a particular proton signal.</p>
+<h3>10.3 HMBC: long-range proton–carbon correlation</h3>
+<p>HMBC (Heteronuclear Multiple Bond Correlation) detects longer-range correlations, commonly over two or three bonds and sometimes farther in suitable structures. It helps connect fragments and locate quaternary or carbonyl carbons that have no directly attached proton.</p>
+<table class="nmr-table"><thead><tr><th>Technique</th><th>Nuclei correlated</th><th>Main information</th></tr></thead><tbody>
+<tr><td>COSY</td><td><sup>1</sup>H–<sup>1</sup>H</td><td>Which protons are spin-coupled</td></tr><tr><td>HSQC</td><td><sup>1</sup>H–<sup>13</sup>C</td><td>Direct, one-bond C–H connections</td></tr><tr><td>HMBC</td><td><sup>1</sup>H–<sup>13</sup>C</td><td>Longer-range connectivity, often two or three bonds</td></tr><tr><td>NOESY</td><td><sup>1</sup>H–<sup>1</sup>H</td><td>Through-space proximity, not necessarily bond connectivity</td></tr><tr><td>TOCSY</td><td><sup>1</sup>H–<sup>1</sup>H</td><td>Protons belonging to the same coupled spin system</td></tr></tbody></table>
+<div class="nmr-tip"><strong>Do not confuse COSY and NOESY:</strong> COSY mainly reports through-bond scalar coupling. NOESY reports through-space proximity between nuclei and can provide stereochemical information.</div>
+</section>
+
+<section id="strategy"><h2>11. Complete strategy for interpreting NMR data</h2>
+<ol><li>Begin with the molecular formula and calculate DBE.</li><li>Use <sup>13</sup>C NMR to count carbon environments and identify carbonyl, alkene, aromatic and saturated carbon regions.</li><li>Use DEPT data to classify protonated carbons as CH₃, CH₂ or CH.</li><li>Use the number of <sup>1</sup>H signals to identify distinct proton environments.</li><li>Use integration to establish proton ratios.</li><li>Use chemical shifts to assign likely functional-group environments.</li><li>Use splitting and J values to identify coupled proton fragments.</li><li>Use COSY to build proton coupling networks, HSQC to connect each proton to its directly attached carbon and HMBC to connect more distant fragments.</li><li>Draw a structure and check that every carbon, hydrogen, signal and correlation is explained.</li></ol>
+<div class="nmr-example"><strong>Final consistency check:</strong> the proposed structure must agree with the molecular formula, DBE, carbon count, proton count, integrations, chemical shifts, splitting patterns and 2D correlations. If one important signal remains unexplained, reconsider the structure.</div>
+</section>
+
+<section id="simulator"><h2>12. Interactive NMR spectrum practice</h2>
+<div class="nmr-box"><h3>12.1 Build a simple first-order proton spectrum</h3>
+<p>Choose the number of equivalent neighbouring protons and the approximate chemical shift. The tool displays the expected idealised multiplet and its relative line intensities.</p>
+<div class="nmr-controls"><div><label for="nmr-neighbours">Equivalent neighbouring protons</label><select id="nmr-neighbours"><option value="0">0</option><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option></select></div><div><label for="nmr-shift">Chemical shift (ppm)</label><input id="nmr-shift" type="number" min="0" max="14" step="0.1" value="2.1"></div><div><label for="nmr-j">Coupling constant J (Hz)</label><input id="nmr-j" type="number" min="1" max="20" step="0.5" value="7"></div></div>
+<button type="button" class="nmr-button" id="nmr-draw">Generate multiplet</button><div id="nmr-chart" aria-live="polite"></div><p id="nmr-explain" class="nmr-result">A signal split by two equivalent neighbouring protons gives a triplet with a 1:2:1 intensity ratio.</p></div>
+<div class="nmr-box"><h3>12.2 Predict a pattern</h3><p>A proton group has three equivalent neighbouring protons. What splitting pattern should be expected in a simple first-order spectrum?</p><div class="nmr-controls"><div><label for="nmr-predict">Your answer</label><select id="nmr-predict"><option value="">Choose</option><option value="singlet">Singlet</option><option value="doublet">Doublet</option><option value="triplet">Triplet</option><option value="quartet">Quartet</option><option value="quintet">Quintet</option></select></div></div><button class="nmr-button" type="button" id="nmr-predict-check">Check answer</button><p class="nmr-result" id="nmr-predict-result" aria-live="polite"></p></div>
+</section>
+
+<section id="quiz"><h2>13. Revision exercises and self-assessment</h2>
+<p>Attempt the questions before opening the suggested answers. These questions are newly written for this learning page.</p>
+<details class="nmr-box"><summary><strong>Exercise 1 — Nuclear spin</strong></summary><p>Explain why a proton can interact with an external magnetic field and why two energy states are observed.</p><p><strong>Suggested answer:</strong> A proton has spin ½ and a magnetic moment. In an external field its allowed orientations have different energies. The lower-energy state is aligned with the field and the higher-energy state is opposed to it.</p></details>
+<details class="nmr-box"><summary><strong>Exercise 2 — Chemical shift</strong></summary><p>Define chemical shift and explain why it is reported in ppm.</p><p><strong>Suggested answer:</strong> Chemical shift expresses the resonance frequency of a nucleus relative to a reference, normally TMS. Dividing the frequency difference by the spectrometer frequency and multiplying by one million gives ppm, making values comparable across instruments.</p></details>
+<details class="nmr-box"><summary><strong>Exercise 3 — Shielding</strong></summary><p>Explain why a proton attached to a carbon next to oxygen often appears at a higher chemical shift than a simple alkyl proton.</p><p><strong>Suggested answer:</strong> Oxygen withdraws electron density through the inductive effect. The nearby proton is deshielded and generally resonates downfield at a higher δ value.</p></details>
+<details class="nmr-box"><summary><strong>Exercise 4 — Integration</strong></summary><p>Three proton signals have integral values 2, 6 and 4. Determine the simplest whole-number proton ratio.</p><p><strong>Suggested answer:</strong> Divide each value by 2. The ratio is 1:3:2.</p></details>
+<details class="nmr-box"><summary><strong>Exercise 5 — Splitting</strong></summary><p>Predict the splitting pattern and relative intensities for a proton group coupled to two equivalent neighbouring protons.</p><p><strong>Suggested answer:</strong> n + 1 = 2 + 1 = 3 lines, a triplet with relative intensities 1:2:1.</p></details>
+<details class="nmr-box"><summary><strong>Exercise 6 — Ethyl group</strong></summary><p>A spectrum contains a 3H triplet and a 2H quartet. What structural fragment is suggested?</p><p><strong>Suggested answer:</strong> A CH₃CH₂– fragment. The three methyl protons are split by two methylene protons and the two methylene protons are split by three methyl protons.</p></details>
+<details class="nmr-box"><summary><strong>Exercise 7 — Carbon NMR</strong></summary><p>Why can a molecule containing ten carbon atoms show fewer than ten signals in a <sup>13</sup>C NMR spectrum?</p><p><strong>Suggested answer:</strong> Symmetry or identical chemical environments can make multiple carbon atoms chemically equivalent, so they produce the same signal.</p></details>
+<details class="nmr-box"><summary><strong>Exercise 8 — DEPT-135</strong></summary><p>Which carbon types give positive and negative peaks in a DEPT-135 spectrum?</p><p><strong>Suggested answer:</strong> CH and CH₃ normally give positive peaks, CH₂ gives a negative peak and quaternary carbons are absent.</p></details>
+<details class="nmr-box"><summary><strong>Exercise 9 — 2D NMR</strong></summary><p>Distinguish the main information obtained from COSY, HSQC and HMBC.</p><p><strong>Suggested answer:</strong> COSY identifies coupled proton pairs; HSQC links a proton to its directly attached carbon; HMBC provides longer-range proton–carbon correlations, commonly over two or three bonds.</p></details>
+<details class="nmr-box"><summary><strong>Exercise 10 — Structure strategy</strong></summary><p>Why should a proposed molecular structure be checked against both integration and the molecular formula?</p><p><strong>Suggested answer:</strong> Integration establishes relative numbers of protons in each environment, while the molecular formula sets the total atom count and possible unsaturation. The structure must satisfy both as well as the observed shifts and splitting.</p></details>
+
+<div class="nmr-box"><h3>13.1 Automatically marked multiple-choice test</h3>
+<form id="nmr-quiz">
+<div class="nmr-q" data-answer="b" data-why="TMS is assigned the reference chemical shift of 0 ppm."><p><strong>1.</strong> Which reference compound is commonly assigned 0 ppm?</p><label><input type="radio" name="nq1" value="a"> Ethanol</label><label><input type="radio" name="nq1" value="b"> Tetramethylsilane</label><label><input type="radio" name="nq1" value="c"> Benzene</label></div>
+<div class="nmr-q" data-answer="c" data-why="Three equivalent neighbouring protons split a signal into four lines: a quartet."><p><strong>2.</strong> A proton group coupled to three equivalent neighbours gives a:</p><label><input type="radio" name="nq2" value="a"> Doublet</label><label><input type="radio" name="nq2" value="b"> Triplet</label><label><input type="radio" name="nq2" value="c"> Quartet</label></div>
+<div class="nmr-q" data-answer="a" data-why="Integration is proportional to the number of protons contributing to a signal."><p><strong>3.</strong> What does the integrated area of a proton signal represent?</p><label><input type="radio" name="nq3" value="a"> Relative number of contributing protons</label><label><input type="radio" name="nq3" value="b"> Number of carbon atoms</label><label><input type="radio" name="nq3" value="c"> Molecular mass</label></div>
+<div class="nmr-q" data-answer="b" data-why="A DEPT-90 spectrum displays methine CH carbons."><p><strong>4.</strong> Which carbon type is observed in DEPT-90?</p><label><input type="radio" name="nq4" value="a"> CH₂ only</label><label><input type="radio" name="nq4" value="b"> CH</label><label><input type="radio" name="nq4" value="c"> Quaternary carbon</label></div>
+<div class="nmr-q" data-answer="c" data-why="HSQC identifies one-bond proton–carbon connections."><p><strong>5.</strong> Which experiment correlates a proton with its directly attached carbon?</p><label><input type="radio" name="nq5" value="a"> COSY</label><label><input type="radio" name="nq5" value="b"> HMBC</label><label><input type="radio" name="nq5" value="c"> HSQC</label></div>
+<div class="nmr-q" data-answer="a" data-why="A carbonyl carbon of a ketone or aldehyde commonly appears in the high-shift carbonyl region around 190–220 ppm."><p><strong>6.</strong> Which approximate region is typical for aldehyde and ketone carbonyl carbons?</p><label><input type="radio" name="nq6" value="a"> 190–220 ppm</label><label><input type="radio" name="nq6" value="b"> 0–20 ppm</label><label><input type="radio" name="nq6" value="c"> 50–80 ppm</label></div>
+<button class="nmr-button" type="submit">Mark my answers</button><button class="nmr-button" type="reset">Reset test</button>
+</form><div id="nmr-quiz-result" class="nmr-result" aria-live="polite"></div></div>
+</section>
+<footer><p>© 2026 MalawiHub • University Chemistry learning resources</p><p><a href="../index.html">Return to Chemistry resources</a></p></footer>
+</main>
+<script>
+(function(){
+const n=document.getElementById('nmr-neighbours'),shift=document.getElementById('nmr-shift'),j=document.getElementById('nmr-j'),chart=document.getElementById('nmr-chart'),explain=document.getElementById('nmr-explain');
+const coeff=[[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]];
+function draw(){const count=Number(n.value),s=Number(shift.value),J=Number(j.value);if(!Number.isFinite(s)||s<0||s>14||!Number.isFinite(J)||J<=0){explain.textContent='Enter a chemical shift from 0 to 14 ppm and a positive coupling constant.';return;}
+const intens=coeff[count],max=Math.max(...intens),spacing=J/400;let paths='',labels='';
+intens.forEach((v,i)=>{const x=70+i*100;const h=125*v/max;paths+='<line x1="'+x+'" y1="190" x2="'+x+'" y2="'+(190-h)+'" stroke="#a51e2b" stroke-width="5"/>';labels+='<text x="'+x+'" y="215" text-anchor="middle" font-size="14" fill="#26364c">'+v+'</text>';});
+chart.innerHTML='<svg viewBox="0 0 560 245" role="img" aria-label="Generated idealised NMR multiplet"><line x1="30" y1="190" x2="530" y2="190" stroke="#26364c" stroke-width="1.5"/>'+paths+labels+'<text x="280" y="242" text-anchor="middle" font-size="13">Relative line intensities</text></svg>';
+const names=['singlet','doublet','triplet','quartet','quintet'];explain.textContent='Expected pattern: '+names[count]+'. Number of lines = n + 1 = '+(count+1)+'. Relative intensities: '+intens.join(':')+'. Chemical shift: '+s.toFixed(1)+' ppm. Adjacent line separation: J = '+J+' Hz.';
+}
+document.getElementById('nmr-draw').addEventListener('click',draw);[n,shift,j].forEach(el=>el.addEventListener('change',draw));draw();
+document.getElementById('nmr-predict-check').addEventListener('click',()=>{const v=document.getElementById('nmr-predict').value;document.getElementById('nmr-predict-result').textContent=v==='quartet'?'Correct. Three equivalent neighbours produce four lines (n + 1), giving a quartet.':'Not quite. Use n + 1: three equivalent neighbouring protons produce four lines. The answer is quartet.';});
+const form=document.getElementById('nmr-quiz');form.addEventListener('submit',e=>{e.preventDefault();let score=0;const qs=[...form.querySelectorAll('.nmr-q')];qs.forEach((q,i)=>{const a=q.querySelector('input:checked'),ok=!!a&&a.value===q.dataset.answer;if(ok)score++;q.classList.toggle('correct',ok);q.classList.toggle('wrong',!ok);let p=q.querySelector('.nmr-why');if(!p){p=document.createElement('p');p.className='nmr-why';q.appendChild(p);}p.textContent=(ok?'Correct. ':'Review: ')+q.dataset.why;});document.getElementById('nmr-quiz-result').textContent='Score: '+score+' / '+qs.length+'. Review the explanation under each question.';});
+form.addEventListener('reset',()=>setTimeout(()=>{form.querySelectorAll('.nmr-q').forEach(q=>{q.classList.remove('correct','wrong');q.querySelector('.nmr-why')?.remove();});document.getElementById('nmr-quiz-result').textContent='';},0));
+})();
+</script>
+<script src="/js/official-app.js?v=2" defer></script>
+</body></html>
