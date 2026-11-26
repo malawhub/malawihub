@@ -11,6 +11,24 @@
 :root{--ink:#172235;--muted:#5c6878;--line:#dce3eb;--red:#b4232d;--soft:#fff5f5;--blue:#eff6ff;--gold:#fff8e8}
 body{color:var(--ink);line-height:1.72}.lesson{max-width:1050px;margin:auto;padding:22px 16px 64px}.crumb{font-size:13px;color:var(--muted)}.hero-note{padding:25px;border-radius:18px;background:linear-gradient(135deg,#fff4f4,#f0f6ff);border:1px solid #eadde0;margin:18px 0 24px}.hero-note h1{line-height:1.18;margin:8px 0}.tag{display:inline-block;background:#a51e2b;color:white;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:800;letter-spacing:.05em}.meta{color:var(--muted);font-size:14px}.toc{padding:18px 22px;border:1px solid var(--line);border-radius:14px;background:white}.toc a{color:#9d1c27;text-decoration:none}.toc ol{columns:2;column-gap:34px}.toc li{break-inside:avoid;margin:4px 0}.lesson h2{margin-top:40px;padding-bottom:8px;border-bottom:2px solid #eadde0}.lesson h3{margin-top:25px}.definition,.worked,.exam-tip,.warning,.mechanism{padding:15px 18px;border-radius:12px;margin:16px 0}.definition{background:var(--blue);border-left:4px solid #3679bd}.worked{background:#f2faf4;border-left:4px solid #25834a}.exam-tip{background:var(--gold);border-left:4px solid #d69a23}.warning{background:var(--soft);border-left:4px solid var(--red)}.mechanism{background:#f6f4ff;border-left:4px solid #7356ad}.diagram{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin:18px 0;text-align:center;overflow-x:auto}.diagram svg{max-width:100%;height:auto}.caption{font-size:13px;color:var(--muted);margin-top:8px}.rxn{font-family:Georgia,serif;font-size:17px;background:#f6f8fa;padding:12px;border-radius:9px;overflow-x:auto}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;margin:15px 0;font-size:14px}th,td{padding:10px;border:1px solid var(--line);text-align:left;vertical-align:top}th{background:#f3f5f8}.exercise{border:1px solid var(--line);border-radius:12px;padding:15px;margin:13px 0}.exercise summary{cursor:pointer;font-weight:700;color:#8f1e2a}.exercise .answer{margin-top:12px;padding-top:10px;border-top:1px dashed var(--line)}.backtop{color:#9d1c27}.endbox{background:#172235;color:#fff;padding:20px;border-radius:14px;margin-top:30px}.endbox a{color:#fff}.pill{display:inline-block;border:1px solid var(--line);border-radius:30px;padding:3px 9px;margin:2px;font-size:12px;color:var(--muted)}@media(max-width:650px){.toc ol{columns:1}.lesson{padding-left:13px;padding-right:13px}.hero-note{padding:18px}}
 </style>
+
+<style>
+.lab-card{border:1px solid var(--line);border-radius:15px;padding:18px;margin:20px 0;background:#fff;box-shadow:0 3px 14px rgba(23,34,53,.045)}
+.lab-card h3{margin-top:0}.lab-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px;max-width:620px;align-items:center}
+.lab-controls label,.mechanism-step label{font-weight:700;font-size:14px}
+.lab-controls select,.mechanism-step select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;color:var(--ink);font:inherit}
+.lab-diagram{max-width:560px;margin-left:auto;margin-right:auto}.lab-diagram svg{width:100%;max-width:420px;display:block;margin:auto}
+.lab-button{border:0;border-radius:9px;background:#a51e2b;color:#fff;font-weight:700;padding:11px 16px;margin:8px 6px 4px 0;cursor:pointer;font:inherit}
+.lab-button:hover{filter:brightness(.93)}.lab-button.secondary{background:#e8edf3;color:#172235}
+.mechanism-steps{display:grid;gap:12px;max-width:720px}.mechanism-step{display:grid;grid-template-columns:75px 1fr;gap:12px;align-items:center}
+.lab-feedback{padding:12px 15px;border-radius:10px;margin-top:12px;background:#f0f6ff;border-left:4px solid #3679bd;min-height:22px}
+.quiz-question{padding:13px 15px;margin:12px 0;border:1px solid var(--line);border-radius:10px}
+.quiz-question p{margin:0 0 9px}.quiz-question label{display:block;margin:7px 0;font-weight:400;cursor:pointer}
+.quiz-question input{margin-right:8px;accent-color:#a51e2b}
+.quiz-question.correct{border-color:#25834a;background:#f2faf4}.quiz-question.incorrect{border-color:#b4232d;background:#fff5f5}
+@media(max-width:560px){.lab-controls{grid-template-columns:1fr}.mechanism-step{grid-template-columns:1fr;gap:4px}.lab-card{padding:13px}}
+</style>
+
 </head>
 <body>
 <header><div class="logo">🇲🇼 MalawiHub</div><nav><a href="../../../index.html">Home</a><a href="../../index.html">Resources</a><a href="../index.html">Chemistry</a><a href="../inorganic-chemistry.html">Inorganic</a></nav></header>
@@ -388,6 +406,159 @@ body{color:var(--ink);line-height:1.72}.lesson{max-width:1050px;margin:auto;padd
 
 <section class="endbox"><h2 style="margin-top:0;border:0;color:#fff">How to study this course</h2><p>For each heterocycle, practise four linked skills: (1) draw and number the ring, (2) count π electrons and identify the lone pair involved, (3) predict the major reaction position, and (4) explain the mechanism using curved arrows. For named syntheses, memorise the starting-material pattern and the key bond-forming step rather than only the reaction name.</p><p><a href="../index.html">← Back to University Chemistry</a> · <a href="../organic-chemistry/index.html">Organic Chemistry</a></p></section>
 <p class="meta">Prepared as original MalawiHub educational material using the CHE 412 lecture outline as a topic guide. Explanations, diagrams and exercises on this page have been independently written and redrawn. Chemical reaction outcomes should always be checked against the exact substrate and conditions.</p>
+
+<section id="interactive-lab">
+<h2>22. Interactive heterocyclic chemistry laboratory</h2>
+<p>Use these activities to practise drawing simple heterocyclic rings, reasoning through a reaction mechanism and checking your understanding. The diagrams are generated on this page and do not require an external service.</p>
+
+<div class="lab-card" id="structure-lab">
+<h3>22.1 Heterocycle structure builder</h3>
+<p>Choose a ring system and a position for a substituent. The diagram updates as you change the selections. Use the numbering and atom labels to practise identifying ring positions.</p>
+<div class="lab-controls">
+<label for="ring-choice">Ring system</label>
+<select id="ring-choice"><option value="pyridine">Pyridine (six-membered)</option><option value="pyrrole">Pyrrole (five-membered)</option><option value="furan">Furan (five-membered)</option><option value="thiophene">Thiophene (five-membered)</option></select>
+<label for="sub-choice">Substituent position</label>
+<select id="sub-choice"><option value="2">Position 2</option><option value="3">Position 3</option><option value="4">Position 4</option><option value="5">Position 5</option><option value="6">Position 6</option></select>
+<label for="sub-label">Substituent</label>
+<select id="sub-label"><option value="CH₃">CH₃</option><option value="Cl">Cl</option><option value="Br">Br</option><option value="NO₂">NO₂</option><option value="CO₂H">CO₂H</option></select>
+</div>
+<div class="diagram lab-diagram"><svg id="heterocycle-svg" viewBox="0 0 420 300" role="img" aria-label="Interactive heterocycle structure diagram"></svg><div class="caption" id="structure-caption" aria-live="polite">Pyridine: nitrogen is position 1.</div></div>
+<p class="exam-tip"><strong>Study task:</strong> redraw the displayed structure on paper, number the ring in the correct direction and explain whether the heteroatom lone pair contributes to the aromatic π system.</p>
+</div>
+
+<div class="lab-card" id="mechanism-lab">
+<h3>22.2 Curved-arrow mechanism practice: nucleophilic substitution in 2-chloropyridine</h3>
+<p>Arrange the mechanistic events in the correct order. This is an addition–elimination pathway: the nucleophile adds to the electron-poor ring and chloride is then eliminated to restore aromaticity.</p>
+<div class="mechanism-steps" id="mechanism-steps">
+<div class="mechanism-step"><label for="step-a">Step A</label><select id="step-a"><option value="">Choose an event</option><option value="attack">The nucleophile attacks C-2 and forms a σ-adduct.</option><option value="leave">Chloride leaves and aromaticity is restored.</option><option value="stabilise">The negative charge in the addition intermediate is stabilised by the ring nitrogen.</option></select></div>
+<div class="mechanism-step"><label for="step-b">Step B</label><select id="step-b"><option value="">Choose an event</option><option value="attack">The nucleophile attacks C-2 and forms a σ-adduct.</option><option value="leave">Chloride leaves and aromaticity is restored.</option><option value="stabilise">The negative charge in the addition intermediate is stabilised by the ring nitrogen.</option></select></div>
+<div class="mechanism-step"><label for="step-c">Step C</label><select id="step-c"><option value="">Choose an event</option><option value="attack">The nucleophile attacks C-2 and forms a σ-adduct.</option><option value="leave">Chloride leaves and aromaticity is restored.</option><option value="stabilise">The negative charge in the addition intermediate is stabilised by the ring nitrogen.</option></select></div>
+</div>
+<button type="button" class="lab-button" id="check-mechanism">Check mechanism order</button>
+<p id="mechanism-feedback" class="lab-feedback" aria-live="polite"></p>
+<div class="definition"><strong>Curved-arrow reminder:</strong> draw an arrow from the nucleophile's electron pair to C-2. Show the change in the ring π bonds and the anionic σ-adduct. In the elimination step, show electron movement that expels chloride and restores the conjugated aromatic ring.</div>
+</div>
+
+<div class="lab-card" id="auto-quiz">
+<h3>22.3 Automatically marked knowledge check</h3>
+<p>Choose one answer for each question, then select <em>Mark my answers</em>. Your score and explanations will appear immediately. You can change your answers and try again.</p>
+<form id="heterocycle-quiz">
+<div class="quiz-question" data-answer="b" data-explanation="Pyridine has six π electrons from one p electron on each ring atom. Its lone pair occupies an in-plane sp² orbital and is not part of the aromatic sextet.">
+<p><strong>1.</strong> Where is the pyridine nitrogen lone pair located?</p>
+<label><input type="radio" name="q1" value="a"> In the p orbital contributing two electrons to the aromatic sextet</label>
+<label><input type="radio" name="q1" value="b"> In an sp² orbital in the plane of the ring</label>
+<label><input type="radio" name="q1" value="c"> Outside the ring in an sp³ orbital</label>
+</div>
+<div class="quiz-question" data-answer="c" data-explanation="Electrophilic substitution of pyridine is difficult because nitrogen withdraws electron density. C-3 is favoured because its σ-complex avoids a particularly unfavourable resonance contributor with positive charge on nitrogen.">
+<p><strong>2.</strong> Which position is favoured in electrophilic substitution of pyridine under forcing conditions?</p>
+<label><input type="radio" name="q2" value="a"> C-2</label>
+<label><input type="radio" name="q2" value="b"> C-4</label>
+<label><input type="radio" name="q2" value="c"> C-3</label>
+</div>
+<div class="quiz-question" data-answer="a" data-explanation="The pyrrole nitrogen lone pair contributes two electrons to the aromatic π system, giving the ring a six-electron aromatic sextet.">
+<p><strong>3.</strong> Why does the pyrrole nitrogen lone pair contribute to aromaticity?</p>
+<label><input type="radio" name="q3" value="a"> It occupies a p orbital perpendicular to the ring and supplies two π electrons</label>
+<label><input type="radio" name="q3" value="b"> It is held in an in-plane sp² orbital</label>
+<label><input type="radio" name="q3" value="c"> It is donated by an external reagent</label>
+</div>
+<div class="quiz-question" data-answer="b" data-explanation="Paal–Knorr pyrrole synthesis uses a 1,4-dicarbonyl compound with ammonia or a primary amine.">
+<p><strong>4.</strong> Which starting-material combination is used in the Paal–Knorr pyrrole synthesis?</p>
+<label><input type="radio" name="q4" value="a"> Aniline and glycerol</label>
+<label><input type="radio" name="q4" value="b"> A 1,4-dicarbonyl compound and ammonia or a primary amine</label>
+<label><input type="radio" name="q4" value="c"> Phenylhydrazine and an acid chloride</label>
+</div>
+<div class="quiz-question" data-answer="c" data-explanation="The Fischer indole synthesis converts a phenylhydrazone, formed from phenylhydrazine and a carbonyl compound, into an indole under acidic conditions.">
+<p><strong>5.</strong> Which named synthesis forms an indole from a phenylhydrazine-derived hydrazone?</p>
+<label><input type="radio" name="q5" value="a"> Skraup synthesis</label>
+<label><input type="radio" name="q5" value="b"> Friedländer synthesis</label>
+<label><input type="radio" name="q5" value="c"> Fischer indole synthesis</label>
+</div>
+<div class="quiz-question" data-answer="a" data-explanation="Quinoline and isoquinoline are constitutional isomers with the same molecular formula, C₉H₇N, but the nitrogen occupies a different position in the fused ring framework.">
+<p><strong>6.</strong> Why are quinoline and isoquinoline constitutional isomers?</p>
+<label><input type="radio" name="q6" value="a"> They have the same formula but different connectivity of the nitrogen-containing ring</label>
+<label><input type="radio" name="q6" value="b"> They have different molecular formulae</label>
+<label><input type="radio" name="q6" value="c"> One contains oxygen instead of nitrogen</label>
+</div>
+<button type="submit" class="lab-button">Mark my answers</button>
+<button type="reset" class="lab-button secondary">Reset quiz</button>
+</form>
+<div id="quiz-result" class="lab-feedback" aria-live="polite"></div>
+</div>
+</section>
+
 </main>
 <footer><p>© 2026 MalawiHub · University Chemistry Learning Resources</p></footer>
+
+<script>
+(function(){
+  const ringChoice=document.getElementById('ring-choice');
+  if(!ringChoice)return;
+  const subChoice=document.getElementById('sub-choice');
+  const subLabel=document.getElementById('sub-label');
+  const svg=document.getElementById('heterocycle-svg');
+  const caption=document.getElementById('structure-caption');
+  const configs={
+    pyridine:{name:'Pyridine',atoms:['N','C','C','C','C','C'],positions:6,description:'The nitrogen lone pair is in an in-plane sp² orbital and is not part of the aromatic π sextet.'},
+    pyrrole:{name:'Pyrrole',atoms:['N','C','C','C','C'],positions:5,description:'The nitrogen lone pair occupies a p orbital and contributes two electrons to the aromatic π sextet.'},
+    furan:{name:'Furan',atoms:['O','C','C','C','C'],positions:5,description:'One oxygen lone pair contributes two electrons to the aromatic π sextet; the other remains in an in-plane orbital.'},
+    thiophene:{name:'Thiophene',atoms:['S','C','C','C','C'],positions:5,description:'One sulphur lone pair contributes two electrons to the aromatic π sextet.'}
+  };
+  function draw(){
+    const cfg=configs[ringChoice.value];
+    const n=cfg.positions;
+    const pos=Math.min(Number(subChoice.value),n);
+    subChoice.innerHTML='';
+    for(let i=2;i<=n;i++){const o=document.createElement('option');o.value=String(i);o.textContent='Position '+i;subChoice.appendChild(o);}
+    subChoice.value=String(Math.min(pos,n));
+    const cx=210,cy=137,r=n===6?91:82;
+    const pts=[];
+    for(let i=0;i<n;i++){const a=(-Math.PI/2)+(2*Math.PI*i/n);pts.push({x:cx+r*Math.cos(a),y:cy+r*Math.sin(a)});}
+    const heteroIndex=0;
+    let out='<title>'+cfg.name+' ring with numbered atoms and a substituent</title>';
+    for(let i=0;i<n;i++){const p=pts[i],q=pts[(i+1)%n];out+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+q.x+'" y2="'+q.y+'" stroke="#26364c" stroke-width="3" />';}
+    out+='<circle cx="'+cx+'" cy="'+cy+'" r="48" fill="none" stroke="#b8c4d1" stroke-width="1.5" stroke-dasharray="4 5"/>';
+    pts.forEach((p,i)=>{
+      const atom=cfg.atoms[i],num=i===0?1:(i+1);
+      out+='<circle cx="'+p.x+'" cy="'+p.y+'" r="17" fill="'+(i===0?'#fff0f0':'#fff')+'" stroke="'+(i===0?'#b4232d':'#64748b')+'" stroke-width="2"/>';
+      out+='<text x="'+p.x+'" y="'+(p.y+5)+'" text-anchor="middle" font-size="15" font-weight="700" fill="'+(i===0?'#a51e2b':'#172235')+'">'+atom+'</text>';
+      out+='<text x="'+(p.x+(p.x-cx)*.28)+'" y="'+(p.y+(p.y-cy)*.28+4)+'" text-anchor="middle" font-size="11" fill="#64748b">'+num+'</text>';
+      if(num===pos){
+        const dx=p.x-cx,dy=p.y-cy,len=Math.hypot(dx,dy),ex=p.x+dx/len*48,ey=p.y+dy/len*48;
+        out+='<line x1="'+p.x+'" y1="'+p.y+'" x2="'+ex+'" y2="'+ey+'" stroke="#25834a" stroke-width="2.5"/>';
+        out+='<text x="'+(ex+dx/len*12)+'" y="'+(ey+dy/len*12+5)+'" text-anchor="middle" font-size="15" font-weight="700" fill="#25834a">'+subLabel.value+'</text>';
+      }
+    });
+    svg.innerHTML=out;
+    caption.textContent=cfg.name+' with '+subLabel.value+' at position '+pos+'. '+cfg.description;
+  }
+  ringChoice.addEventListener('change',draw);subChoice.addEventListener('change',draw);subLabel.addEventListener('change',draw);draw();
+  const mechanismForm=document.getElementById('mechanism-lab');
+  document.getElementById('check-mechanism').addEventListener('click',function(){
+    const chosen=['step-a','step-b','step-c'].map(id=>document.getElementById(id).value);
+    const target=['attack','stabilise','leave'];
+    const feedback=document.getElementById('mechanism-feedback');
+    if(chosen.some(x=>!x)){feedback.textContent='Complete all three steps before checking.';return;}
+    if(new Set(chosen).size!==3){feedback.textContent='Each mechanistic event must be used once. Check your selections.';return;}
+    const score=chosen.filter((x,i)=>x===target[i]).length;
+    feedback.textContent='You placed '+score+' of 3 events in the correct position. Correct order: nucleophilic attack → stabilisation of the anionic addition intermediate → chloride elimination with restoration of aromaticity.';
+  });
+  const quiz=document.getElementById('heterocycle-quiz');
+  quiz.addEventListener('submit',function(e){
+    e.preventDefault();let score=0;const questions=[...quiz.querySelectorAll('.quiz-question')];
+    questions.forEach((q,i)=>{
+      const selected=q.querySelector('input:checked');
+      const ok=!!selected&&selected.value===q.dataset.answer;
+      q.classList.toggle('correct',ok);q.classList.toggle('incorrect',!ok);
+      if(ok)score++;
+      let note=q.querySelector('.quiz-explanation');if(!note){note=document.createElement('p');note.className='quiz-explanation';q.appendChild(note);}
+      note.textContent=(ok?'Correct. ':'Review this point. ')+q.dataset.explanation;
+    });
+    document.getElementById('quiz-result').textContent='Your score: '+score+' / '+questions.length+' ('+Math.round(score/questions.length*100)+'%). Review the explanations under each question, then try again.';
+  });
+  quiz.addEventListener('reset',function(){
+    setTimeout(()=>{quiz.querySelectorAll('.quiz-question').forEach(q=>{q.classList.remove('correct','incorrect');const n=q.querySelector('.quiz-explanation');if(n)n.remove();});document.getElementById('quiz-result').textContent='';},0);
+  });
+})();
+</script>
+
 </body></html>
