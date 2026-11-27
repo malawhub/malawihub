@@ -33,7 +33,7 @@ if(action==="list_class_students"){
   if(ee)throw ee;
   const ids=(enrollments||[]).map((x:any)=>x.student_id).filter(Boolean);
   if(!ids.length)return json({students:[]});
-  const {data:profiles,error:pe2}=await admin.from("profiles").select("id,email,username,full_name,role").in("id",ids).eq("role","student");
+  const {data:profiles,error:pe2}=await admin.from("profiles").select("id,email,username,full_name,role").in("id",ids);
   if(pe2)throw pe2;
   const byId=new Map((profiles||[]).map((p:any)=>[p.id,p]));
   const students=(enrollments||[]).map((e:any)=>{const p=byId.get(e.student_id);return {id:e.student_id,name:p?.full_name||p?.username||p?.email||"Student",email:p?.email||"",username:p?.username||"",joined_at:e.joined_at,status:e.status||"active"};}).filter((x:any)=>x.id);
