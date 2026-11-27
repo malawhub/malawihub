@@ -81,18 +81,10 @@ if(action==="enroll_student"){
     isStudent=studentArea?.area==="student";
   }
   if(!isStudent)return json({error:"The selected account is not registered for student access."},409);
-  const {data:existing,error:existingError}=await admin.from("online_class_enrollments").select("status").eq("class_id",classId).eq("student_id",studentId).maybeSingle();
-  if(existingError)throw existingError;
   const {data:enrollment,error:enrollmentError}=await admin.from("online_class_enrollments").upsert({
-    class_id:classId,student_id:studentId,status:"active",invited_by:user.id,updated_at:new Date().toISOString()
+    class_id:classId,student_id:studentId,status:"active",invited_by:user.id,updated_by:user.id,updated_at:new Date().toISOString()
   },{onConflict:"class_id,student_id"}).select("id,status").single();
   if(enrollmentError)throw enrollmentError;
-  const actionName=!existing?"enrolled":existing.status==="active"?"enrolled":"reactivated";
-  const {error:auditError}=await admin.from("online_class_enrollment_events").insert({
-    class_id:classId,student_id:studentId,actor_id:user.id,action:actionName,
-    details:{previous_status:existing?.status||null}
-  });
-  if(auditError)throw auditError;
   return json({ok:true,enrollment});
 }
 if(action==="set_enrollment_status"){
@@ -104,11 +96,9 @@ if(action==="set_enrollment_status"){
   if(classError)throw classError;
   if(!ownedClass)return json({error:"Class not found."},404);
   if(!isAdmin&&ownedClass.teacher_id!==user.id)return json({error:"You can only manage students in your own classes."},403);
-  const {data:updated,error:updateError}=await admin.from("online_class_enrollments").update({status,updated_at:new Date().toISOString()}).eq("class_id",classId).eq("student_id",studentId).select("id").maybeSingle();
+  const {data:updated,error:updateError}=await admin.from("online_class_enrollments").update({status,updated_by:user.id,updated_at:new Date().toISOString()}).eq("class_id",classId).eq("student_id",studentId).select("id").maybeSingle();
   if(updateError)throw updateError;
   if(!updated)return json({error:"Student is not enrolled in this class."},404);
-  const {error:auditError}=await admin.from("online_class_enrollment_events").insert({class_id:classId,student_id:studentId,actor_id:user.id,action:status});
-  if(auditError)throw auditError;
   return json({ok:true});
 }
 if(action==="list_class_students"){
