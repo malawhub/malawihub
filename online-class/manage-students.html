@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,follow">
+<title>Manage Class Students · MalawiHub</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+body{background:#f5f7fb}.wrap{max-width:920px;margin:auto;padding:16px}.card{background:#fff;border-radius:16px;padding:16px;margin:12px 0;box-shadow:0 4px 18px #00000012}.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.input{box-sizing:border-box;min-width:180px;flex:1;padding:11px;border:1px solid #ccd3dd;border-radius:10px;font:inherit}.btn{border:0;border-radius:10px;padding:11px 15px;font-weight:700;cursor:pointer}.primary{background:#b42318;color:#fff}.muted{color:#667085}.msg{padding:10px;border-radius:10px;background:#f8fafc;white-space:pre-wrap}.student{display:flex;justify-content:space-between;gap:12px;align-items:center;border-bottom:1px solid #eaecf0;padding:12px 0}.student:last-child{border-bottom:0}.pill{font-size:12px;padding:4px 8px;border-radius:20px;background:#ecfdf3;color:#067647}.pill.suspended,.pill.removed{background:#fef3f2;color:#b42318}.hidden{display:none!important}
+</style>
+</head>
+<body>
+<main class="wrap">
+<section class="card">
+  <div class="row"><strong>🇲🇼 MalawiHub · Class Student Management</strong><a href="./teacher.html">← Teacher Dashboard</a></div>
+  <h1 id="classTitle">Loading class…</h1>
+  <p id="classMeta" class="muted">Verifying teacher access…</p>
+  <p class="msg">Only students already registered with MalawiHub can be added in this first release. A class link or code does not enrol anyone. New-student invitations and Excel import will be added after the account-verification workflow is completed.</p>
+</section>
+<section id="app" class="hidden">
+  <section class="card">
+    <h2>Add an existing student</h2>
+    <p class="muted">Enter the student's exact MalawiHub email address or username. We will find only that exact account and ask you to confirm before adding it.</p>
+    <div class="row">
+      <input id="identifier" class="input" autocomplete="off" placeholder="Student email or username">
+      <button id="addStudent" class="btn primary" type="button">Find and Add Student</button>
+    </div>
+    <p id="addStatus" class="msg" role="status" aria-live="polite"></p>
+  </section>
+  <section class="card">
+    <h2>Import a class list (CSV)</h2>
+    <p class="muted">Export your Excel sheet as CSV. Put each student's exact email address or username in the first column, one student per row. Maximum 50 entries per import. Duplicate entries are safely ignored.</p>
+    <div class="row">
+      <input id="csvFile" class="input" type="file" accept=".csv,text/csv">
+      <button id="importCsv" class="btn primary" type="button">Import CSV</button>
+    </div>
+    <p id="csvStatus" class="msg" role="status" aria-live="polite"></p>
+  </section>
+  <section class="card">
+    <div class="row"><h2 style="margin-right:auto">Enrolled students</h2><button id="refresh" class="btn" type="button">Refresh</button></div>
+    <div id="roster" class="muted">Loading students…</div>
+  </section>
+</section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const params=new URLSearchParams(location.search);
+const classId=params.get('class_id')||'';
+let currentUser=null;
+let canRegister=false;
+const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
+function status(id,message,error=false){const el=$(id);el.textContent=message||'';el.style.color=error?'#b42318':'';}
+async function edge(action,body={}){const {data,error}=await supabaseClient.functions.invoke('online-class-teacher-admin',{body:{action,...body}});if(error)throw error; if(data?.error)throw new Error(data.error);return data;}
+async function addOne(identifier){
+ const {data:found,error:findError}=await supabaseClient.rpc('teacher_find_student',{p_class_id:classId,p_identifier:identifier});
+ if(findError)throw findError;
+ const student=Array.isArray(found)?found[0]:found;
+ if(!student)throw new Error('No matching student account was returned.');
+ const label=[student.full_name,student.username,student.email].filter(Boolean).join(' · ');
+ if(!confirm('Add this student to the class?\n\n'+label))return 'skipped';
+ const {data:enrollment,error}=await supabaseClient.rpc('teacher_enroll_student',{p_class_id:classId,p_student_id:student.id});
+ if(error)throw error;
+ return 'added';
+}
+async function loadRoster(){
+ $('roster').textContent='Loading students…';
+ try{
+  const result=await edge('list_class_students',{class_id:classId});
+  const students=result.students||[];
+  if(!students.length){$('roster').textContent='No students have been enrolled in this class yet.';return;}
+  $('roster').innerHTML=students.map(s=>'<div class="student"><div><b>'+esc(s.name||'Student')+'</b><div class="muted">'+esc(s.username||'')+(s.email?' · '+esc(s.email):'')+'</div><small class="muted">Added '+(s.joined_at?new Date(s.joined_at).toLocaleDateString():'')+'</small></div><span class="pill '+esc(s.status||'active')+'">'+esc(s.status||'active')+'</span></div>').join('');
+ }catch(e){$('roster').textContent='Could not load the class list: '+(e.message||'Unknown error');}
+}
+async function init(){
+ if(!classId){$('classTitle').textContent='Class not specified';$('classMeta').textContent='Return to the Teacher Dashboard and select Manage Students from one of your classes.';return;}
+ try{
+  const {data:{session},error:sessionError}=await supabaseClient.auth.getSession();
+  if(sessionError)throw sessionError;
+  currentUser=session?.user;
+  if(!currentUser)throw new Error('Please sign in through the Teacher Portal.');
+  const [profileResult,areaResult]=await Promise.all([
+   supabaseClient.from('profiles').select('role,can_register_students').eq('id',currentUser.id).maybeSingle(),
+   supabaseClient.from('user_area_roles').select('area').eq('user_id',currentUser.id).eq('area','teacher').maybeSingle()
+  ]);
+  if(profileResult.error)throw profileResult.error;
+  if(areaResult.error)throw areaResult.error;
+  if(profileResult.data?.role!=='teacher'&&areaResult.data?.area!=='teacher')throw new Error('Teacher access required.');
+  canRegister=!!profileResult.data?.can_register_students;
+  const {data:classRow,error:classError}=await supabaseClient.from('online_classes').select('id,title,subject,join_code,teacher_id').eq('id',classId).maybeSingle();
+  if(classError)throw classError;
+  if(!classRow)throw new Error('Class not found or you do not own this class.');
+  $('classTitle').textContent=classRow.title||'Class';
+  $('classMeta').textContent=(classRow.subject||'General subject')+' · '+classRow.join_code;
+  $('app').classList.remove('hidden');
+  if(!canRegister){
+   $('addStudent').disabled=true;$('importCsv').disabled=true;
+   status('addStatus','Your teacher account has not been granted student-registration permission. Ask a MalawiHub administrator to enable it.',true);
+   status('csvStatus','Student import is disabled until registration permission is granted.',true);
+  }
+  await loadRoster();
+ }catch(e){$('classTitle').textContent='Unable to open class';$('classMeta').textContent=e.message||'Access check failed.';}
+}
+$('addStudent').onclick=async()=>{
+ if(!canRegister)return;
+ const identifier=$('identifier').value.trim();
+ if(!identifier){status('addStatus','Enter an exact student email or username.',true);return;}
+ $('addStudent').disabled=true;status('addStatus','Checking student account…');
+ try{
+  const outcome=await addOne(identifier);
+  status('addStatus',outcome==='added'?'Student successfully added to this class.': 'No changes made.');
+  if(outcome==='added'){$('identifier').value='';await loadRoster();}
+ }catch(e){status('addStatus',e.message||'Could not add student.',true);}
+ finally{$('addStudent').disabled=false;}
+};
+$('importCsv').onclick=async()=>{
+ if(!canRegister)return;
+ const file=$('csvFile').files?.[0];
+ if(!file){status('csvStatus','Choose a CSV file first.',true);return;}
+ $('importCsv').disabled=true;status('csvStatus','Reading CSV file…');
+ try{
+  const raw=(await file.text()).replace(/^\uFEFF/,'');
+  const identifiers=raw.split(/\r?\n/).map(line=>line.split(',')[0].trim().replace(/^"|"$/g,'')).filter(Boolean);
+  const filtered=identifiers.filter((v,i)=>!(i===0&&/^(email|username|student|identifier)$/i.test(v)));
+  const unique=[...new Set(filtered.map(v=>v.toLowerCase()))];
+  if(!unique.length)throw new Error('No email addresses or usernames were found in the first column.');
+  if(unique.length>50)throw new Error('This import has '+unique.length+' entries. Please split it into files of 50 students or fewer.');
+  let added=0,skipped=0,failed=[];
+  for(let i=0;i<unique.length;i++){
+   try{const outcome=await addOne(unique[i]);if(outcome==='added')added++;else skipped++;}
+   catch(e){failed.push(unique[i]+': '+(e.message||'Could not add'));}
+   status('csvStatus','Processed '+(i+1)+' of '+unique.length+' · Added '+added+' · Skipped '+skipped+' · Errors '+failed.length);
+  }
+  status('csvStatus','Import finished. Added: '+added+'. Skipped: '+skipped+'. Errors: '+failed.length+(failed.length?'\n'+failed.join('\n'):''));
+  $('csvFile').value='';
+  await loadRoster();
+ }catch(e){status('csvStatus',e.message||'CSV import failed.',true);}
+ finally{$('importCsv').disabled=false;}
+};
+$('refresh').onclick=loadRoster;
+init();
+</script>
+<script src="/js/official-app.js?v=2" defer></script>
+</body>
+</html>
