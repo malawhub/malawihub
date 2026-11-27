@@ -54,6 +54,49 @@ revoke all on public.online_class_enrollment_events from anon, authenticated;
 -- The private schema is not exposed through the Supabase Data API.
 create schema if not exists private;
 revoke all on schema private from public, anon, authenticated;
+grant usage on schema private to authenticated;
+
+-- These private SECURITY DEFINER helpers avoid recursive RLS policy lookups.
+-- The schema is not exposed through the Supabase Data API.
+create or replace function private.is_online_class_teacher_owner(p_class_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select auth.uid() is not null and exists (
+    select 1
+    from public.online_classes c
+    where c.id = p_class_id
+      and c.teacher_id = auth.uid()
+      and (
+        exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('teacher', 'admin'))
+        or exists (select 1 from public.user_area_roles r where r.user_id = auth.uid() and r.area = 'teacher')
+      )
+  );
+$$;
+
+create or replace function private.is_online_class_student_enrolled(p_class_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select auth.uid() is not null and exists (
+    select 1
+    from public.online_class_enrollments e
+    where e.class_id = p_class_id
+      and e.student_id = auth.uid()
+      and e.status = 'active'
+  );
+$$;
+
+revoke all on function private.is_online_class_teacher_owner(uuid) from public, anon;
+revoke all on function private.is_online_class_student_enrolled(uuid) from public, anon;
+grant execute on function private.is_online_class_teacher_owner(uuid) to authenticated;
+grant execute on function private.is_online_class_student_enrolled(uuid) to authenticated;
 
 create or replace function private.log_online_class_enrollment_change()
 returns trigger
@@ -216,19 +259,8 @@ create policy "class members and owners read online classes"
   using (
     public.is_online_class_admin()
     or exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
-    or (
-      teacher_id = auth.uid()
-      and (
-          exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('teacher', 'admin'))
-          or exists (select 1 from public.user_area_roles r where r.user_id = auth.uid() and r.area = 'teacher')
-        )
-    )
-    or exists (
-      select 1 from public.online_class_enrollments e
-      where e.class_id = online_classes.id
-        and e.student_id = auth.uid()
-        and e.status = 'active'
-    )
+    or private.is_online_class_teacher_owner(id)
+    or private.is_online_class_student_enrolled(id)
   );
 
 drop policy if exists "class notes readable" on public.class_notes;
@@ -240,16 +272,8 @@ create policy "class members and owners read class notes"
   using (
     public.is_online_class_admin()
     or exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
-    or exists (
-      select 1 from public.online_classes c
-      where c.id = class_notes.class_id and c.teacher_id = auth.uid()
-    )
-    or exists (
-      select 1 from public.online_class_enrollments e
-      where e.class_id = class_notes.class_id
-        and e.student_id = auth.uid()
-        and e.status = 'active'
-    )
+    or private.is_online_class_teacher_owner(class_id)
+    or private.is_online_class_student_enrolled(class_id)
   );
 
 drop policy if exists "class video resources are readable" on public.class_video_resources;
@@ -261,16 +285,8 @@ create policy "class members and owners read video resources"
   using (
     public.is_online_class_admin()
     or exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
-    or exists (
-      select 1 from public.online_classes c
-      where c.id = class_video_resources.class_id and c.teacher_id = auth.uid()
-    )
-    or exists (
-      select 1 from public.online_class_enrollments e
-      where e.class_id = class_video_resources.class_id
-        and e.student_id = auth.uid()
-        and e.status = 'active'
-    )
+    or private.is_online_class_teacher_owner(class_id)
+    or private.is_online_class_student_enrolled(class_id)
   );
 
 -- Rebuild enrolment SELECT access and deliberately provide no direct client
@@ -283,15 +299,7 @@ create policy "students teachers and admins read enrolments"
   on public.online_class_enrollments for select to authenticated
   using (
     student_id = auth.uid()
-    or exists (
-      select 1 from public.online_classes c
-      where c.id = online_class_enrollments.class_id
-        and c.teacher_id = auth.uid()
-        and (
-          exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('teacher', 'admin'))
-          or exists (select 1 from public.user_area_roles r where r.user_id = auth.uid() and r.area = 'teacher')
-        )
-    )
+    or private.is_online_class_teacher_owner(class_id)
     or public.is_online_class_admin()
     or exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
   );
