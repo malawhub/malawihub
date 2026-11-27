@@ -49,6 +49,101 @@ create policy "online class enrollment events admin read"
   );
 revoke all on public.online_class_enrollment_events from anon, authenticated;
 
+-- Resolve one existing student by exact email or username. This is scoped to
+-- a class the caller owns and does not expose a searchable student directory.
+create or replace function public.teacher_find_student(
+  p_class_id uuid,
+  p_identifier text
+)
+returns table(id uuid, full_name text, username text, email text)
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $
+declare
+  v_actor uuid := auth.uid();
+  v_actor_role text;
+  v_can_register boolean := false;
+  v_is_admin boolean := false;
+  v_owner uuid;
+  v_identifier text := lower(trim(coalesce(p_identifier, '')));
+  v_matches integer;
+begin
+  if v_actor is null then
+    raise exception 'Authentication required';
+  end if;
+  if v_identifier = '' then
+    raise exception 'Enter the student's exact email address or username';
+  end if;
+
+  select p.role, coalesce(p.can_register_students, false)
+    into v_actor_role, v_can_register
+  from public.profiles p
+  where p.id = v_actor;
+
+  v_is_admin := v_actor_role = 'admin' or public.is_online_class_admin();
+
+  if not v_is_admin then
+    if v_actor_role <> 'teacher' then
+      raise exception 'Teacher access required';
+    end if;
+    if not v_can_register then
+      raise exception 'Student registration permission has not been granted to this teacher';
+    end if;
+  end if;
+
+  select c.teacher_id into v_owner
+  from public.online_classes c
+  where c.id = p_class_id;
+  if not found then
+    raise exception 'Class not found';
+  end if;
+  if not v_is_admin and v_owner is distinct from v_actor then
+    raise exception 'You can only search for students for your own classes';
+  end if;
+
+  select count(*) into v_matches
+  from public.profiles p
+  where (
+      lower(coalesce(p.email, '')) = v_identifier
+      or lower(coalesce(p.username, '')) = v_identifier
+    )
+    and (
+      p.role = 'student'
+      or exists (
+        select 1 from public.user_area_roles r
+        where r.user_id = p.id and r.area = 'student'
+      )
+    );
+
+  if v_matches = 0 then
+    raise exception 'No existing student account matches that email or username';
+  end if;
+  if v_matches > 1 then
+    raise exception 'More than one student account matches. Use the exact email address';
+  end if;
+
+  return query
+  select p.id, coalesce(p.full_name, p.username, p.email), p.username, p.email
+  from public.profiles p
+  where (
+      lower(coalesce(p.email, '')) = v_identifier
+      or lower(coalesce(p.username, '')) = v_identifier
+    )
+    and (
+      p.role = 'student'
+      or exists (
+        select 1 from public.user_area_roles r
+        where r.user_id = p.id and r.area = 'student'
+      )
+    )
+  limit 1;
+end;
+$;
+
+revoke all on function public.teacher_find_student(uuid, text) from public, anon;
+grant execute on function public.teacher_find_student(uuid, text) to authenticated;
+
 -- Teachers can enrol an existing student account only in a class they own.
 -- Admins can perform the same operation across classes.
 create or replace function public.teacher_enroll_student(
