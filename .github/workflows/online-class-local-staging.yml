@@ -37,6 +37,14 @@ jobs:
       - name: Check Supabase CLI
         run: supabase --version
 
+      # These two legacy files use 8-digit migration versions. Supabase sorts
+      # them before the 14-digit base migration, although they depend on it.
+      # Rename only in this disposable runner; never rename the production files.
+      - name: Normalize legacy migration order for local validation
+        run: |
+          mv supabase/migrations/20260907_online_class_admin.sql supabase/migrations/202609070008_online_class_admin.sql
+          mv supabase/migrations/20260907_class_video_resources.sql supabase/migrations/202609070009_class_video_resources.sql
+
       - name: Start isolated local Supabase database
         run: supabase db start
 
