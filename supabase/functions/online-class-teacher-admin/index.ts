@@ -38,6 +38,79 @@ if(action==="unregister_self"){
   if(deleteError)throw deleteError;
   return json({ok:true});
 }
+if(action==="find_student"){
+  if(!isAdmin&&!isTeacher)return json({error:"Teacher access required"},403);
+  if(!isAdmin&&!profile?.can_register_students)return json({error:"Student registration permission has not been granted to this teacher."},403);
+  const classId=String(body.class_id||"");
+  const identifier=String(body.identifier||"").trim().toLowerCase();
+  if(!classId||!identifier)return json({error:"Class ID and exact student email or username are required."},400);
+  const {data:ownedClass,error:classError}=await admin.from("online_classes").select("id,teacher_id").eq("id",classId).maybeSingle();
+  if(classError)throw classError;
+  if(!ownedClass)return json({error:"Class not found."},404);
+  if(!isAdmin&&ownedClass.teacher_id!==user.id)return json({error:"You can only manage students in your own class."},403);
+  let studentQuery=admin.from("profiles").select("id,email,username,full_name,role");
+  studentQuery=identifier.includes("@")?studentQuery.eq("email",identifier):studentQuery.eq("username",identifier);
+  const {data:student,error:studentError}=await studentQuery.maybeSingle();
+  if(studentError)throw studentError;
+  if(!student)return json({error:"No existing student account matches that email or username."},404);
+  let isStudent=student.role==="student";
+  if(!isStudent){
+    const {data:studentArea,error:studentAreaError}=await admin.from("user_area_roles").select("area").eq("user_id",student.id).eq("area","student").maybeSingle();
+    if(studentAreaError)throw studentAreaError;
+    isStudent=studentArea?.area==="student";
+  }
+  if(!isStudent)return json({error:"The matching account is not registered for student access."},409);
+  return json({student:{id:student.id,email:student.email||"",username:student.username||"",full_name:student.full_name||student.username||student.email||"Student"}});
+}
+if(action==="enroll_student"){
+  if(!isAdmin&&!isTeacher)return json({error:"Teacher access required"},403);
+  if(!isAdmin&&!profile?.can_register_students)return json({error:"Student registration permission has not been granted to this teacher."},403);
+  const classId=String(body.class_id||""),studentId=String(body.student_id||"");
+  if(!classId||!studentId)return json({error:"Class ID and student ID are required."},400);
+  const {data:ownedClass,error:classError}=await admin.from("online_classes").select("id,teacher_id").eq("id",classId).maybeSingle();
+  if(classError)throw classError;
+  if(!ownedClass)return json({error:"Class not found."},404);
+  if(!isAdmin&&ownedClass.teacher_id!==user.id)return json({error:"You can only enrol students in your own classes."},403);
+  const {data:student,error:studentError}=await admin.from("profiles").select("id,role").eq("id",studentId).maybeSingle();
+  if(studentError)throw studentError;
+  if(!student)return json({error:"Student account not found."},404);
+  let isStudent=student.role==="student";
+  if(!isStudent){
+    const {data:studentArea,error:studentAreaError}=await admin.from("user_area_roles").select("area").eq("user_id",studentId).eq("area","student").maybeSingle();
+    if(studentAreaError)throw studentAreaError;
+    isStudent=studentArea?.area==="student";
+  }
+  if(!isStudent)return json({error:"The selected account is not registered for student access."},409);
+  const {data:existing,error:existingError}=await admin.from("online_class_enrollments").select("status").eq("class_id",classId).eq("student_id",studentId).maybeSingle();
+  if(existingError)throw existingError;
+  const {data:enrollment,error:enrollmentError}=await admin.from("online_class_enrollments").upsert({
+    class_id:classId,student_id:studentId,status:"active",invited_by:user.id,updated_at:new Date().toISOString()
+  },{onConflict:"class_id,student_id"}).select("id,status").single();
+  if(enrollmentError)throw enrollmentError;
+  const actionName=!existing?"enrolled":existing.status==="active"?"enrolled":"reactivated";
+  const {error:auditError}=await admin.from("online_class_enrollment_events").insert({
+    class_id:classId,student_id:studentId,actor_id:user.id,action:actionName,
+    details:{previous_status:existing?.status||null}
+  });
+  if(auditError)throw auditError;
+  return json({ok:true,enrollment});
+}
+if(action==="set_enrollment_status"){
+  if(!isAdmin&&!isTeacher)return json({error:"Teacher access required"},403);
+  if(!isAdmin&&!profile?.can_register_students)return json({error:"Student registration permission has not been granted to this teacher."},403);
+  const classId=String(body.class_id||""),studentId=String(body.student_id||""),status=String(body.status||"");
+  if(!classId||!studentId||!["suspended","removed"].includes(status))return json({error:"Class, student and a valid membership status are required."},400);
+  const {data:ownedClass,error:classError}=await admin.from("online_classes").select("id,teacher_id").eq("id",classId).maybeSingle();
+  if(classError)throw classError;
+  if(!ownedClass)return json({error:"Class not found."},404);
+  if(!isAdmin&&ownedClass.teacher_id!==user.id)return json({error:"You can only manage students in your own classes."},403);
+  const {data:updated,error:updateError}=await admin.from("online_class_enrollments").update({status,updated_at:new Date().toISOString()}).eq("class_id",classId).eq("student_id",studentId).select("id").maybeSingle();
+  if(updateError)throw updateError;
+  if(!updated)return json({error:"Student is not enrolled in this class."},404);
+  const {error:auditError}=await admin.from("online_class_enrollment_events").insert({class_id:classId,student_id:studentId,actor_id:user.id,action:status});
+  if(auditError)throw auditError;
+  return json({ok:true});
+}
 if(action==="list_class_students"){
   const classId=String(body.class_id||"");
   if(!classId)return json({error:"Class ID is required."},400);
