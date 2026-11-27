@@ -2,12 +2,12 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>University Resources | MalawiHub</title>
-<meta name="description" content="University-focused study resources, academic materials, research resources and learning links for students in Malawi.">
+<title>Learning Resources | MalawiHub</title>
+<meta name="description" content="Secondary-school and university study notes, schemes, academic materials and learning resources for students in Malawi.">
 <meta name="robots" content="index,follow">
 <link rel="canonical" href="https://malawihub.pages.dev/resources/">
-<meta property="og:type" content="website"><meta property="og:title" content="University Resources | MalawiHub">
-<meta property="og:description" content="University-focused study resources and academic materials for students in Malawi.">
+<meta property="og:type" content="website"><meta property="og:title" content="Learning Resources | MalawiHub">
+<meta property="og:description" content="Secondary-school and university study notes and academic materials for students in Malawi.">
 <meta property="og:url" content="https://malawihub.pages.dev/resources/">
 <link rel="stylesheet" href="../css/style.css">
 <style>
@@ -16,19 +16,19 @@
 <body>
 <header><div class="logo"><span class="logo-mark">M</span> MalawiHub</div><nav><a href="../index.html">Home</a><a href="../categories/student-tools.html">Academic Tools</a><a href="../categories/calculators.html">Calculators</a><a href="../ai-class/">AI Class</a></nav></header>
 <main class="page">
-<section class="intro"><div class="hero-badge">🇲🇼 UNIVERSITY STUDENT HUB</div><h1>University Resources</h1><p>Study materials, academic resources and useful learning links for university students in Malawi.</p></section>
-<div class="notice"><strong>Our focus has changed.</strong> MalawiHub is now prioritising university-level learning. Institution-specific material should be used only where it is clearly identified and legitimately available.</div>
+<section class="intro"><div class="hero-badge">🇲🇼 MALAWIHUB LEARNING LIBRARY</div><h1>Learning Resources</h1><p>Find the right materials for your level of study. Secondary-school and university resources are organised separately.</p></section>
+<div class="notice"><strong>Choose the correct education level.</strong> Junior Certificate (JC), MSCE and Form 1–4 materials belong under Secondary School Resources. Course-code and higher-education materials belong under University Resources. General open-learning links are identified separately.</div>
 <section>
 <h2>🏫 Secondary School Resources</h2>
 <div class="grid">
 <div class="card">
 <h3>📚 Forms 1–4</h3>
 <p>Schemes of work and secondary-school learning resources for Forms 1 to 4.</p>
-<a href="secondary/index.html">Browse Secondary Resources</a>
+<a href="secondary/index.html">Browse Secondary Resources</a><a href="secondary/notes/">Read Secondary Notes</a>
 </div>
 </div>
 </section>
-<section id="study-notes"><h2>📚 Study Notes — Open a Subject Directly</h2><p>Choose a subject and open its available notes, study maps and topic explanations. Public learning materials do not require an account.</p><div class="grid">
+<section id="study-notes"><h2>🎓 University Resources</h2><p>Higher-education notes, course materials, worked examples and topic explanations. Secondary notes are available in the separate section above.</p><div class="grid">
 <div class="card"><h3>🧪 Chemistry</h3><p>University chemistry learning, calculations, laboratory and revision resources.</p><a href="chemistry/index.html">Browse Chemistry</a></div>
 <div class="card"><h3>🧮 Mathematics</h3><p>University mathematics, worked examples, formulas and practice resources.</p><a href="mathematics/index.html">Browse Mathematics</a></div>
 <div class="card"><h3>⚛️ Physics</h3><p>Concepts, equations, calculations and problem-solving resources.</p><a href="physics/index.html">Browse Physics</a></div>
@@ -40,7 +40,7 @@
 <div class="card"><h3>⚖️ Law & Social Sciences</h3><p>Law, history, sociology, political science, psychology, geography and communication.</p><a href="law-social-sciences/index.html">Browse Law & Social Sciences</a></div>
 <div class="card"><h3>🩺 Health Sciences</h3><p>Anatomy, physiology, biochemistry, microbiology, pharmacology, pathology and public health.</p><a href="health-sciences/index.html">Browse Health Sciences</a></div>
 </div></section>
-<section class="tools-section"><h2>📚 MalawiHub Resource Library</h2><p>Search resources added to the MalawiHub library.</p><div class="search"><input id="resourceSearch" type="search" placeholder="Search by title, subject or topic..."></div><div class="grid" id="publicResourceList"><div class="card"><p>Loading resources...</p></div></div></section>
+<section class="tools-section"><h2>📚 Search the Resource Library</h2><p>Search across all education levels. Each result is labelled by its education level.</p><div class="search"><input id="resourceSearch" type="search" placeholder="Search by title, subject or topic..."></div><h3>Secondary School</h3><div class="grid" id="secondaryResourceList"><div class="card"><p>Loading resources...</p></div></div><h3>University</h3><div class="grid" id="universityResourceList"><div class="card"><p>Loading resources...</p></div></div><h3>General Open Learning</h3><div class="grid" id="generalResourceList"><div class="card"><p>Loading resources...</p></div></div></section>
 <section class="tools-section"><h2>🌍 Open Academic Resources</h2><div class="grid">
 <div class="card"><h3>University of Malawi Library</h3><p>Library, journals, books, theses and digital academic resources.</p><a href="https://www.unima.ac.mw/library" target="_blank" rel="noopener">Visit Library</a></div>
 <div class="card"><h3>UNIMA Digital Repository</h3><p>Research publications and theses.</p><a href="https://dspace.unima.ac.mw/home" target="_blank" rel="noopener">Open Repository</a></div>
@@ -48,19 +48,34 @@
 <div class="card"><h3>MIT OpenCourseWare</h3><p>Free university course materials.</p><a href="https://ocw.mit.edu/" target="_blank" rel="noopener">Explore Courses</a></div>
 </div></section>
 </main>
-<footer><p>© 2026 MalawiHub</p><p>University resources, academic tools and student services for Malawi.</p></footer>
+<footer><p>© 2026 MalawiHub</p><p>Secondary-school and university learning resources for Malawi.</p></footer>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../js/supabase.js"></script>
 <script>
-const list=document.getElementById('publicResourceList'),search=document.getElementById('resourceSearch');
+const search=document.getElementById('resourceSearch');
+const targets={secondary:document.getElementById('secondaryResourceList'),university:document.getElementById('universityResourceList'),general:document.getElementById('generalResourceList')};
 function esc(v){const d=document.createElement('div');d.textContent=String(v||'');return d.innerHTML}
+function level(r){
+ const explicit=String(r.education_level||'').toLowerCase().trim();
+ if(['secondary','university','general'].includes(explicit))return explicit;
+ const hay=[r.title,r.subject,r.topic,r.category,r.description,r.link].map(x=>String(x||'').toLowerCase()).join(' ');
+ if(/secondary school|junior certificate|\bmsce\b|\bjc\b|\bk12\b|\bform\s*[1-4]\b|syllabus|past paper/.test(hay))return 'secondary';
+ if(/external open resource|openstax|mit opencourseware|eric education/.test(hay))return 'general';
+ return 'university';
+}
+function card(r){
+ const label=level(r)==='secondary'?'Secondary School':level(r)==='university'?'University':'General Open Learning';
+ return '<div class="card"><p class="muted"><strong>'+label+'</strong></p><h3>'+esc(r.title)+'</h3><p><strong>'+esc(r.subject||'General')+'</strong> · '+esc(r.topic||r.category||'Academic resource')+'</p><p>'+esc(r.description||'Learning resource.')+'</p>'+(r.link?'<a href="'+esc(r.link)+'" target="_blank" rel="noopener">Open Resource</a>':'')+'</div>';
+}
 async function load(){
  const term=(search.value||'').toLowerCase().trim();
  const [a,b]=await Promise.all([supabaseClient.from('subject_resources').select('*').order('created_at',{ascending:false}),supabaseClient.from('resources').select('*').order('created_at',{ascending:false})]);
- const rows=[...(a.data||[]),...(b.data||[])]; const seen=new Set();
+ const rows=[...(a.data||[]),...(b.data||[])];const seen=new Set();
  const unique=rows.filter(r=>{const k=(r.id||'')+'|'+(r.title||'')+'|'+(r.link||'');if(seen.has(k))return false;seen.add(k);return true});
  const filtered=unique.filter(r=>[r.title,r.subject,r.topic,r.category,r.description].map(x=>String(x||'').toLowerCase()).join(' ').includes(term));
- if(!filtered.length){list.innerHTML='<div class="card"><p>No matching resources found yet.</p></div>';return}
- list.innerHTML=filtered.map(r=>'<div class="card"><h3>'+esc(r.title)+'</h3><p><strong>'+esc(r.subject||'General')+'</strong> · '+esc(r.topic||r.category||'Academic resource')+'</p><p>'+esc(r.description||'Learning resource.')+'</p>'+(r.link?'<a href="'+esc(r.link)+'" target="_blank" rel="noopener">Open Resource</a>':'')+'</div>').join('');
+ for(const key of Object.keys(targets)){
+  const group=filtered.filter(r=>level(r)===key);
+  targets[key].innerHTML=group.length?group.map(card).join(''):'<div class="card"><p>No matching resources found in this section.</p></div>';
+ }
 }
 search.addEventListener('input',load);load();
 </script><script src="/js/official-app.js?v=2" defer></script></body></html>
