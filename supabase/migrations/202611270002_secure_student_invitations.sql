@@ -8,6 +8,9 @@ create table if not exists public.online_class_student_invitations (
   email text not null,
   full_name text not null,
   invited_by uuid not null references auth.users(id) on delete restrict,
+  -- Store the exact Auth identity created for this invitation. This is safer
+  -- than trusting editable user_metadata when recovering an unverified invite.
+  auth_user_id uuid,
   token_hash text not null unique,
   status text not null default 'pending'
     check (status in ('pending', 'accepted', 'cancelled', 'expired')),
