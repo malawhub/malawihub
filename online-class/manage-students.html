@@ -16,7 +16,7 @@ body{background:#f5f7fb}.wrap{max-width:920px;margin:auto;padding:16px}.card{bac
   <div class="row"><strong>🇲🇼 MalawiHub · Class Student Management</strong><a href="./teacher.html">← Teacher Dashboard</a></div>
   <h1 id="classTitle">Loading class…</h1>
   <p id="classMeta" class="muted">Verifying teacher access…</p>
-  <p class="msg">Only students already registered with MalawiHub can be added in this first release. A class link or code does not enrol anyone. New-student invitations and Excel import will be added after the account-verification workflow is completed.</p>
+  <p class="msg">Teachers control class membership. Existing MalawiHub students can be added directly. New students can receive a one-time email invitation; they must verify their email and set a password before student access is activated. A class code alone never enrols anyone.</p>
 </section>
 <section id="app" class="hidden">
   <section class="card">
@@ -27,6 +27,16 @@ body{background:#f5f7fb}.wrap{max-width:920px;margin:auto;padding:16px}.card{bac
       <button id="addStudent" class="btn primary" type="button">Find and Add Student</button>
     </div>
     <p id="addStatus" class="msg" role="status" aria-live="polite"></p>
+  </section>
+  <section class="card">
+    <h2>Invite a new student by email</h2>
+    <p class="muted">Use this only when the student does not already have a MalawiHub account. The invitation expires after 7 days and can be used once. The student must open the email, verify the address and set a password.</p>
+    <div class="row">
+      <input id="inviteName" class="input" autocomplete="name" placeholder="Student full name">
+      <input id="inviteEmail" class="input" type="email" autocomplete="email" placeholder="Student email address">
+      <button id="inviteStudent" class="btn primary" type="button">Send Invitation</button>
+    </div>
+    <p id="inviteStatus" class="msg" role="status" aria-live="polite"></p>
   </section>
   <section class="card">
     <h2>Import a class list (CSV)</h2>
@@ -95,7 +105,7 @@ async function init(){
   $('classMeta').textContent=(classRow.subject||'General subject')+' · '+classRow.join_code;
   $('app').classList.remove('hidden');
   if(!canRegister){
-   $('addStudent').disabled=true;$('importCsv').disabled=true;
+   $('addStudent').disabled=true;$('inviteStudent').disabled=true;$('importCsv').disabled=true;
    status('addStatus','Your teacher account has not been granted student-registration permission. Ask a MalawiHub administrator to enable it.',true);
    status('csvStatus','Student import is disabled until registration permission is granted.',true);
   }
@@ -113,6 +123,18 @@ $('addStudent').onclick=async()=>{
   if(outcome==='added'){$('identifier').value='';await loadRoster();}
  }catch(e){status('addStatus',e.message||'Could not add student.',true);}
  finally{$('addStudent').disabled=false;}
+};
+$('inviteStudent').onclick=async()=>{
+ if(!canRegister)return;
+ const full_name=$('inviteName').value.trim(),email=$('inviteEmail').value.trim().toLowerCase();
+ if(full_name.length<2||!email){status('inviteStatus','Enter the student’s full name and email address.',true);return;}
+ $('inviteStudent').disabled=true;status('inviteStatus','Sending a secure invitation…');
+ try{
+  const result=await edge('invite_student',{class_id:classId,email,full_name});
+  status('inviteStatus',result.message||'Invitation sent. Ask the student to check their email.');
+  $('inviteName').value='';$('inviteEmail').value='';
+ }catch(e){status('inviteStatus',e.message||'Could not send the invitation.',true);}
+ finally{$('inviteStudent').disabled=false;}
 };
 $('importCsv').onclick=async()=>{
  if(!canRegister)return;
