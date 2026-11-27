@@ -522,7 +522,10 @@ create policy "students teachers and admins read enrolments"
       select 1 from public.online_classes c
       where c.id = online_class_enrollments.class_id
         and c.teacher_id = auth.uid()
-        and exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('teacher', 'admin'))
+        and (
+          exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('teacher', 'admin'))
+          or exists (select 1 from public.user_area_roles r where r.user_id = auth.uid() and r.area = 'teacher')
+        )
     )
     or public.is_online_class_admin()
     or exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
