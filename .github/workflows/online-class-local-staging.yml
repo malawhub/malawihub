@@ -1,0 +1,56 @@
+name: Online Class - Free Local Staging
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/**"
+      - "online-class/**"
+      - "teacher-portal/**"
+      - ".github/workflows/online-class-local-staging.yml"
+  push:
+    branches: [feature/online-class-secure-enrollment]
+    paths:
+      - "supabase/**"
+      - "online-class/**"
+      - "teacher-portal/**"
+      - ".github/workflows/online-class-local-staging.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  local-supabase-migrations:
+    name: Validate migrations on isolated local database
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out feature branch
+        uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Check Supabase CLI
+        run: supabase --version
+
+      # These two legacy files use 8-digit migration versions. Supabase sorts
+      # them before the 14-digit base migration, although they depend on it.
+      # Rename only in this disposable runner; never rename the production files.
+      - name: Normalize legacy migration order for local validation
+        run: |
+          mv supabase/migrations/20260907_online_class_admin.sql supabase/migrations/202609070008_online_class_admin.sql
+          mv supabase/migrations/20260907_class_video_resources.sql supabase/migrations/202609070009_class_video_resources.sql
+
+      - name: Start isolated local Supabase database
+        run: supabase db start
+
+      - name: Apply all migrations to the local database
+        run: supabase db reset
+
+      - name: Stop local database
+        if: always()
+        run: supabase stop --no-backup

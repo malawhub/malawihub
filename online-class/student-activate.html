@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Activate Student Account · MalawiHub</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+body{background:#f5f7fb}.wrap{max-width:560px;margin:auto;padding:18px}.card{background:#fff;border-radius:18px;padding:22px;margin:16px 0;box-shadow:0 5px 20px #0000000d}.input{width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccd3df;border-radius:10px;margin:7px 0 14px;font:inherit}.btn{width:100%;padding:12px;border:0;border-radius:10px;font-weight:800;cursor:pointer;margin-top:8px}.primary{background:#b42318;color:#fff}.muted{color:#667085;font-size:14px}.msg{margin-top:12px;padding:12px;border-radius:10px;background:#f8fafc;line-height:1.5;white-space:pre-wrap}.error{background:#fef2f2;color:#991b1b}.success{background:#ecfdf3;color:#065f46}
+</style>
+</head>
+<body>
+<main class="wrap"><section class="card">
+<h1>🇲🇼 Activate your MalawiHub Student Account</h1>
+<p class="muted">You reached this page from a teacher-issued invitation. Choose a password to finish activating your account. Your email must already be verified through the invitation email.</p>
+<form id="activationForm">
+<label for="password">Create password</label>
+<input id="password" class="input" type="password" autocomplete="new-password" minlength="8" required>
+<label for="confirmPassword">Confirm password</label>
+<input id="confirmPassword" class="input" type="password" autocomplete="new-password" minlength="8" required>
+<button id="activate" class="btn primary" type="submit">Activate Student Account</button>
+</form>
+<p id="message" class="msg" role="status" aria-live="polite">Checking your invitation…</p>
+<p><a href="./login.html">Go to Student Login</a></p>
+</section></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../js/supabase.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const params=new URLSearchParams(location.search);
+const token=(params.get('token')||'').trim().toLowerCase();
+let ready=false;
+function message(text,type=''){const el=$('message');el.textContent=text;el.className='msg '+type;}
+async function init(){
+ try{
+  if(!/^[a-f0-9]{64}$/.test(token))throw new Error('This invitation link is incomplete or invalid. Ask your teacher to send a new invitation.');
+  const {data:{session},error}=await supabaseClient.auth.getSession();
+  if(error)throw error;
+  if(!session?.user)throw new Error('Open the invitation email on this device/browser and complete the email verification first. Then return to this page.');
+  if(!session.user.email_confirmed_at)throw new Error('Your email address is not verified yet. Open the verification link sent to your email.');
+  ready=true;
+  message('Email verified for '+(session.user.email||'your account')+'. Create a password to activate Student Portal access.');
+ }catch(e){message(e.message||'Could not verify the invitation.', 'error');$('activate').disabled=true;}
+}
+$('activationForm').addEventListener('submit',async event=>{
+ event.preventDefault();
+ if(!ready)return;
+ const password=$('password').value,confirmPassword=$('confirmPassword').value;
+ if(password.length<8){message('Use a password with at least 8 characters.','error');return;}
+ if(password!==confirmPassword){message('The passwords do not match.','error');return;}
+ $('activate').disabled=true;message('Activating your student account…');
+ try{
+  const {error:passwordError}=await supabaseClient.auth.updateUser({password});
+  if(passwordError)throw passwordError;
+  const {data,error}=await supabaseClient.functions.invoke('online-class-teacher-admin',{body:{action:'redeem_student_invitation',token}});
+  if(error)throw error;
+  if(data?.error)throw new Error(data.error);
+  message('Your student account is active. You can now sign in to MalawiHub Online Class.','success');
+  $('activationForm').hidden=true;
+  await supabaseClient.auth.signOut();
+ }catch(e){message(e.message||'Activation failed. Ask your teacher to resend the invitation if it has expired.','error');$('activate').disabled=false;}
+});
+init();
+</script>
+<script src="/js/official-app.js?v=2" defer></script>
+</body>
+</html>

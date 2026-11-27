@@ -45,6 +45,6 @@ create policy "teachers manage notes" on public.class_notes for all to authentic
 alter table public.online_classes replica identity full;
 alter table public.class_notes replica identity full;
 
-insert into supabase_realtime.publication_tables (publication, table_name)
-values ('supabase_realtime', 'online_classes'), ('supabase_realtime', 'class_notes')
-on conflict do nothing;
+-- Add classroom tables to the Supabase Realtime publication.
+alter publication supabase_realtime add table public.online_classes;
+alter publication supabase_realtime add table public.class_notes;

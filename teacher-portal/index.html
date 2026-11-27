@@ -79,17 +79,39 @@ $('register').onclick=async()=>{
    return;
   }
 
-  // A failed login can mean this is a new email. The server safely rejects an
-  // existing email unless the caller has authenticated as that account.
+  // New accounts are created through Supabase sign-up so the configured
+  // confirmation email must be completed before any teacher role is granted.
   b.textContent='Creating account…';
-  const {data:created,error:createError}=await supabaseClient.functions.invoke('teacher-self-register',{body:{email,password,name}});
+  const {data:created,error:createError}=await supabaseClient.auth.signUp({
+   email,password,
+   options:{
+    data:{full_name:name,pending_teacher:true},
+    emailRedirectTo:new URL('./activate.html',location.href).toString()
+   }
+  });
   if(createError)throw createError;
-  if(created?.error)throw Error(created.error);
-  if(!created?.ok||!created?.teacher)throw Error('Teacher account creation did not complete.');
-  const {data:loginData,error:loginError}=await supabaseClient.auth.signInWithPassword({email,password});
-  if(loginError)throw Error('Teacher account was created, but sign-in failed. Please use Log in or reset your password.');
-  const ok=await openTeacherDashboard(loginData.user);
-  if(!ok){await supabaseClient.auth.signOut();throw Error('Teacher account was created but could not be verified. Please contact MalawiHub Admin.')}
+  if(created?.user?.identities?.length===0){
+   const {error:resendError}=await supabaseClient.auth.resend({
+    type:'signup',email,
+    options:{emailRedirectTo:new URL('./activate.html',location.href).toString()}
+   });
+   if(resendError)throw resendError;
+   show('An account with this email already exists. If it has not been verified, a fresh confirmation email has been requested. If it is already verified, use Log in or reset your password.');
+   return;
+  }
+  if(created?.session?.user?.email_confirmed_at){
+   const {data:activated,error:activationError}=await supabaseClient.functions.invoke('teacher-self-register',{
+    body:{email,name},
+    headers:{Authorization:'Bearer '+created.session.access_token}
+   });
+   if(activationError)throw activationError;
+   if(activated?.error)throw Error(activated.error);
+   const ok=await openTeacherDashboard(created.session.user);
+   if(!ok)throw Error('Email verified but Teacher Portal access could not be confirmed. Please log in again.');
+   return;
+  }
+  show('Your account has been created. Check '+email+' and open the verification link. Teacher access will be activated only after your email is verified.');
+
  }catch(e){show(e.message||'Could not create teacher account.',true)}
  finally{b.disabled=false;b.textContent='Create Teacher Account'}
 };

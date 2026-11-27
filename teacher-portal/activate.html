@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Verify Teacher Account · MalawiHub</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+body{background:#f5f7fb}.wrap{max-width:560px;margin:auto;padding:20px}.card{background:#fff;border-radius:18px;padding:24px;margin-top:20px;box-shadow:0 6px 24px #0001}.input{width:100%;box-sizing:border-box;padding:13px;border:1px solid #ccd3df;border-radius:10px;margin:7px 0 14px;font:inherit}.btn{width:100%;padding:13px;border:0;border-radius:10px;font-weight:800;cursor:pointer;margin-top:8px}.primary{background:#087f3f;color:#fff}.muted{color:#667085;line-height:1.5}.msg{padding:12px;border-radius:10px;margin-top:12px;background:#f8fafc;white-space:pre-wrap}.error{background:#fef2f2;color:#991b1b}.success{background:#ecfdf3;color:#065f46}
+</style></head>
+<body><main class="wrap"><section class="card">
+<h1>🇲🇼 Verify your Teacher Portal account</h1>
+<p class="muted">Teacher access is granted only after the email address is verified. Open the confirmation link sent by MalawiHub. If this page asks you to log in, use the same email address and password you used during registration.</p>
+<form id="loginForm">
+<label for="email">Teacher email</label><input id="email" class="input" type="email" autocomplete="username" required>
+<label for="password">Password</label><input id="password" class="input" type="password" autocomplete="current-password" required>
+<button id="login" class="btn" type="submit">Log in to verify</button>
+</form>
+<button id="activate" class="btn primary" type="button" disabled>Activate Teacher Portal</button>
+<p id="message" class="msg" role="status" aria-live="polite">Checking your verified account…</p>
+<p><a href="./">Return to Teacher Portal</a></p>
+</section></main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../js/supabase.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+let currentUser=null;
+function message(text,type=''){const el=$('message');el.textContent=text;el.className='msg '+type;}
+async function refresh(){
+ const {data:{session},error}=await supabaseClient.auth.getSession();
+ if(error)throw error;
+ currentUser=session?.user||null;
+ if(!currentUser){$('activate').disabled=true;message('Email confirmation is required. After confirming, log in here if no session was opened automatically.');return;}
+ $('email').value=currentUser.email||'';
+ if(!currentUser.email_confirmed_at){$('activate').disabled=true;message('Your email is not verified yet. Open the confirmation link in your inbox, then return here.','error');return;}
+ $('activate').disabled=false;
+ $('loginForm').hidden=true;
+ message('Email verified for '+(currentUser.email||'your account')+'. Activate Teacher Portal access to continue.','success');
+}
+$('loginForm').addEventListener('submit',async event=>{
+ event.preventDefault();$('login').disabled=true;
+ try{
+  const {data,error}=await supabaseClient.auth.signInWithPassword({email:$('email').value.trim().toLowerCase(),password:$('password').value});
+  if(error)throw error;
+  await refresh();
+ }catch(e){message(e.message||'Could not sign in. Verify your email first.', 'error');}
+ finally{$('login').disabled=false;}
+});
+$('activate').onclick=async()=>{
+ if(!currentUser?.email_confirmed_at){message('Verify your email address before activating teacher access.','error');return;}
+ $('activate').disabled=true;message('Activating your teacher account…');
+ try{
+  const name=String(currentUser.user_metadata?.full_name||'').trim();
+  if(name.length<2)throw new Error('Your name is missing from the account. Contact MalawiHub support.');
+  const {data,error}=await supabaseClient.functions.invoke('teacher-self-register',{body:{email:currentUser.email,name}});
+  if(error)throw error;
+  if(data?.error)throw new Error(data.error);
+  if(!data?.ok)throw new Error('Teacher access could not be activated.');
+  message('Your email is verified and Teacher Portal access is active. Opening your dashboard…','success');
+  location.href='../online-class/teacher.html?v=20261127-verified-teacher';
+ }catch(e){message(e.message||'Teacher activation failed.','error');$('activate').disabled=false;}
+};
+refresh().catch(e=>message(e.message||'Could not check your account.','error'));
+</script></body></html>
