@@ -1,0 +1,89 @@
+# Online Class: secure teacher-controlled enrolment
+
+## Scope of this first implementation slice
+
+This branch introduces the first security and enrolment foundation without changing the production `main` branch.
+
+- Existing active class enrolments are retained and receive the new `active` status.
+- Class codes no longer create enrolments. The existing `join_online_class(text)` RPC now returns a class only when the signed-in student already has active membership.
+- A teacher with the administrator-granted `can_register_students` permission can find one existing student by exact email or username, but only in a class the teacher owns.
+- An authorised teacher or Online Class administrator can enrol, suspend or remove class membership through server-side RPCs.
+- Student membership changes are recorded in `online_class_enrollment_events`.
+- Class, class-note and class-video-resource read policies remove the legacy unrestricted SELECT policies and require an owner, administrator or active class member.
+- Realtime channel authorisation checks active membership.
+- The Online Class login page no longer creates student accounts or grants student area access during login.
+- Direct password-setting student registration is disabled in the teacher administration Edge Function.
+- The teacher dashboard has a class student-management page with individual lookup and CSV import (one exact email/username in the first column, maximum 50 rows).
+- Class ending replaces destructive class deletion in the teacher dashboard. Existing learning records are retained.
+
+## Intentionally not included yet
+
+- New student account invitations and verified account activation.
+- XLSX parsing; export an Excel roster to CSV for this first iteration.
+- Bulk-import transaction batching and background processing.
+- Full teacher email-verification repair.
+- Offline learning, classroom redesign and audio infrastructure changes.
+
+New students without an existing MalawiHub student account cannot be added through this first slice. Do not re-enable the old direct account creation action to work around this limitation. The next step is a verified invitation/activation workflow that does not reset an existing user's password.
+
+## Database migration
+
+Apply `supabase/migrations/202611270001_secure_teacher_controlled_class_enrollment.sql` only to a staging Supabase project first.
+
+The migration is additive. It adds membership status and audit fields, replaces the class-code enrolment behaviour, adds protected lookup/enrolment/status RPCs and replaces known permissive read policies. Existing membership rows default to `active`.
+
+Before applying to production:
+1. Confirm the deployed database contains `online_classes`, `online_class_enrollments`, `profiles`, `user_area_roles` and `class_video_resources`.
+2. Confirm `public.is_online_class_admin()` exists.
+3. Inspect `pg_policies` for any additional permissive policies on the three protected resource tables and remove/replace any equivalent broad policies.
+4. Back up the database and record the current migration state.
+5. Apply in staging and run the tests below.
+
+## Staging verification checklist
+
+### Existing access and class-code behaviour
+- [ ] Existing active enrolments remain active after migration.
+- [ ] A signed-in student who is already actively enrolled can open the class using its code.
+- [ ] A signed-in student who is not enrolled receives the teacher-enrolment message.
+- [ ] A suspended or removed student cannot open the class using its code.
+- [ ] An unauthenticated visitor cannot call the class-entry RPC.
+
+### Teacher enrolment
+- [ ] A teacher with `can_register_students = true` can find an existing student by exact email.
+- [ ] The same teacher can find an existing student by exact username.
+- [ ] The teacher cannot search against a class owned by another teacher.
+- [ ] A teacher without the registration permission is denied.
+- [ ] A student account can be enrolled by its own class teacher.
+- [ ] A non-student account cannot be enrolled unless it has the explicit student area role.
+- [ ] Repeating an enrolment does not create duplicate membership rows.
+- [ ] Re-enrolling a suspended/removed student restores active membership.
+- [ ] A teacher cannot enrol or remove students in another teacher's class.
+
+### Membership removal and records
+- [ ] Suspending a student prevents new class entry and new realtime subscriptions.
+- [ ] Removing a student does not delete their MalawiHub authentication account.
+- [ ] Class enrolment audit events are written for enrol, reactivate, suspend and remove.
+- [ ] Ending a class retains enrolments, assignments, submissions and marks.
+
+### Row Level Security
+- [ ] Anonymous users cannot read classes, notes, or class video resources.
+- [ ] A student can read only classes and resources for their active memberships.
+- [ ] A teacher can read their own classes and class resources.
+- [ ] A teacher cannot read another teacher's class roster.
+- [ ] Direct client INSERT/UPDATE/DELETE on `online_class_enrollments` is denied.
+- [ ] A removed or suspended student cannot newly subscribe to the class realtime topics.
+
+### Front-end smoke tests
+- [ ] Student login contains no public Create Account workflow.
+- [ ] Student login does not insert a profile or student area role.
+- [ ] Teacher dashboard opens Manage Students for an owned class.
+- [ ] Manual student lookup and enrolment refresh the roster.
+- [ ] CSV import handles duplicates, invalid rows and the 50-row limit.
+- [ ] Class creation works for an authorised teacher.
+- [ ] End Class updates status without deleting class records.
+
+## Deployment and rollback
+
+Do not merge this branch or apply the migration to production until staging verification passes. Do not run the migration against production merely because the GitHub pull request is open.
+
+If staging verification fails, leave production unchanged. If the migration has been applied to staging, restore staging from its pre-migration backup or use a reviewed forward-fix migration; do not attempt an improvised destructive rollback after enrolment audit data has been written.
