@@ -47,6 +47,10 @@ Before applying to production:
 4. Back up the database and record the current migration state.
 5. Apply in staging and run the tests below.
 
+## Existing Supabase advisor baseline
+
+The read-only Supabase Security Advisor check also reported pre-existing warnings for public-schema SECURITY DEFINER functions that are executable by anonymous or authenticated roles. Those functions predate this branch and are outside this first enrolment slice. This implementation avoids adding new public SECURITY DEFINER RPC endpoints; its RLS helpers and audit trigger live in the non-exposed `private` schema. Review the existing advisor findings separately before declaring the whole Supabase project security-clean.
+
 ## Staging verification checklist
 
 ### Existing access and class-code behaviour
