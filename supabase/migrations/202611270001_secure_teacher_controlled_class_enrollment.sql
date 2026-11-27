@@ -128,7 +128,7 @@ create or replace function public.online_class_channel_access(p_topic text)
 returns boolean
 language sql
 stable
-security definer
+security invoker
 set search_path = public, pg_temp
 as $$
   select auth.uid() is not null and exists (
