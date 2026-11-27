@@ -99,4 +99,5 @@ const nav=document.getElementById('topicLinks');nav.innerHTML=titles.map(([id,t]
 const input=document.getElementById('noteSearch'),sections=[...document.querySelectorAll('.topic')],status=document.getElementById('searchStatus');
 input.addEventListener('input',()=>{const q=input.value.trim().toLowerCase();let n=0;sections.forEach(s=>{const ok=!q||(s.innerText+' '+s.dataset.search).toLowerCase().includes(q);s.classList.toggle('hidden',!ok);if(ok)n++});nav.classList.toggle('hidden',!!q);status.textContent=q?(n+' matching topic(s). Clear the search to see the full topic list.'): 'Showing all 13 topics. Type a word or phrase to filter.';});
 if(location.hash){const el=document.querySelector(location.hash);if(el)el.scrollIntoView();}
-</script></body></html>
+</script><script src="/js/resources-navigation.js" defer></script>
+</body></html>
