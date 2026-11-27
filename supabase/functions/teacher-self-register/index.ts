@@ -61,6 +61,9 @@ Deno.serve(async (req) => {
       if (authError || !authData.user || authData.user.id !== existing.id) {
         return json({ error: "Please log in with the existing account for this email before adding teacher access." }, 401);
       }
+      if (!authData.user.email_confirmed_at) {
+        return json({ error: "Verify your email address before activating Teacher Portal access. Check your inbox for the confirmation message." }, 403);
+      }
 
       const { data: existingProfile, error: profileError } = await admin
         .from("profiles")
@@ -96,62 +99,13 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Match Admin-created teachers:
-    // server-side Auth creation + confirmed email + explicit teacher profile.
-    const { data: created, error: createError } =
-      await admin.auth.admin.createUser({
-        email,
-        password,
-        email_confirm: true,
-        user_metadata: {
-          full_name: name,
-          role: "teacher"
-        }
-      });
-
-    if (createError || !created.user) {
-      return json({
-        error: createError?.message || "Could not create teacher account."
-      }, 400);
-    }
-
-    const { error: profileError } = await admin
-      .from("profiles")
-      .upsert({
-        id: created.user.id,
-        email,
-        role: "teacher",
-        full_name: name
-      }, { onConflict: "id" });
-
-    if (profileError) {
-      await admin.auth.admin.deleteUser(created.user.id).catch(() => {});
-      throw profileError;
-    }
-
-    const { error: areaError } = await admin
-      .from("user_area_roles")
-      .upsert({
-        user_id: created.user.id,
-        area: "teacher",
-        display_name: name
-      }, { onConflict: "user_id,area" });
-
-    if (areaError) {
-      await admin.from("profiles").delete().eq("id", created.user.id);
-      await admin.auth.admin.deleteUser(created.user.id).catch(() => {});
-      throw areaError;
-    }
-
+    // New teacher identities must be created by the public Supabase sign-up flow,
+    // which sends the configured email-confirmation message. This function only
+    // grants teacher-area access to an already authenticated, verified identity.
     return json({
-      ok: true,
-      teacher: {
-        id: created.user.id,
-        email,
-        role: "teacher",
-        name
-      }
-    });
+      error: "No account was found for this email. Create your account through the Teacher Portal sign-up form and verify the email before activating teacher access."
+    }, 404);
+
   } catch (e) {
     console.error("teacher-self-register", e);
     return json({
