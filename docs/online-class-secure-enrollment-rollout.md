@@ -103,7 +103,7 @@ The read-only Supabase Security Advisor check also reported pre-existing warning
 - [ ] Student login does not insert a profile or student area role.
 - [ ] Teacher dashboard opens Manage Students for an owned class.
 - [ ] Manual student lookup and enrolment refresh the roster.
-- [ ] New-student invitation form is visible only to teachers with registration permission.
+- [ ] New-student invitation action is disabled for teachers without registration permission.
 - [ ] Student activation page requires a verified invitation session and a matching email.
 - [ ] CSV import handles duplicates, invalid rows and the 50-row limit.
 - [ ] Class creation works for an authorised teacher.
