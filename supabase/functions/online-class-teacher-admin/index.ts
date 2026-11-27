@@ -260,10 +260,18 @@ if(action==="redeem_student_invitation"){
     updated_by:user.id,updated_at:new Date().toISOString()
   },{onConflict:"class_id,student_id"});
   if(enrollmentError)throw enrollmentError;
-  const {error:acceptedError}=await admin.from("online_class_student_invitations").update({
+  const {data:acceptedRow,error:acceptedError}=await admin.from("online_class_student_invitations").update({
     status:"accepted",accepted_by:user.id,accepted_at:new Date().toISOString()
-  }).eq("id",invitation.id).eq("status","pending");
+  }).eq("id",invitation.id).eq("status","pending").select("id").maybeSingle();
   if(acceptedError)throw acceptedError;
+  if(!acceptedRow){
+    const {data:latestInvite,error:latestInviteError}=await admin.from("online_class_student_invitations")
+      .select("status,accepted_by").eq("id",invitation.id).maybeSingle();
+    if(latestInviteError)throw latestInviteError;
+    if(latestInvite?.status!=="accepted"||latestInvite.accepted_by!==user.id){
+      return json({error:"This invitation was already used by another account. Ask your teacher for help."},409);
+    }
+  }
   return json({ok:true,class_id:invitation.class_id,message:"Student access is active. You can now sign in to Online Class."});
 }
 
