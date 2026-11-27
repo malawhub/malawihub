@@ -411,7 +411,7 @@ language sql
 stable
 security definer
 set search_path = public, pg_temp
-as $
+as $$
   select auth.uid() is not null and exists (
     select 1
     from public.online_classes c
