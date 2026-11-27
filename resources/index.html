@@ -129,7 +129,7 @@
    const level=String(r.education_level||'').trim();
    const label=level?level.replace(/[_-]/g,' ').replace(/\b\w/g,c=>c.toUpperCase()):'Education level not specified';
    const href=r.link?String(r.link):'';
-   const safeHref=/^(https?:\/\/|\/|\.\.?\/|[a-zA-Z0-9_-])/.test(href)&&!/^javascript:/i.test(href);
+   const safeHref=/^(https?:\/\/|\/(?!\/)|\.\/|\.\.\/)/i.test(href);
    return '<article class="result"><h3>'+escapeHTML(r.title||'Untitled resource')+'</h3><p><strong>'+escapeHTML(r.subject||'Learning resource')+'</strong> · '+escapeHTML(label)+'</p><p>'+escapeHTML(r.description||r.topic||'')+'</p>'+(safeHref?'<a href="'+escapeHTML(href)+'" '+(/^https?:\/\//i.test(href)?'target="_blank" rel="noopener"':'')+'>Open resource →</a>':'')+'</article>';
   }).join(''):'<div class="result"><p>No matching resource was found. Try a shorter keyword or browse by education level above.</p></div>';
  }
