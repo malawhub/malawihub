@@ -158,9 +158,6 @@ if(action==="invite_student"){
   if(classError)throw classError;
   if(!ownedClass)return json({error:"Class not found."},404);
   if(!isAdmin&&ownedClass.teacher_id!==user.id)return json({error:"You can only invite students to your own classes."},403);
-  const {data:existingProfile,error:profileLookupError}=await admin.from("profiles").select("id,role").eq("email",email).maybeSingle();
-  if(profileLookupError)throw profileLookupError;
-  if(existingProfile)return json({error:"A MalawiHub account already uses this email. Use Add Existing Student instead."},409);
   const {data:previousInvite,error:previousInviteError}=await admin.from("online_class_student_invitations")
     .select("id,status,expires_at,auth_user_id").eq("class_id",classId).eq("email",email)
     .order("created_at",{ascending:false}).limit(1).maybeSingle();
@@ -173,14 +170,12 @@ if(action==="invite_student"){
     if(matchingAuthUser||(authPage.users||[]).length<1000)break;
   }
   if(matchingAuthUser){
-    const metadata=matchingAuthUser.user_metadata||{};
     const belongsToThisInvite=!!previousInvite&&previousInvite.auth_user_id===matchingAuthUser.id;
     if(!belongsToThisInvite||matchingAuthUser.email_confirmed_at){
       return json({error:"A MalawiHub account already exists for this email. Add the verified student account directly. If the student already verified an invitation but did not finish activation, contact MalawiHub support."},409);
     }
-    // Safe recovery: delete only an unverified Auth identity that carries the
-    // exact invitation ID stored for this same class/email. Never delete an
-    // unrelated or already-verified account.
+    // Safe recovery: delete only the exact unverified Auth identity recorded
+    // on this invitation. Never delete a verified or unrelated account.
     const {error:deleteIdentityError}=await admin.auth.admin.deleteUser(matchingAuthUser.id);
     if(deleteIdentityError)throw deleteIdentityError;
     if(previousInvite){
@@ -188,6 +183,9 @@ if(action==="invite_student"){
       if(deleteInviteError)throw deleteInviteError;
     }
   }
+  const {data:existingProfile,error:profileLookupError}=await admin.from("profiles").select("id,role").eq("email",email).maybeSingle();
+  if(profileLookupError)throw profileLookupError;
+  if(existingProfile)return json({error:"A MalawiHub account already uses this email. Use Add Existing Student instead."},409);
   const raw=new Uint8Array(32);crypto.getRandomValues(raw);
   const token=Array.from(raw).map((b)=>b.toString(16).padStart(2,"0")).join("");
   const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(token));
