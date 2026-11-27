@@ -60,7 +60,7 @@ async function addOne(identifier,askConfirmation=true){
  const student=Array.isArray(found)?found[0]:found;
  if(!student)throw new Error('No matching student account was returned.');
  const label=[student.full_name,student.username,student.email].filter(Boolean).join(' · ');
- if(!confirm('Add this student to the class?\n\n'+label))return 'skipped';
+ if(askConfirmation&&!confirm('Add this student to the class?\n\n'+label))return 'skipped';
  const {data:enrollment,error}=await supabaseClient.rpc('teacher_enroll_student',{p_class_id:classId,p_student_id:student.id});
  if(error)throw error;
  return 'added';
