@@ -278,7 +278,7 @@ begin
     raise exception 'Authentication required';
   end if;
 
-  if p_status not in ('suspended', 'removed') then
+  if p_status is null or p_status not in ('suspended', 'removed') then
     raise exception 'Status must be suspended or removed';
   end if;
 
@@ -420,7 +420,6 @@ as $$
       'malawihub-whiteboard-' || c.join_code,
       'malawihub-resources-' || c.join_code
     )
-    and c.status = 'live'
     and (
       public.is_online_class_admin()
       or exists (
@@ -428,11 +427,14 @@ as $$
         where p.id = auth.uid() and p.role = 'admin'
       )
       or c.teacher_id = auth.uid()
-      or exists (
-        select 1 from public.online_class_enrollments e
-        where e.class_id = c.id
-          and e.student_id = auth.uid()
-          and e.status = 'active'
+      or (
+        c.status = 'live'
+        and exists (
+          select 1 from public.online_class_enrollments e
+          where e.class_id = c.id
+            and e.student_id = auth.uid()
+            and e.status = 'active'
+        )
       )
     )
   );
