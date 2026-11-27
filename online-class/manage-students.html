@@ -54,7 +54,7 @@ let canRegister=false;
 const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
 function status(id,message,error=false){const el=$(id);el.textContent=message||'';el.style.color=error?'#b42318':'';}
 async function edge(action,body={}){const {data,error}=await supabaseClient.functions.invoke('online-class-teacher-admin',{body:{action,...body}});if(error)throw error; if(data?.error)throw new Error(data.error);return data;}
-async function addOne(identifier){
+async function addOne(identifier,askConfirmation=true){
  const {data:found,error:findError}=await supabaseClient.rpc('teacher_find_student',{p_class_id:classId,p_identifier:identifier});
  if(findError)throw findError;
  const student=Array.isArray(found)?found[0]:found;
@@ -71,7 +71,8 @@ async function loadRoster(){
   const result=await edge('list_class_students',{class_id:classId});
   const students=result.students||[];
   if(!students.length){$('roster').textContent='No students have been enrolled in this class yet.';return;}
-  $('roster').innerHTML=students.map(s=>'<div class="student"><div><b>'+esc(s.name||'Student')+'</b><div class="muted">'+esc(s.username||'')+(s.email?' · '+esc(s.email):'')+'</div><small class="muted">Added '+(s.joined_at?new Date(s.joined_at).toLocaleDateString():'')+'</small></div><span class="pill '+esc(s.status||'active')+'">'+esc(s.status||'active')+'</span></div>').join('');
+  $('roster').innerHTML=students.map(s=>'<div class="student"><div><b>'+esc(s.name||'Student')+'</b><div class="muted">'+esc(s.username||'')+(s.email?' · '+esc(s.email):'')+'</div><small class="muted">Added '+(s.joined_at?new Date(s.joined_at).toLocaleDateString():'')+'</small></div><div class="row"><span class="pill '+esc(s.status||'active')+'">'+esc(s.status||'active')+'</span>'+(canRegister&&s.status!=='removed'?'<button class="btn" type="button" data-remove-student="'+esc(s.id)+'">Remove</button>':'')+'</div></div>').join('');
+  document.querySelectorAll('[data-remove-student]').forEach(button=>button.addEventListener('click',async()=>{if(!confirm('Remove this student from this class? Their MalawiHub account and learning records will remain.'))return;button.disabled=true;try{const {error}=await supabaseClient.rpc('teacher_set_enrollment_status',{p_class_id:classId,p_student_id:button.dataset.removeStudent,p_status:'removed'});if(error)throw error;await loadRoster();}catch(e){alert(e.message||'Could not remove student.');button.disabled=false;}}));
  }catch(e){$('roster').textContent='Could not load the class list: '+(e.message||'Unknown error');}
 }
 async function init(){
@@ -127,9 +128,9 @@ $('importCsv').onclick=async()=>{
   const unique=[...new Set(filtered.map(v=>v.toLowerCase()))];
   if(!unique.length)throw new Error('No email addresses or usernames were found in the first column.');
   if(unique.length>50)throw new Error('This import has '+unique.length+' entries. Please split it into files of 50 students or fewer.');
-  let added=0,skipped=0,failed=[];
+  if(!confirm('Import '+unique.length+' student identifiers into this class?')){status('csvStatus','Import cancelled.');return;}\n  let added=0,skipped=0,failed=[];
   for(let i=0;i<unique.length;i++){
-   try{const outcome=await addOne(unique[i]);if(outcome==='added')added++;else skipped++;}
+   try{const outcome=await addOne(unique[i],false);if(outcome==='added')added++;else skipped++;}
    catch(e){failed.push(unique[i]+': '+(e.message||'Could not add'));}
    status('csvStatus','Processed '+(i+1)+' of '+unique.length+' · Added '+added+' · Skipped '+skipped+' · Errors '+failed.length);
   }
