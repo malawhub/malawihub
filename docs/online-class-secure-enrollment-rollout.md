@@ -20,13 +20,13 @@ This branch introduces the first security and enrolment foundation without chang
 
 ## Intentionally not included yet
 
-- A resend/recovery workflow for expired or lost invitations to accounts that were created but never verified.
+- A teacher self-service resend button for teacher registration confirmation emails; an unverified teacher can retry registration using the same email, and Supabase's signup resend path is not yet surfaced in the UI.
 - XLSX parsing; export an Excel roster to CSV for this first iteration.
 - Bulk-import transaction batching and background processing.
-- Full teacher email-verification repair. The existing `teacher-self-register` Edge Function still creates new teacher accounts with `email_confirm: true`; this known bypass must be fixed before production rollout.
+- Teacher registration now uses Supabase sign-up email confirmation. The server-side `teacher-self-register` function no longer creates confirmed identities and refuses to grant teacher access unless the authenticated email is verified. Existing legacy accounts still require separate verification/resend handling.
 - Offline learning, classroom redesign and audio infrastructure changes.
 
-New students can now be invited through the teacher management page. Existing MalawiHub accounts must still be added through exact account lookup; the invitation endpoint refuses to take over an existing account. If an invitation is lost or expires after the authentication identity has been created, support must currently resolve the pending identity before the teacher can issue another invitation. Do not re-enable the old direct account creation action to work around this limitation.
+New students can now be invited through the teacher management page. Existing MalawiHub accounts must still be added through exact account lookup; the invitation endpoint refuses to take over an existing account. If an invitation is lost or expires before email verification, a teacher can issue another invitation to the same class and email. The server will replace only the unverified Auth identity whose metadata contains the exact previous invitation ID for that same class/email. It will never delete a verified or unrelated account. If the student has already verified but did not finish activation, support must resolve the account; a teacher must not attempt to replace it.
 
 ## Live database inspection and migration drift
 
@@ -81,7 +81,7 @@ The read-only Supabase Security Advisor check also reported pre-existing warning
 - [ ] An unverified account cannot redeem the invitation.
 - [ ] The correct verified email can set a password and activate student access.
 - [ ] The student role, student area and class membership are created only after successful redemption.
-- [ ] A token cannot be reused for a second activation and an expired token is rejected.
+- [ ] A token cannot be reused for a second activation and an expired token is rejected.\n- [ ] Reissuing an invitation replaces only the unverified Auth identity linked to the prior invitation for that same class/email.\n- [ ] Reissuing an invitation never deletes a verified account or an account not linked to that invitation.
 - [ ] The student can subsequently sign in through Student Login.
 
 ### Membership removal and records
@@ -104,7 +104,7 @@ The read-only Supabase Security Advisor check also reported pre-existing warning
 - [ ] Teacher dashboard opens Manage Students for an owned class.
 - [ ] Manual student lookup and enrolment refresh the roster.
 - [ ] New-student invitation action is disabled for teachers without registration permission.
-- [ ] Student activation page requires a verified invitation session and a matching email.
+- [ ] Student activation page requires a verified invitation session and a matching email.\n- [ ] New teacher sign-up sends a confirmation email and does not grant a teacher role before verification.\n- [ ] An unverified existing account cannot obtain teacher-area access through the Edge Function.\n- [ ] A verified new teacher can activate teacher-area access and reach the Teacher Dashboard.
 - [ ] CSV import handles duplicates, invalid rows and the 50-row limit.
 - [ ] Class creation works for an authorised teacher.
 - [ ] End Class updates status without deleting class records.
