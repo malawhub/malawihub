@@ -96,4 +96,5 @@ const buttons=[...document.querySelectorAll('[data-form]')],courses=[...document
 buttons.forEach(b=>b.addEventListener('click',()=>{buttons.forEach(x=>x.classList.toggle('active',x===b));courses.forEach(x=>x.classList.toggle('active',x.id===b.dataset.form));document.getElementById('q').value='';filterNotes();}));
 function filterNotes(){const q=document.getElementById('q').value.trim().toLowerCase();const active=document.querySelector('.course.active');let shown=0,total=0;active.querySelectorAll('.unit').forEach(u=>{total++;const match=!q||u.innerText.toLowerCase().includes(q);u.classList.toggle('hidden',!match);if(match)shown++;});document.getElementById('status').textContent=q?('Showing '+shown+' of '+total+' sections matching “'+q+'”.'):('Showing all '+total+' sections in this Form.');}
 document.getElementById('q').addEventListener('input',filterNotes);filterNotes();
-</script></body></html>
+</script><script src="/js/resources-navigation.js" defer></script>
+</body></html>
