@@ -1,3 +1,5 @@
+project_id = "malawihub-online-class-test"
+
 [functions.resource-discovery]
 verify_jwt = true
 
