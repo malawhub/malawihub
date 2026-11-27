@@ -5,6 +5,7 @@
 alter table public.online_class_enrollments
   add column if not exists status text not null default 'active',
   add column if not exists invited_by uuid references auth.users(id) on delete set null,
+  add column if not exists updated_by uuid references auth.users(id) on delete set null,
   add column if not exists updated_at timestamptz not null default now();
 
 do $$
@@ -48,6 +49,48 @@ create policy "online class enrollment events admin read"
     or exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
   );
 revoke all on public.online_class_enrollment_events from anon, authenticated;
+
+-- Internal trigger records membership changes atomically with the row write.
+-- The private schema is not exposed through the Supabase Data API.
+create schema if not exists private;
+revoke all on schema private from public, anon, authenticated;
+
+create or replace function private.log_online_class_enrollment_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_action text;
+begin
+  if tg_op = 'INSERT' then
+    v_action := 'enrolled';
+  elsif new.status is distinct from old.status then
+    v_action := case when new.status = 'active' then 'reactivated' else new.status end;
+  else
+    return new;
+  end if;
+
+  insert into public.online_class_enrollment_events (
+    class_id, student_id, actor_id, action, details
+  ) values (
+    new.class_id,
+    new.student_id,
+    coalesce(new.updated_by, auth.uid()),
+    v_action,
+    jsonb_build_object('previous_status', case when tg_op = 'UPDATE' then old.status else null end)
+  );
+
+  return new;
+end;
+$$;
+
+revoke all on function private.log_online_class_enrollment_change() from public, anon, authenticated;
+drop trigger if exists log_online_class_enrollment_change on public.online_class_enrollments;
+create trigger log_online_class_enrollment_change
+  after insert or update of status on public.online_class_enrollments
+  for each row execute function private.log_online_class_enrollment_change();
 
 -- Preserve the existing classroom entry RPC for compatibility, but require
 -- an already-active membership. Supplying a class code no longer enrols anyone.
