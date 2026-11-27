@@ -380,6 +380,10 @@ begin
     raise exception 'Class not found';
   end if;
 
+  if coalesce(v_class.status, 'scheduled') <> 'live' then
+    raise exception 'Class is not live yet';
+  end if;
+
   if not exists (
     select 1 from public.online_class_enrollments e
     where e.class_id = v_class.id
@@ -416,6 +420,7 @@ as $$
       'malawihub-whiteboard-' || c.join_code,
       'malawihub-resources-' || c.join_code
     )
+    and c.status = 'live'
     and (
       public.is_online_class_admin()
       or exists (
