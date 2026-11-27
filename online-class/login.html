@@ -16,7 +16,7 @@ body{background:#f5f7fb}.wrap{max-width:650px;margin:auto;padding:18px}.card{bac
 <main class="wrap"><section class="card">
 <h1>🇲🇼 MalawiHub Online Class</h1>
 <p class="muted">Student Login · Private classroom access</p>
-<p class="muted">Log in to continue to your private classroom, or create a student account below.</p>
+<p class="muted">Log in with your MalawiHub student account. If you do not have an account or cannot find your class, ask your teacher to arrange access.</p>
 <form id="loginForm">
 <label for="email">Email address</label>
 <input id="email" class="input" type="email" placeholder="Email address" autocomplete="username" required>
@@ -24,21 +24,7 @@ body{background:#f5f7fb}.wrap{max-width:650px;margin:auto;padding:18px}.card{bac
 <input id="password" class="input" type="password" placeholder="Password" autocomplete="current-password" required>
 <button id="login" class="btn primary" type="submit">Log in as Student</button>
 </form>
-<button id="showRegister" class="btn primary" type="button">Create Account</button>
-<form id="registerForm" hidden style="margin-top:18px">
-<h2>Create Student Account</h2>
-<label for="fullName">Full name</label>
-<input id="fullName" class="input" type="text" autocomplete="name" minlength="2" maxlength="120" placeholder="Your full name" required>
-<label for="newEmail">Email address</label>
-<input id="newEmail" class="input" type="email" autocomplete="email" placeholder="Email address" required>
-<label for="newPassword">Create password</label>
-<input id="newPassword" class="input" type="password" autocomplete="new-password" minlength="8" placeholder="At least 8 characters" required>
-<label for="confirmPassword">Confirm password</label>
-<input id="confirmPassword" class="input" type="password" autocomplete="new-password" minlength="8" placeholder="Repeat password" required>
-<button id="register" class="btn primary" type="submit">Create Student Account</button>
-<button id="cancelRegister" class="btn" style="background:#eef2f7;color:#344054" type="button">Back to Login</button>
-<p class="muted">Use an email address you can access. If email confirmation is required, confirm your email before logging in.</p>
-</form>
+<p class="muted">Student accounts and class membership are managed through authorised MalawiHub staff. Students cannot create an Online Class account or enrol themselves from this page.</p>
 <p id="msg" class="msg" role="status" aria-live="polite"></p>
 <button id="continueLogin" class="btn primary" type="button" hidden>Continue to Student Login</button>
 <p><a href="./landing.html">← Online Classes</a></p>
@@ -64,30 +50,6 @@ function goToStudentArea(){
  }
 }
 $('continueLogin').addEventListener('click',()=>{location.href='./login.html'+(location.search||'')});
-$('showRegister').addEventListener('click',()=>{$('continueLogin').hidden=true;$('registerForm').hidden=false;$('loginForm').hidden=true;$('showRegister').hidden=true;showMsg('Create your student account using your name, email and a password.');});
-$('cancelRegister').addEventListener('click',()=>{$('registerForm').hidden=true;$('loginForm').hidden=false;$('showRegister').hidden=false;$('continueLogin').hidden=true;showMsg('');});
-$('registerForm').addEventListener('submit',async event=>{
- event.preventDefault();const button=$('register');button.disabled=true;showMsg('Creating your student account…');
- try{
-  const name=$('fullName').value.trim(),email=$('newEmail').value.trim().toLowerCase(),password=$('newPassword').value,confirm=$('confirmPassword').value;
-  if(name.length<2)throw Error('Enter your full name.');
-  if(password.length<8)throw Error('Your password must contain at least 8 characters.');
-  if(password!==confirm)throw Error('The passwords do not match.');
-  const redirectParams=new URLSearchParams();
-  const code=requestedClassCode()||sessionStorage.getItem('malawihub_class_code')||'';
-  if(code)redirectParams.set('code',code);
-  const redirectTo=location.origin+location.pathname+(redirectParams.toString()?'?'+redirectParams.toString():'');
-  const {data,error}=await supabaseClient.auth.signUp({email,password,options:{data:{full_name:name},emailRedirectTo:redirectTo}});
-  if(error)throw error;
-  if(data.session&&data.user){
-   const {error:profileError}=await supabaseClient.from('profiles').upsert({id:data.user.id,email,full_name:name,role:'student'},{onConflict:'id'});
-   if(profileError)console.warn('Profile will be completed by the server trigger:',profileError.message);
-   showMsg('Account created. Opening Online Class…','success');goToStudentArea();return;
-  }
-  showMsg('Your account details were submitted, but Supabase has not signed you in yet. Check your email for a confirmation link. Open that link first, then return here and log in to enter the portal. The portal cannot open a private classroom until the account is confirmed and signed in.','success');$('continueLogin').hidden=false;
- }catch(e){showMsg(e?.message||'Could not create your account. Please try again.','error')}
- finally{button.disabled=false}
-});
 $('loginForm').addEventListener('submit',async event=>{
  event.preventDefault();const button=$('login');button.disabled=true;showMsg('Signing in…');
  try{
@@ -100,28 +62,13 @@ $('loginForm').addEventListener('submit',async event=>{
    supabaseClient.from('user_area_roles').select('area').eq('user_id',user.id).eq('area','student').maybeSingle()
   ]);
   if(profileResult.error)throw profileResult.error;if(areaResult.error)throw areaResult.error;
-  // Complete student access for an authenticated account. RLS limits these writes to this user's own ID,
-  // and the database trigger prevents a normal user from assigning themselves a privileged profile role.
-  if(!profileResult.data){
-   const {error:insertProfileError}=await supabaseClient.from('profiles').insert({
-    id:user.id,email:user.email||email,full_name:user.user_metadata?.full_name||user.user_metadata?.name||email,role:'student'
-   });
-   if(insertProfileError)throw Error('You are signed in, but your student profile could not be created: '+insertProfileError.message);
-   profileResult=await supabaseClient.from('profiles').select('role').eq('id',user.id).maybeSingle();
-   if(profileResult.error)throw profileResult.error;
-  }
-  if(!areaResult.data){
-   const {error:areaInsertError}=await supabaseClient.from('user_area_roles').upsert({
-    user_id:user.id,area:'student',display_name:user.user_metadata?.full_name||user.user_metadata?.name||email
-   },{onConflict:'user_id,area'});
-   if(areaInsertError)throw Error('You are signed in, but student portal access could not be saved: '+areaInsertError.message);
-   areaResult=await supabaseClient.from('user_area_roles').select('area').eq('user_id',user.id).eq('area','student').maybeSingle();
-   if(areaResult.error)throw areaResult.error;
-  }
+  // Student access must already have been provisioned by an authorised
+  // MalawiHub workflow. Never let a login page create its own student role.
   if(profileResult.data?.role!=='student'&&!areaResult.data?.area){
-   showMsg('Your account is signed in, but student access could not be verified. Please contact MalawiHub support.','error');
+   showMsg('Your account is signed in, but it has not been authorised for Student Portal access. Ask your teacher or MalawiHub support to arrange student access.','error');
    return;
   }
+
   const code=requestedClassCode()||sessionStorage.getItem('malawihub_class_code')||'';
   if(code){
    sessionStorage.setItem('malawihub_class_code',code);
