@@ -59,7 +59,7 @@ returns table(id uuid, full_name text, username text, email text)
 language plpgsql
 security definer
 set search_path = public, pg_temp
-as $
+as $$
 declare
   v_actor uuid := auth.uid();
   v_actor_role text;
@@ -142,7 +142,7 @@ begin
     )
   limit 1;
 end;
-$$;;
+$$;
 
 revoke all on function public.teacher_find_student(uuid, text) from public, anon;
 grant execute on function public.teacher_find_student(uuid, text) to authenticated;
