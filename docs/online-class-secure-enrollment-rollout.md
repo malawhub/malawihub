@@ -13,18 +13,20 @@ This branch introduces the first security and enrolment foundation without chang
 - Realtime channel authorisation checks active membership.
 - The Online Class login page no longer creates student accounts or grants student area access during login.
 - Direct password-setting student registration is disabled in the teacher administration Edge Function.
-- The teacher dashboard has a class student-management page with individual lookup and CSV import (one exact email/username in the first column, maximum 50 rows).
+- The teacher dashboard has a class student-management page with individual lookup, CSV import (one exact email/username in the first column, maximum 50 rows) and a new-student email invitation form.
+- New-student invitations use a random one-time token; only its SHA-256 hash is stored. The invitation expires after 7 days.
+- An invited user must open the email, verify the email address, set a password and redeem the invitation while signed in with that same email. Only then are the student profile, student-area role and class membership activated.
 - Class ending replaces destructive class deletion in the teacher dashboard. Existing learning records are retained.
 
 ## Intentionally not included yet
 
-- New student account invitations and verified account activation.
+- A resend/recovery workflow for expired or lost invitations to accounts that were created but never verified.
 - XLSX parsing; export an Excel roster to CSV for this first iteration.
 - Bulk-import transaction batching and background processing.
-- Full teacher email-verification repair.
+- Full teacher email-verification repair. The existing `teacher-self-register` Edge Function still creates new teacher accounts with `email_confirm: true`; this known bypass must be fixed before production rollout.
 - Offline learning, classroom redesign and audio infrastructure changes.
 
-New students without an existing MalawiHub student account cannot be added through this first slice. Do not re-enable the old direct account creation action to work around this limitation. The next step is a verified invitation/activation workflow that does not reset an existing user's password.
+New students can now be invited through the teacher management page. Existing MalawiHub accounts must still be added through exact account lookup; the invitation endpoint refuses to take over an existing account. If an invitation is lost or expires after the authentication identity has been created, support must currently resolve the pending identity before the teacher can issue another invitation. Do not re-enable the old direct account creation action to work around this limitation.
 
 ## Live database inspection and migration drift
 
@@ -36,9 +38,9 @@ The live database has applied migration records named `allow_teacher_area_roles_
 
 ## Database migration
 
-Apply `supabase/migrations/202611270001_secure_teacher_controlled_class_enrollment.sql` only to a staging Supabase project first.
+Apply `supabase/migrations/202611270001_secure_teacher_controlled_class_enrollment.sql` and then `supabase/migrations/202611270002_secure_student_invitations.sql` only to a staging Supabase project first.
 
-The migration is additive. It adds membership status and audit fields, a private atomic audit trigger and private RLS helper functions, replaces the class-code enrolment behaviour and replaces known permissive read policies. Teacher lookup and membership changes are validated in the authenticated Edge Function rather than exposed as new public SECURITY DEFINER RPCs. The private helpers are used by RLS policies to avoid recursive policy lookups; the class-entry and realtime helper functions run as SECURITY INVOKER. Existing membership rows default to `active`.
+The first migration is additive. It adds membership status and audit fields, a private atomic audit trigger and private RLS helper functions, replaces the class-code enrolment behaviour and replaces known permissive read policies. The second migration adds a private invitation ledger with no direct client grants. Teacher lookup and membership changes are validated in the authenticated Edge Function rather than exposed as new public SECURITY DEFINER RPCs. The private helpers are used by RLS policies to avoid recursive policy lookups; the class-entry and realtime helper functions run as SECURITY INVOKER. Existing membership rows default to `active`.
 
 Before applying to production:
 1. Confirm the deployed database contains `online_classes`, `online_class_enrollments`, `profiles`, `user_area_roles` and `class_video_resources`.
@@ -71,6 +73,17 @@ The read-only Supabase Security Advisor check also reported pre-existing warning
 - [ ] Re-enrolling a suspended/removed student restores active membership.
 - [ ] A teacher cannot enrol or remove students in another teacher's class.
 
+### New student invitation and activation
+- [ ] A teacher with registration permission can invite a new email address to a class they own.
+- [ ] The invitation is rejected for an existing MalawiHub account; the teacher is directed to existing-student lookup.
+- [ ] The invitation email redirects to the activation page and the token is not stored in plaintext in the database.
+- [ ] A different signed-in email cannot redeem the invitation.
+- [ ] An unverified account cannot redeem the invitation.
+- [ ] The correct verified email can set a password and activate student access.
+- [ ] The student role, student area and class membership are created only after successful redemption.
+- [ ] A token cannot be reused for a second activation and an expired token is rejected.
+- [ ] The student can subsequently sign in through Student Login.
+
 ### Membership removal and records
 - [ ] Suspending a student prevents new class entry and new realtime subscriptions.
 - [ ] Removing a student does not delete their MalawiHub authentication account.
@@ -90,6 +103,8 @@ The read-only Supabase Security Advisor check also reported pre-existing warning
 - [ ] Student login does not insert a profile or student area role.
 - [ ] Teacher dashboard opens Manage Students for an owned class.
 - [ ] Manual student lookup and enrolment refresh the roster.
+- [ ] New-student invitation form is visible only to teachers with registration permission.
+- [ ] Student activation page requires a verified invitation session and a matching email.
 - [ ] CSV import handles duplicates, invalid rows and the 50-row limit.
 - [ ] Class creation works for an authorised teacher.
 - [ ] End Class updates status without deleting class records.
