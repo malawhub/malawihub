@@ -199,7 +199,6 @@ if(action==="invite_student"){
     expires_at:new Date(Date.now()+7*24*60*60*1000).toISOString(),status:"pending"
   }).select("id").single();
   if(insertError)throw insertError;
-  const redirectTo="https://malawihub.pages.dev/online-class/student-activate.html?token="+encodeURIComponent(token);
   const siteUrl=(Deno.env.get("MALAWIHUB_SITE_URL")||"https://malawihub.pages.dev").replace(/\/$/,"");
   const redirectTo=siteUrl+"/online-class/student-activate.html?token="+encodeURIComponent(token);
   const {data:invited,error:inviteError}=await admin.auth.admin.inviteUserByEmail(email,{
