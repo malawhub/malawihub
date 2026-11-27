@@ -26,6 +26,9 @@ create table if not exists public.online_class_student_invitations (
 
 create index if not exists online_class_student_invitations_class_email_idx
   on public.online_class_student_invitations(class_id, email, created_at desc);
+create unique index if not exists online_class_student_invitations_one_pending_per_class_email_idx
+  on public.online_class_student_invitations(class_id, email)
+  where status = 'pending';
 create index if not exists online_class_student_invitations_pending_expiry_idx
   on public.online_class_student_invitations(expires_at)
   where status = 'pending';
