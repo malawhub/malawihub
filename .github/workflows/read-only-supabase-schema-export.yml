@@ -1,6 +1,7 @@
 name: Read-only Supabase schema export
 
 on:
+  workflow_dispatch:
   push:
     branches: [feature/online-class-secure-enrollment]
     paths:
