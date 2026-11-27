@@ -162,7 +162,7 @@ if(action==="invite_student"){
   if(profileLookupError)throw profileLookupError;
   if(existingProfile)return json({error:"A MalawiHub account already uses this email. Use Add Existing Student instead."},409);
   const {data:previousInvite,error:previousInviteError}=await admin.from("online_class_student_invitations")
-    .select("id,status,expires_at").eq("class_id",classId).eq("email",email)
+    .select("id,status,expires_at,auth_user_id").eq("class_id",classId).eq("email",email)
     .order("created_at",{ascending:false}).limit(1).maybeSingle();
   if(previousInviteError)throw previousInviteError;
   let matchingAuthUser:any=null;
@@ -174,7 +174,7 @@ if(action==="invite_student"){
   }
   if(matchingAuthUser){
     const metadata=matchingAuthUser.user_metadata||{};
-    const belongsToThisInvite=!!previousInvite&&metadata.invitation_id===previousInvite.id;
+    const belongsToThisInvite=!!previousInvite&&previousInvite.auth_user_id===matchingAuthUser.id;
     if(!belongsToThisInvite||matchingAuthUser.email_confirmed_at){
       return json({error:"A MalawiHub account already exists for this email. Add the verified student account directly. If the student already verified an invitation but did not finish activation, contact MalawiHub support."},409);
     }
@@ -200,14 +200,23 @@ if(action==="invite_student"){
   }).select("id").single();
   if(insertError)throw insertError;
   const redirectTo="https://malawihub.pages.dev/online-class/student-activate.html?token="+encodeURIComponent(token);
+  const siteUrl=(Deno.env.get("MALAWIHUB_SITE_URL")||"https://malawihub.pages.dev").replace(/\/$/,"");
+  const redirectTo=siteUrl+"/online-class/student-activate.html?token="+encodeURIComponent(token);
   const {data:invited,error:inviteError}=await admin.auth.admin.inviteUserByEmail(email,{
-    data:{full_name:fullName,invitation_id:invitation.id},
+    data:{full_name:fullName},
     redirectTo
   });
   if(inviteError||!invited.user){
     if(invited?.user?.id)await admin.auth.admin.deleteUser(invited.user.id);
     await admin.from("online_class_student_invitations").delete().eq("id",invitation.id);
     return json({error:inviteError?.message||"Could not send the student invitation email."},400);
+  }
+  const {error:identityLinkError}=await admin.from("online_class_student_invitations")
+    .update({auth_user_id:invited.user.id}).eq("id",invitation.id);
+  if(identityLinkError){
+    await admin.auth.admin.deleteUser(invited.user.id);
+    await admin.from("online_class_student_invitations").delete().eq("id",invitation.id);
+    throw identityLinkError;
   }
   return json({ok:true,expires_in_days:7,message:"Invitation sent. The student must open the email and verify the address before classroom access is activated."});
 }
@@ -218,19 +227,28 @@ if(action==="redeem_student_invitation"){
   const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(token));
   const tokenHash=Array.from(new Uint8Array(digest)).map((b)=>b.toString(16).padStart(2,"0")).join("");
   const {data:invitation,error:invitationError}=await admin.from("online_class_student_invitations")
-    .select("id,class_id,email,full_name,invited_by,expires_at,status")
+    .select("id,class_id,email,full_name,invited_by,expires_at,status,accepted_by")
     .eq("token_hash",tokenHash).maybeSingle();
   if(invitationError)throw invitationError;
   if(!invitation||invitation.email.toLowerCase()!==(user.email||"").toLowerCase())return json({error:"This invitation does not belong to the signed-in email address."},403);
-  if(invitation.status==="accepted")return json({ok:true,already_activated:true});
+  if(invitation.status==="accepted"){if(invitation.accepted_by!==user.id)return json({error:"This invitation has already been redeemed by another account."},409);return json({ok:true,already_activated:true});}
   if(invitation.status!=="pending"||new Date(invitation.expires_at).getTime()<Date.now())return json({error:"This invitation has expired or has already been cancelled. Ask your teacher to send a new one."},410);
   const {data:existingProfile,error:existingProfileError}=await admin.from("profiles").select("role").eq("id",user.id).maybeSingle();
   if(existingProfileError)throw existingProfileError;
   if(existingProfile&&["admin","teacher"].includes(existingProfile.role||""))return json({error:"This account already has a different portal role. Contact MalawiHub support."},409);
-  const {error:profileUpsertError}=await admin.from("profiles").upsert({
-    id:user.id,email:user.email,role:"student",full_name:invitation.full_name
-  },{onConflict:"id"});
-  if(profileUpsertError)throw profileUpsertError;
+  if(existingProfile){
+    // Preserve the account's primary role; student membership is represented
+    // independently by user_area_roles and class enrolments.
+    const {error:profileUpdateError}=await admin.from("profiles").update({
+      email:user.email,full_name:invitation.full_name
+    }).eq("id",user.id);
+    if(profileUpdateError)throw profileUpdateError;
+  }else{
+    const {error:profileInsertError}=await admin.from("profiles").insert({
+      id:user.id,email:user.email,role:"student",full_name:invitation.full_name
+    });
+    if(profileInsertError&&profileInsertError.code!=="23505")throw profileInsertError;
+  }
   const {error:areaUpsertError}=await admin.from("user_area_roles").upsert({
     user_id:user.id,area:"student",display_name:invitation.full_name
   },{onConflict:"user_id,area"});
