@@ -26,6 +26,14 @@ This branch introduces the first security and enrolment foundation without chang
 
 New students without an existing MalawiHub student account cannot be added through this first slice. Do not re-enable the old direct account creation action to work around this limitation. The next step is a verified invitation/activation workflow that does not reset an existing user's password.
 
+## Live database inspection and migration drift
+
+A read-only inspection of the connected Supabase project on 27 November 2026 confirmed that the live schema contains the required classroom tables and columns used by this migration. The live enrollment table also has the unique constraint on `(class_id, student_id)` required by the enrolment upsert.
+
+The live database has applied migration records named `allow_teacher_area_roles_online_classes` and `allow_teacher_area_roles_classroom_file_uploads` that are not present as files in the inspected GitHub `main` tree. The deployed policy names also differ from some names in the repository migrations. This migration therefore drops the additional live policy names observed during the audit, including `class notes select by class membership` and `class members can view enrollments`.
+
+**Do not deploy from this branch until migration-history drift is reconciled.** Compare the full live `supabase_migrations.schema_migrations` list with the repository migration directory and restore/record missing migration files or otherwise resolve the drift through a reviewed process. Do not mark missing migrations as applied by guessing their contents.
+
 ## Database migration
 
 Apply `supabase/migrations/202611270001_secure_teacher_controlled_class_enrollment.sql` only to a staging Supabase project first.
