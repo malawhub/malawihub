@@ -84,7 +84,10 @@ begin
   v_is_admin := v_actor_role = 'admin' or public.is_online_class_admin();
 
   if not v_is_admin then
-    if v_actor_role <> 'teacher' then
+    if v_actor_role <> 'teacher' and not exists (
+      select 1 from public.user_area_roles r
+      where r.user_id = v_actor and r.area = 'teacher'
+    ) then
       raise exception 'Teacher access required';
     end if;
     if not v_can_register then
@@ -181,7 +184,10 @@ begin
   v_is_admin := v_actor_role = 'admin' or public.is_online_class_admin();
 
   if not v_is_admin then
-    if v_actor_role <> 'teacher' then
+    if v_actor_role <> 'teacher' and not exists (
+      select 1 from public.user_area_roles r
+      where r.user_id = v_actor and r.area = 'teacher'
+    ) then
       raise exception 'Teacher access required';
     end if;
     if not v_can_register then
@@ -284,7 +290,10 @@ begin
   v_is_admin := v_actor_role = 'admin' or public.is_online_class_admin();
 
   if not v_is_admin then
-    if v_actor_role <> 'teacher' then
+    if v_actor_role <> 'teacher' and not exists (
+      select 1 from public.user_area_roles r
+      where r.user_id = v_actor and r.area = 'teacher'
+    ) then
       raise exception 'Teacher access required';
     end if;
     if not v_can_register then
@@ -440,7 +449,10 @@ create policy "class members and owners read online classes"
     or exists (select 1 from public.profiles p where p.id = auth.uid() and p.role = 'admin')
     or (
       teacher_id = auth.uid()
-      and exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('teacher', 'admin'))
+      and (
+          exists (select 1 from public.profiles p where p.id = auth.uid() and p.role in ('teacher', 'admin'))
+          or exists (select 1 from public.user_area_roles r where r.user_id = auth.uid() and r.area = 'teacher')
+        )
     )
     or exists (
       select 1 from public.online_class_enrollments e
