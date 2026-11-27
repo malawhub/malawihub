@@ -142,7 +142,7 @@ begin
     )
   limit 1;
 end;
-$;
+$$;;
 
 revoke all on function public.teacher_find_student(uuid, text) from public, anon;
 grant execute on function public.teacher_find_student(uuid, text) to authenticated;
