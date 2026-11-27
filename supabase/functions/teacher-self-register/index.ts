@@ -37,13 +37,16 @@ Deno.serve(async (req) => {
     if (!email || !email.includes("@")) return json({ error: "Enter a valid teacher email." }, 400);
     if (name.length < 2) return json({ error: "Enter your full name." }, 400);
 
-    const { data: existingUsers, error: listError } =
-      await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
-    if (listError) throw listError;
-
-    const existing = (existingUsers.users || []).find(
-      (u) => (u.email || "").toLowerCase() === email
-    );
+    let existing: any = null;
+    for (let page = 1; page <= 10; page++) {
+      const { data: usersPage, error: listError } =
+        await admin.auth.admin.listUsers({ page, perPage: 1000 });
+      if (listError) throw listError;
+      existing = (usersPage.users || []).find(
+        (u) => (u.email || "").toLowerCase() === email
+      ) || null;
+      if (existing || (usersPage.users || []).length < 1000) break;
+    }
 
     if (existing) {
       // Existing identities must prove ownership before teacher access is added.
