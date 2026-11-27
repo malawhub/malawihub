@@ -161,9 +161,33 @@ if(action==="invite_student"){
   const {data:existingProfile,error:profileLookupError}=await admin.from("profiles").select("id,role").eq("email",email).maybeSingle();
   if(profileLookupError)throw profileLookupError;
   if(existingProfile)return json({error:"A MalawiHub account already uses this email. Use Add Existing Student instead."},409);
-  const {data:authUsers,error:authUsersError}=await admin.auth.admin.listUsers({page:1,perPage:1000});
-  if(authUsersError)throw authUsersError;
-  if((authUsers.users||[]).some((u:any)=>(u.email||"").toLowerCase()===email))return json({error:"An account already exists for this email. Ask the student to use their existing login, then add them to the class."},409);
+  const {data:previousInvite,error:previousInviteError}=await admin.from("online_class_student_invitations")
+    .select("id,status,expires_at").eq("class_id",classId).eq("email",email)
+    .order("created_at",{ascending:false}).limit(1).maybeSingle();
+  if(previousInviteError)throw previousInviteError;
+  let matchingAuthUser:any=null;
+  for(let page=1;page<=10;page++){
+    const {data:authPage,error:authPageError}=await admin.auth.admin.listUsers({page,perPage:1000});
+    if(authPageError)throw authPageError;
+    matchingAuthUser=(authPage.users||[]).find((u:any)=>(u.email||"").toLowerCase()===email)||null;
+    if(matchingAuthUser||(authPage.users||[]).length<1000)break;
+  }
+  if(matchingAuthUser){
+    const metadata=matchingAuthUser.user_metadata||{};
+    const belongsToThisInvite=!!previousInvite&&metadata.invitation_id===previousInvite.id;
+    if(!belongsToThisInvite||matchingAuthUser.email_confirmed_at){
+      return json({error:"A MalawiHub account already exists for this email. Add the verified student account directly. If the student already verified an invitation but did not finish activation, contact MalawiHub support."},409);
+    }
+    // Safe recovery: delete only an unverified Auth identity that carries the
+    // exact invitation ID stored for this same class/email. Never delete an
+    // unrelated or already-verified account.
+    const {error:deleteIdentityError}=await admin.auth.admin.deleteUser(matchingAuthUser.id);
+    if(deleteIdentityError)throw deleteIdentityError;
+    if(previousInvite){
+      const {error:deleteInviteError}=await admin.from("online_class_student_invitations").delete().eq("id",previousInvite.id);
+      if(deleteInviteError)throw deleteInviteError;
+    }
+  }
   const raw=new Uint8Array(32);crypto.getRandomValues(raw);
   const token=Array.from(raw).map((b)=>b.toString(16).padStart(2,"0")).join("");
   const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(token));
