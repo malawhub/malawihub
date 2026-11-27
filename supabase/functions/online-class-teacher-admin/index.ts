@@ -181,6 +181,7 @@ if(action==="invite_student"){
     redirectTo
   });
   if(inviteError||!invited.user){
+    if(invited?.user?.id)await admin.auth.admin.deleteUser(invited.user.id);
     await admin.from("online_class_student_invitations").delete().eq("id",invitation.id);
     return json({error:inviteError?.message||"Could not send the student invitation email."},400);
   }
