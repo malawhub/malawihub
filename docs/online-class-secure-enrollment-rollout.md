@@ -81,7 +81,7 @@ The read-only Supabase Security Advisor check also reported pre-existing warning
 - [ ] An unverified account cannot redeem the invitation.
 - [ ] The correct verified email can set a password and activate student access.
 - [ ] The student role, student area and class membership are created only after successful redemption.
-- [ ] A token cannot be reused for a second activation and an expired token is rejected.\n- [ ] Reissuing an invitation replaces only the exact unverified Auth user ID recorded on the prior invitation for that same class/email.\n- [ ] The Auth confirmation link expiry and the application invitation-token expiry are tested separately (default Auth email link expiry is 1 hour; app token expiry is 7 days).\n- [ ] Reissuing an invitation never deletes a verified account or an account not linked to that invitation.
+- [ ] A token cannot be reused for a second activation and an expired token is rejected.\n- [ ] Reissuing an invitation replaces only the exact unverified Auth user ID recorded on the prior invitation for that same class/email.\n- [ ] The Auth confirmation link expiry and the application invitation-token expiry are tested separately (default Auth email link expiry is 1 hour; app token expiry is 7 days).\n- [ ] Reissuing an invitation never deletes a verified account or an account not linked to that invitation.\n- [ ] Only one pending invitation can exist for a given class/email pair.\n- [ ] Concurrent redemption attempts cannot mark an invitation accepted for a different account.
 - [ ] The student can subsequently sign in through Student Login.
 
 ### Membership removal and records
