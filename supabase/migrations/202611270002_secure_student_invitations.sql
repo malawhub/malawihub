@@ -29,6 +29,7 @@ create index if not exists online_class_student_invitations_pending_expiry_idx
 
 alter table public.online_class_student_invitations enable row level security;
 revoke all on public.online_class_student_invitations from public, anon, authenticated;
+grant all on public.online_class_student_invitations to service_role;
 
 comment on table public.online_class_student_invitations is
   'Private invitation ledger. Access is through the authenticated online-class-teacher-admin Edge Function only.';
