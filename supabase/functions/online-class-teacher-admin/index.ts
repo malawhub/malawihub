@@ -5,9 +5,27 @@ const json=(body:unknown,status=200)=>new Response(JSON.stringify(body),{status,
 Deno.serve(async(req)=>{if(req.method==="OPTIONS")return new Response("ok",{headers:cors});try{const url=Deno.env.get("SUPABASE_URL"),key=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");if(!url||!key)return json({error:"Server configuration is missing"},500);const admin=createClient(url,key);const token=(req.headers.get("Authorization")||"").replace(/^Bearer\s+/i,"").trim();if(!token)return json({error:"Unauthorized"},401);const {data:{user},error:ue}=await admin.auth.getUser(token);if(ue||!user)return json({error:"Invalid session"},401);const {data:profile,error:pe}=await admin.from("profiles").select("role,can_register_students").eq("id",user.id).maybeSingle();if(pe)throw pe;
 const {data:teacherArea,error:teacherAreaError}=await admin.from("user_area_roles").select("area").eq("user_id",user.id).eq("area","teacher").maybeSingle();if(teacherAreaError)throw teacherAreaError;
 const body=await req.json().catch(()=>({}));const action=body.action||"list";const isAdmin=profile?.role==="admin",isTeacher=teacherArea?.area==="teacher"||profile?.role==="teacher",isStudent=profile?.role==="student";if(!isAdmin&&!isTeacher&&!isStudent)return json({error:"Teacher, student or administrator access required"},403);
+if(action==="create_class"){
+  if(!isAdmin&&!isTeacher)return json({error:"Teacher access required"},403);
+  const title=String(body.title||"").trim();
+  const subject=String(body.subject||"").trim();
+  const joinCode=String(body.join_code||"").trim().toUpperCase().replace(/[^A-Z0-9_-]/g,"").slice(0,32);
+  const duration=Math.min(240,Math.max(5,Number(body.duration_minutes)||60));
+  if(!title)return json({error:"Class title is required."},400);
+  if(joinCode.length<5)return json({error:"A valid class code is required."},400);
+  const {data:created,error:ce}=await admin.from("online_classes").insert({
+    title,subject,join_code:joinCode,teacher_id:user.id,duration_minutes:duration,
+    starts_at:new Date().toISOString(),status:"live"
+  }).select("id,join_code,title,subject,teacher_id,duration_minutes,starts_at,status,created_at").single();
+  if(ce){
+    if(ce.code==="23505")return json({error:"That class code is already in use. Generate another code."},409);
+    throw ce;
+  }
+  return json({ok:true,class:created});
+}
 if(action==="list_classes"){if(!isAdmin)return json({error:"Administrator access required"},403);const {data,error}=await admin.from("online_classes").select("id,join_code,title,subject,teacher_id,duration_minutes,starts_at,status,created_at").order("created_at",{ascending:false});if(error)throw error;return json({classes:data||[]});}
 if(action==="start_class"){if(!isAdmin)return json({error:"Administrator access required"},403);const classId=String(body.class_id||"");const duration=Math.min(240,Math.max(5,Number(body.duration_minutes)||60));if(!classId)return json({error:"Class ID is required."},400);const startsAt=new Date().toISOString();const {data,error}=await admin.from("online_classes").update({duration_minutes:duration,status:"live",starts_at:startsAt}).eq("id",classId).select("id,join_code,title,subject,teacher_id,duration_minutes,starts_at,status").maybeSingle();if(error)throw error;if(!data)return json({error:"Class not found."},404);return json({ok:true,class:data});}
-if(action==="end_class"){if(!isAdmin)return json({error:"Administrator access required"},403);const classId=String(body.class_id||"");if(!classId)return json({error:"Class ID is required."},400);const {data,error}=await admin.from("online_classes").update({status:"ended"}).eq("id",classId).select("id,join_code,title,subject,teacher_id,duration_minutes,starts_at,status").maybeSingle();if(error)throw error;if(!data)return json({error:"Class not found."},404);return json({ok:true,class:data});}
+if(action==="end_class"){const classId=String(body.class_id||"");if(!classId)return json({error:"Class ID is required."},400);if(!isAdmin){if(!isTeacher)return json({error:"Teacher access required"},403);const {data:owned,error:oe}=await admin.from("online_classes").select("id").eq("id",classId).eq("teacher_id",user.id).maybeSingle();if(oe)throw oe;if(!owned)return json({error:"You can only end your own classes."},403);}const {data,error}=await admin.from("online_classes").update({status:"ended"}).eq("id",classId).select("id,join_code,title,subject,teacher_id,duration_minutes,starts_at,status").maybeSingle();if(error)throw error;if(!data)return json({error:"Class not found."},404);return json({ok:true,class:data});}
 if(action==="list"){if(!isAdmin)return json({error:"Administrator access required"},403);const {data,error}=await admin.from("profiles").select("id,email,username,role,full_name,can_register_students,created_at").eq("role","teacher").order("created_at",{ascending:false});if(error)throw error;return json({teachers:data||[]});}
 if(action==="unregister_self"){
   if(!isTeacher&&!isStudent&&!isAdmin)return json({error:"Only teacher or student accounts can unregister here."},403);
@@ -64,4 +82,5 @@ if(action==="register_teacher"){if(!isAdmin)return json({error:"Administrator ac
 if(action==="set_student_registration"){if(!isAdmin)return json({error:"Administrator access required"},403);const teacherId=String(body.teacher_id||"");if(!teacherId)return json({error:"Teacher ID is required."},400);const {error}=await admin.from("profiles").update({can_register_students:Boolean(body.allowed)}).eq("id",teacherId).eq("role","teacher");if(error)throw error;return json({ok:true});}
 if(action==="remove"){if(!isAdmin)return json({error:"Administrator access required"},403);const teacherId=String(body.teacher_id||"");if(!teacherId)return json({error:"Teacher ID is required."},400);await admin.from("online_classes").update({teacher_id:null}).eq("teacher_id",teacherId);const {error:profileDeleteError}=await admin.from("profiles").delete().eq("id",teacherId).eq("role","teacher");if(profileDeleteError)throw profileDeleteError;const {error:deleteError}=await admin.auth.admin.deleteUser(teacherId);if(deleteError)throw deleteError;return json({ok:true});}
 if(action==="register_student"){return json({error:"Direct student account creation is disabled. Add an existing student from the class management page. New-student invitations will use a verified activation process."},410);}
+if(action==="delete_class"){return json({error:"Permanent class deletion is disabled to protect attendance, submissions and learning records. End the class instead."},410);}
 return json({error:"Unknown action"},400);}catch(e){console.error("online-class-teacher-admin",e);return json({error:e instanceof Error?e.message:"Server error"},500)}});
