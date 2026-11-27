@@ -45,10 +45,13 @@
   };
   const folderParts = parts.slice(0, Math.max(0, parts.length - 1));
   let prefix = '';
+  const noIndexFolders = new Set(['topics', 'subjects', 'coordination-chemistry', 'jc', 'msce']);
   folderParts.forEach((part) => {
     prefix += part + '/';
     addText('›', 'mh-sep');
-    addLink(labels[part] || part.replace(/[-_]/g, ' ').replace(/\b\w/g, c => c.toUpperCase()), root + prefix);
+    const label = labels[part] || part.replace(/[-_]/g, ' ').replace(/\\b\\w/g, c => c.toUpperCase());
+    if (noIndexFolders.has(part)) addText(label, 'mh-current');
+    else addLink(label, root + prefix);
   });
   addText('›', 'mh-sep');
   let current = document.title.replace(/\s*[|—-]\s*MalawiHub.*$/i, '').trim();
