@@ -43,7 +43,7 @@
     'organic-chemistry': 'Organic Chemistry', business: 'Business & Economics',
     curriculum: 'Curriculum'
   };
-  const folderParts = parts.slice(0, Math.max(0, parts.length - (relative.endsWith('.html') ? 1 : 0)));
+  const folderParts = parts.slice(0, Math.max(0, parts.length - 1));
   let prefix = '';
   folderParts.forEach((part) => {
     prefix += part + '/';
