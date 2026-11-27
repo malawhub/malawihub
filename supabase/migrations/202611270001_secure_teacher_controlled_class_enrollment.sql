@@ -472,6 +472,7 @@ create policy "class members and owners read online classes"
 drop policy if exists "class notes readable" on public.class_notes;
 drop policy if exists "Authenticated users can read class notes" on public.class_notes;
 drop policy if exists "Students enrolled, teachers own, admins read notes" on public.class_notes;
+drop policy if exists "class notes select by class membership" on public.class_notes;
 create policy "class members and owners read class notes"
   on public.class_notes for select to authenticated
   using (
@@ -492,6 +493,7 @@ create policy "class members and owners read class notes"
 drop policy if exists "class video resources are readable" on public.class_video_resources;
 drop policy if exists "Authenticated users can view class video resources" on public.class_video_resources;
 drop policy if exists "Students enrolled, teachers own, admins read video resources" on public.class_video_resources;
+drop policy if exists "class video resources select by class membership" on public.class_video_resources;
 create policy "class members and owners read video resources"
   on public.class_video_resources for select to authenticated
   using (
@@ -514,6 +516,7 @@ create policy "class members and owners read video resources"
 drop policy if exists "students view own enrollments" on public.online_class_enrollments;
 drop policy if exists "teachers view class enrollments" on public.online_class_enrollments;
 drop policy if exists "class admins view enrollments" on public.online_class_enrollments;
+drop policy if exists "class members can view enrollments" on public.online_class_enrollments;
 create policy "students teachers and admins read enrolments"
   on public.online_class_enrollments for select to authenticated
   using (
