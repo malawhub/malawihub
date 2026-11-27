@@ -35,7 +35,6 @@ Deno.serve(async (req) => {
     const name = String(body.name || "").trim();
 
     if (!email || !email.includes("@")) return json({ error: "Enter a valid teacher email." }, 400);
-    if (password.length < 8) return json({ error: "Teacher password must be at least 8 characters." }, 400);
     if (name.length < 2) return json({ error: "Enter your full name." }, 400);
 
     const { data: existingUsers, error: listError } =
