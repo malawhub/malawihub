@@ -20,7 +20,7 @@ This branch introduces the first security and enrolment foundation without chang
 
 ## Intentionally not included yet
 
-- A teacher self-service resend button for teacher registration confirmation emails; an unverified teacher can retry registration using the same email, and Supabase's signup resend path is not yet surfaced in the UI.
+- Existing legacy teacher accounts that were created with email confirmation bypassed need a separate account-review process; new registrations now require confirmation.
 - XLSX parsing; export an Excel roster to CSV for this first iteration.
 - Bulk-import transaction batching and background processing.
 - Teacher registration now uses Supabase sign-up email confirmation. The server-side `teacher-self-register` function no longer creates confirmed identities and refuses to grant teacher access unless the authenticated email is verified. Existing legacy accounts still require separate verification/resend handling.
@@ -104,7 +104,7 @@ The read-only Supabase Security Advisor check also reported pre-existing warning
 - [ ] Teacher dashboard opens Manage Students for an owned class.
 - [ ] Manual student lookup and enrolment refresh the roster.
 - [ ] New-student invitation action is disabled for teachers without registration permission.
-- [ ] Student activation page requires a verified invitation session and a matching email.\n- [ ] New teacher sign-up sends a confirmation email and does not grant a teacher role before verification.\n- [ ] An unverified existing account cannot obtain teacher-area access through the Edge Function.\n- [ ] A verified new teacher can activate teacher-area access and reach the Teacher Dashboard.
+- [ ] Student activation page requires a verified invitation session and a matching email.\n- [ ] New teacher sign-up sends a confirmation email and does not grant a teacher role before verification.\n- [ ] An unverified existing account cannot obtain teacher-area access through the Edge Function.\n- [ ] Retrying registration for an existing unverified email requests a fresh signup confirmation email.\n- [ ] A verified existing MalawiHub user can add teacher-area access without changing their password.\n- [ ] A verified new teacher can activate teacher-area access and reach the Teacher Dashboard.
 - [ ] CSV import handles duplicates, invalid rows and the 50-row limit.
 - [ ] Class creation works for an authorised teacher.
 - [ ] End Class updates status without deleting class records.
