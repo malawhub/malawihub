@@ -45,6 +45,29 @@ create policy "teachers manage notes" on public.class_notes for all to authentic
 alter table public.online_classes replica identity full;
 alter table public.class_notes replica identity full;
 
-insert into supabase_realtime.publication_tables (publication, table_name)
-values ('supabase_realtime', 'online_classes'), ('supabase_realtime', 'class_notes')
-on conflict do nothing;
+-- Add classroom tables to Realtime using PostgreSQL's publication API.
+-- The internal supabase_realtime.publication_tables relation is not present
+-- in every supported local/hosted Supabase database version.
+do $
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'online_classes'
+  ) then
+    alter publication supabase_realtime add table public.online_classes;
+  end if;
+
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'class_notes'
+  ) then
+    alter publication supabase_realtime add table public.class_notes;
+  end if;
+end
+$;
