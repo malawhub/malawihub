@@ -193,7 +193,7 @@ if(action==="redeem_student_invitation"){
   const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(token));
   const tokenHash=Array.from(new Uint8Array(digest)).map((b)=>b.toString(16).padStart(2,"0")).join("");
   const {data:invitation,error:invitationError}=await admin.from("online_class_student_invitations")
-    .select("id,class_id,email,full_name,expires_at,status")
+    .select("id,class_id,email,full_name,invited_by,expires_at,status")
     .eq("token_hash",tokenHash).maybeSingle();
   if(invitationError)throw invitationError;
   if(!invitation||invitation.email.toLowerCase()!==(user.email||"").toLowerCase())return json({error:"This invitation does not belong to the signed-in email address."},403);
