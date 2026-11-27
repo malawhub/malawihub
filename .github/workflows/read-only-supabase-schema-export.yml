@@ -38,7 +38,7 @@ jobs:
           MALAWIHUB_DB_URL: ${{ secrets.MALAWIHUB_DB_URL }}
         run: |
           set +x
-          supabase db dump --db-url "$MALAWIHUB_DB_URL" --schema public --file public-schema.sql
+          supabase db dump --remote="$MALAWIHUB_DB_URL" --schema public --file public-schema.sql
           test -s public-schema.sql
           echo "Schema-only export created."
 
