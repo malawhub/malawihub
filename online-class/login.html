@@ -65,7 +65,8 @@ $('loginForm').addEventListener('submit',async event=>{
   // Student access must already have been provisioned by an authorised
   // MalawiHub workflow. Never let a login page create its own student role.
   if(profileResult.data?.role!=='student'&&!areaResult.data?.area){
-   showMsg('Your account is signed in, but it has not been authorised for Student Portal access. Ask your teacher or MalawiHub support to arrange student access.','error');
+   await supabaseClient.auth.signOut();
+   showMsg('This account has not been authorised for Student Portal access. Ask your teacher or MalawiHub support to arrange student access.','error');
    return;
   }
 
