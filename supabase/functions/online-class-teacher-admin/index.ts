@@ -176,6 +176,11 @@ if(action==="invite_student"){
     }
     // Safe recovery: delete only the exact unverified Auth identity recorded
     // on this invitation. Never delete a verified or unrelated account.
+    const {error:deleteAreaRoleError}=await admin.from("user_area_roles").delete()
+      .eq("user_id",matchingAuthUser.id).eq("area","student");
+    if(deleteAreaRoleError)throw deleteAreaRoleError;
+    const {error:deleteProfileError}=await admin.from("profiles").delete().eq("id",matchingAuthUser.id);
+    if(deleteProfileError)throw deleteProfileError;
     const {error:deleteIdentityError}=await admin.auth.admin.deleteUser(matchingAuthUser.id);
     if(deleteIdentityError)throw deleteIdentityError;
     if(previousInvite){
