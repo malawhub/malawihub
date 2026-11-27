@@ -38,7 +38,7 @@ The live database has applied migration records named `allow_teacher_area_roles_
 
 Apply `supabase/migrations/202611270001_secure_teacher_controlled_class_enrollment.sql` only to a staging Supabase project first.
 
-The migration is additive. It adds membership status and audit fields, replaces the class-code enrolment behaviour, adds a private atomic audit trigger and replaces known permissive read policies. Teacher lookup and membership changes are validated in the authenticated Edge Function rather than exposed as new public SECURITY DEFINER RPCs. Existing membership rows default to `active`.
+The migration is additive. It adds membership status and audit fields, a private atomic audit trigger and private RLS helper functions, replaces the class-code enrolment behaviour and replaces known permissive read policies. Teacher lookup and membership changes are validated in the authenticated Edge Function rather than exposed as new public SECURITY DEFINER RPCs. The private helpers are used by RLS policies to avoid recursive policy lookups; the class-entry and realtime helper functions run as SECURITY INVOKER. Existing membership rows default to `active`.
 
 Before applying to production:
 1. Confirm the deployed database contains `online_classes`, `online_class_enrollments`, `profiles`, `user_area_roles` and `class_video_resources`.
